@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="AmvExoVideoPlayer">
+        <attr name="playOnTouch" format="boolean" />
+        <attr name="showControlBar" format="boolean"/>
+        <attr name="fitParent" format="boolean"/>
+    </declare-styleable>
+    <declare-styleable name="AmvSlider">
+        <!-- 動作モード: true: トリミング用 / false: 通常のスライダー-->
+        <attr name="trimmingMode" format="boolean" />
+        <!-- レールを端から端まで引っ張るモード・・・trimmingMode=false の場合のみ有効：デフォルトは on -->
+        <attr name="endToEndRail" format="boolean" />
+
+        <!-- Drawables -->
+        <attr name="thumb" format="integer" />           <!-- 再生位置操作用 -->
+        <attr name="startThumb" format="integer" />      <!-- トリミング（左） -->
+        <attr name="endThumb" format="integer" />        <!-- トリミング（右） -->
+
+        <attr name="thumbBg" format="integer" />           <!-- 再生位置ノブの後ろに描画する背景 -->
+        <attr name="thumbLine" format="integer" />         <!-- Trimming時に表示する線 -->
+        <attr name="showThumbBg" format="boolean" />       <!-- ↑を表示するか (default:false) -->
+
+        <!-- レールの色 -->
+        <attr name="railColor" format="integer" />           <!-- 再生位置の右側 -->
+        <attr name="railLeftColor" format="integer" />       <!-- 再生位置の左側 -->
+        <attr name="railNoSelColor" format="integer" />      <!-- 再生範囲外：トリミングモードのときのみ-->
+
+        <!-- レールの高さ -->
+        <attr name="railHeight" format="dimension" />        <!-- 再生位置の右側 -->
+        <attr name="railLeftHeight" format="dimension" />    <!-- 再生位置の左側 -->
+        <attr name="railNoSelHeight" format="dimension" />   <!-- 再生範囲外：トリミングモードのときのみ-->
+
+        <!-- パーツの縦方向位置 -->
+        <attr name="thumbOffset" format="dimension" />       <!-- 再生ノブ（デフォルト：0）-->
+        <attr name="railOffset" format="dimension" />        <!-- レール（デフォルト：再生ノブの下端合わせ...thumbOffset+thumb.intrinsicHeight）-->
+        <attr name="trimmerOffset" format="dimension" />     <!-- トリミングノブ（デフォルト：レールの下端合わせ...railOffset+max(rail.?Height) -->
+
+        <attr name="valueRange" format="integer" />
+        <attr name="saveFromParent" format="boolean" />
+
+        <!-- 背景色 -->
+        <attr name="upperRailColor" format="integer" />      <!-- レールの上側の色 -->
+        <attr name="lowerRailColor" format="integer" />      <!-- レールの下側の色 -->
+        <attr name="behindRailColor" format="integer" />     <!-- レールの後ろ-->
+
+    </declare-styleable>
+</resources>

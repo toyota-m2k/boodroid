@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/dev/android/boodroid/app/src/main/res/layout/activity_main.xml" value="0.17291666666666666" />
+        <entry key="..\:/dev/android/boodroid/video/src/main/res/drawable/ic_next.xml" value="0.1705" />
+        <entry key="..\:/dev/android/boodroid/video/src/main/res/layout/control_panel.xml" value="0.17291666666666666" />
+        <entry key="..\:/dev/android/boodroid/video/src/main/res/layout/v2_video_exo_player.xml" value="0.67" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>

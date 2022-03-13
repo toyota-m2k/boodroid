@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom"
+    android:layoutDirection="ltr"
+    android:background="@color/player_controller_bg"
+    >
+    <LinearLayout
+        android:id="@+id/control_buttons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingTop="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/slider_panel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        >
+        <ImageButton
+            style="@style/ButtonOnBlackWithRipple"
+            android:id="@+id/mic_ctr_exo_prev"
+            android:layout_width="@dimen/media_button_width"
+            android:layout_height="@dimen/media_button_height"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:srcCompat="@drawable/ic_prev"
+            app:tint="@color/player_controller_fg" />
+
+        <ImageButton
+            style="@style/ButtonOnBlackWithRipple"
+            android:id="@+id/mic_ctr_exo_prev_chapter"
+            android:layout_width="@dimen/media_button_width"
+            android:layout_height="@dimen/media_button_height"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:srcCompat="@drawable/ic_prev_chapter"
+            app:tint="@color/player_controller_fg" />
+
+        <ImageButton
+            style="@style/ButtonOnBlackWithRipple"
+            android:id="@+id/mic_ctr_exo_prev_seek"
+            android:layout_width="@dimen/media_button_width"
+            android:layout_height="@dimen/media_button_height"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:srcCompat="@drawable/ic_seek_prev"
+            app:tint="@color/player_controller_fg" />
+
+        <ImageButton
+            style="@style/ButtonOnBlackWithRipple"
+            android:id="@id/exo_play"
+            android:layout_width="@dimen/media_button_width"
+            android:layout_height="@dimen/media_button_height"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:srcCompat="@drawable/ic_play"
+            app:tint="@color/player_controller_fg" />
+
+        <ImageButton
+            style="@style/ButtonOnBlackWithRipple"
+            android:id="@id/exo_pause"
+            android:layout_width="@dimen/media_button_width"
+            android:layout_height="@dimen/media_button_height"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:srcCompat="@drawable/ic_pause"
+            app:tint="@color/player_controller_fg" />
+
+        <ImageButton
+            style="@style/ButtonOnBlackWithRipple"
+            android:id="@+id/mic_ctr_exo_next_seek"
+            android:layout_width="@dimen/media_button_width"
+            android:layout_height="@dimen/media_button_height"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:srcCompat="@drawable/ic_seek_next"
+            app:tint="@color/player_controller_fg" />
+
+        <ImageButton
+            style="@style/ButtonOnBlackWithRipple"
+            android:id="@+id/mic_ctr_exo_next_chapter"
+            android:layout_width="@dimen/media_button_width"
+            android:layout_height="@dimen/media_button_height"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:srcCompat="@drawable/ic_next_chapter"
+            app:tint="@color/player_controller_fg" />
+
+        <ImageButton
+            style="@style/ButtonOnBlackWithRipple"
+            android:id="@+id/mic_ctr_exo_next"
+            android:layout_width="@dimen/media_button_width"
+            android:layout_height="@dimen/media_button_height"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:srcCompat="@drawable/ic_next"
+            app:tint="@color/player_controller_fg" />
+
+        <ImageButton
+            style="@style/ButtonOnBlackWithRipple"
+            android:id="@+id/mic_ctr_pinp_button"
+            android:layout_width="@dimen/media_button_width"
+            android:layout_height="@dimen/media_button_height"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:srcCompat="@drawable/ic_pinp"
+            app:tint="@color/player_controller_fg" />
+
+        <ImageButton
+            style="@style/ButtonOnBlackWithRipple"
+            android:id="@+id/mic_ctr_full_button"
+            android:layout_width="@dimen/media_button_width"
+            android:layout_height="@dimen/media_button_height"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:srcCompat="@drawable/ic_fullscreen"
+            app:tint="@color/player_controller_fg" />
+
+        <ImageButton
+            style="@style/ButtonOnBlackWithRipple"
+            android:id="@+id/mic_ctr_close_button"
+            android:layout_width="@dimen/media_button_width"
+            android:layout_height="@dimen/media_button_height"
+            android:visibility="gone"
+            tools:visibility="visible"
+            app:srcCompat="@drawable/ic_close"
+            app:tint="@color/player_controller_fg" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/slider_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/control_buttons"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:orientation="horizontal"
+        android:layout_marginBottom="30dp"
+        >
+        <TextView
+            android:id="@+id/counter_label"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:fontFamily="monospace"
+            android:textColor="@color/white"
+            tools:text="00:00"
+            />
+        <com.google.android.material.slider.Slider
+            android:id="@+id/slider"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            app:labelBehavior="gone"
+            />
+        <TextView
+            android:id="@+id/duration_label"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:fontFamily="monospace"
+            android:textColor="@color/white"
+            tools:text="99:99"
+            />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

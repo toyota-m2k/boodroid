@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        ripple effect の色を変えるハック
+        https://stackoverflow.com/questions/33061050/how-can-i-modify-ripple-color-when-using-attr-selectableitembackground-as-backg
+        円形rippleを使う
+        https://qiita.com/kaleidot725/items/52b44eaea16b8351c09e
+    -->
+    <style name="RippleOnBackgroundTheme">
+        <item name="colorControlHighlight">@color/teal_200</item>
+    </style>
+
+    <style name="ButtonOnBlackWithRipple">
+        <item name="android:theme">@style/RippleOnBackgroundTheme</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+    </style>
+</resources>
