@@ -5,130 +5,119 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_gravity="bottom"
-    android:layoutDirection="ltr"
     android:background="@color/player_controller_bg"
     >
     <LinearLayout
         android:id="@+id/control_buttons"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:paddingTop="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/slider_panel"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         >
         <ImageButton
             style="@style/ButtonOnBlackWithRipple"
-            android:id="@+id/mic_ctr_exo_prev"
+            android:id="@+id/prev_video_button"
             android:layout_width="@dimen/media_button_width"
             android:layout_height="@dimen/media_button_height"
-            android:visibility="gone"
-            tools:visibility="visible"
             app:srcCompat="@drawable/ic_prev"
-            app:tint="@color/player_controller_fg" />
+            app:tint="@color/player_controller_fg"
+            android:contentDescription="@string/desc_prev_video" />
 
         <ImageButton
             style="@style/ButtonOnBlackWithRipple"
-            android:id="@+id/mic_ctr_exo_prev_chapter"
+            android:id="@+id/prev_chapter_button"
             android:layout_width="@dimen/media_button_width"
             android:layout_height="@dimen/media_button_height"
-            android:visibility="gone"
-            tools:visibility="visible"
             app:srcCompat="@drawable/ic_prev_chapter"
-            app:tint="@color/player_controller_fg" />
+            app:tint="@color/player_controller_fg"
+            android:contentDescription="@string/desc_prev_chapter" />
 
         <ImageButton
             style="@style/ButtonOnBlackWithRipple"
-            android:id="@+id/mic_ctr_exo_prev_seek"
+            android:id="@+id/seek_back_button"
             android:layout_width="@dimen/media_button_width"
             android:layout_height="@dimen/media_button_height"
-            android:visibility="gone"
-            tools:visibility="visible"
             app:srcCompat="@drawable/ic_seek_prev"
-            app:tint="@color/player_controller_fg" />
+            app:tint="@color/player_controller_fg"
+            android:contentDescription="@string/desc_seek_back" />
 
         <ImageButton
             style="@style/ButtonOnBlackWithRipple"
-            android:id="@id/exo_play"
+            android:id="@+id/play_button"
             android:layout_width="@dimen/media_button_width"
             android:layout_height="@dimen/media_button_height"
-            android:visibility="gone"
-            tools:visibility="visible"
             app:srcCompat="@drawable/ic_play"
-            app:tint="@color/player_controller_fg" />
+            app:tint="@color/player_controller_fg"
+            android:contentDescription="@string/desc_play" />
 
         <ImageButton
             style="@style/ButtonOnBlackWithRipple"
-            android:id="@id/exo_pause"
+            android:id="@+id/pause_button"
             android:layout_width="@dimen/media_button_width"
             android:layout_height="@dimen/media_button_height"
-            android:visibility="gone"
-            tools:visibility="visible"
             app:srcCompat="@drawable/ic_pause"
-            app:tint="@color/player_controller_fg" />
+            app:tint="@color/player_controller_fg"
+            android:contentDescription="@string/desc_pause" />
 
         <ImageButton
             style="@style/ButtonOnBlackWithRipple"
-            android:id="@+id/mic_ctr_exo_next_seek"
+            android:id="@+id/seek_forward_button"
             android:layout_width="@dimen/media_button_width"
             android:layout_height="@dimen/media_button_height"
-            android:visibility="gone"
-            tools:visibility="visible"
             app:srcCompat="@drawable/ic_seek_next"
-            app:tint="@color/player_controller_fg" />
+            app:tint="@color/player_controller_fg"
+            android:contentDescription="@string/desc_seek_forward" />
 
         <ImageButton
             style="@style/ButtonOnBlackWithRipple"
-            android:id="@+id/mic_ctr_exo_next_chapter"
+            android:id="@+id/next_chapter_button"
             android:layout_width="@dimen/media_button_width"
             android:layout_height="@dimen/media_button_height"
-            android:visibility="gone"
-            tools:visibility="visible"
             app:srcCompat="@drawable/ic_next_chapter"
-            app:tint="@color/player_controller_fg" />
+            app:tint="@color/player_controller_fg"
+            android:contentDescription="@string/desc_next_chapter" />
 
         <ImageButton
             style="@style/ButtonOnBlackWithRipple"
-            android:id="@+id/mic_ctr_exo_next"
+            android:id="@+id/next_video_button"
             android:layout_width="@dimen/media_button_width"
             android:layout_height="@dimen/media_button_height"
-            android:visibility="gone"
-            tools:visibility="visible"
             app:srcCompat="@drawable/ic_next"
-            app:tint="@color/player_controller_fg" />
+            app:tint="@color/player_controller_fg"
+            android:contentDescription="@string/desc_next_video" />
 
         <ImageButton
             style="@style/ButtonOnBlackWithRipple"
-            android:id="@+id/mic_ctr_pinp_button"
+            android:id="@+id/pinp_button"
             android:layout_width="@dimen/media_button_width"
             android:layout_height="@dimen/media_button_height"
-            android:visibility="gone"
-            tools:visibility="visible"
             app:srcCompat="@drawable/ic_pinp"
-            app:tint="@color/player_controller_fg" />
+            app:tint="@color/player_controller_fg"
+            android:contentDescription="@string/desc_pinp" />
 
         <ImageButton
             style="@style/ButtonOnBlackWithRipple"
-            android:id="@+id/mic_ctr_full_button"
+            android:id="@+id/fullscreen_button"
             android:layout_width="@dimen/media_button_width"
             android:layout_height="@dimen/media_button_height"
-            android:visibility="gone"
-            tools:visibility="visible"
             app:srcCompat="@drawable/ic_fullscreen"
-            app:tint="@color/player_controller_fg" />
+            app:tint="@color/player_controller_fg"
+            android:contentDescription="@string/desc_fullscreen" />
 
         <ImageButton
             style="@style/ButtonOnBlackWithRipple"
-            android:id="@+id/mic_ctr_close_button"
+            android:id="@+id/close_button"
             android:layout_width="@dimen/media_button_width"
             android:layout_height="@dimen/media_button_height"
-            android:visibility="gone"
-            tools:visibility="visible"
             app:srcCompat="@drawable/ic_close"
-            app:tint="@color/player_controller_fg" />
-
+            app:tint="@color/player_controller_fg"
+            android:visibility="gone"
+            android:contentDescription="@string/desc_close_button" />
     </LinearLayout>
 
     <LinearLayout
@@ -140,29 +129,43 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         android:orientation="horizontal"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="20dp"
         >
         <TextView
             android:id="@+id/counter_label"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:fontFamily="monospace"
-            android:textColor="@color/white"
+            android:textColor="@color/player_controller_fg"
+            android:layout_gravity="bottom"
             tools:text="00:00"
             />
-        <com.google.android.material.slider.Slider
-            android:id="@+id/slider"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:orientation="vertical"
             android:layout_weight="1"
-            app:labelBehavior="gone"
-            />
+            android:layout_marginHorizontal="5dp"
+            >
+            <io.github.toyota32k.video.view.ChapterView
+                android:id="@+id/chapter_view"
+                android:layout_width="match_parent"
+                android:layout_height="8dp"/>
+            <com.google.android.material.slider.Slider
+                android:id="@+id/slider"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:labelBehavior="gone"
+                />
+
+        </LinearLayout>
         <TextView
             android:id="@+id/duration_label"
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:fontFamily="monospace"
-            android:textColor="@color/white"
+            android:textColor="@color/player_controller_fg"
+            android:layout_gravity="bottom"
             tools:text="99:99"
             />
 

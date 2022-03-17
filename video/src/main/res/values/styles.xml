@@ -7,7 +7,7 @@
         https://qiita.com/kaleidot725/items/52b44eaea16b8351c09e
     -->
     <style name="RippleOnBackgroundTheme">
-        <item name="colorControlHighlight">@color/teal_200</item>
+        <item name="android:colorControlHighlight">?android:attr/colorPrimary</item>
     </style>
 
     <style name="ButtonOnBlackWithRipple">

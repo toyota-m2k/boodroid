@@ -74,6 +74,9 @@ class PlayerModel(
     val disabledRanges:Flow<List<Range>> = currentSource.map {
         it?.chapterList?.disabledRanges(it.trimming)?.toList() ?: emptyList()
     }
+    val hasChapters:Flow<Boolean> = chapters.map {!it?.chapters.isNullOrEmpty()
+
+    }
     val hasNext = MutableStateFlow(false)
     val hasPrevious = MutableStateFlow(false)
 
@@ -230,6 +233,7 @@ class PlayerModel(
         val end = naturalDuration.value
 
         player.seekTo(clippedPos)
+        playerSeekPosition.mutable.value = clippedPos
         ended = if(clippedPos == end) {
             pause()
             true

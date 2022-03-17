@@ -5,7 +5,9 @@
       <map>
         <entry key="..\:/dev/android/boodroid/app/src/main/res/layout/activity_main.xml" value="0.17291666666666666" />
         <entry key="..\:/dev/android/boodroid/video/src/main/res/drawable/ic_next.xml" value="0.1705" />
-        <entry key="..\:/dev/android/boodroid/video/src/main/res/layout/control_panel.xml" value="0.17291666666666666" />
+        <entry key="..\:/dev/android/boodroid/video/src/main/res/layout/control_panel.xml" value="0.25" />
+        <entry key="..\:/dev/android/boodroid/video/src/main/res/layout/v2_control_panel.xml" value="0.296875" />
+        <entry key="..\:/dev/android/boodroid/video/src/main/res/layout/v2_player_view.xml" value="0.296875" />
         <entry key="..\:/dev/android/boodroid/video/src/main/res/layout/v2_video_exo_player.xml" value="0.67" />
       </map>
     </option>

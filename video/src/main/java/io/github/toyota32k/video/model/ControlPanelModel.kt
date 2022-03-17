@@ -57,39 +57,39 @@ open class ControlPanelModel(
     /**
      * スライダーのトラッカー位置
      */
-    val sliderPosition = MutableStateFlow(0L)
+//    val sliderPosition = MutableStateFlow(0L)
 
     /**
      * プレーヤーの再生位置
      * 通常は、sliderPosition == presentingPosition だが、トリミングスライダーの場合は、左右トリミング用トラッカーも候補となる。
      * （最後に操作したトラッカーの位置が、presentingPosition となる。）
      */
-    open val presentingPosition:Flow<Long> = sliderPosition
+//    open val presentingPosition:Flow<Long> = sliderPosition
 
     fun seekAndSetSlider(pos:Long) {
         val clipped = playerModel.clipPosition(pos)
-        sliderPosition.value = clipped
+//        sliderPosition.value = clipped
         playerModel.seekTo(clipped)
     }
     /**
      * スライダーのカウンター表示文字列
      */
-    val counterText:Flow<String> = combine(sliderPosition, playerModel.naturalDuration) { pos, duration->
+    val counterText:Flow<String> = combine(playerModel.playerSeekPosition, playerModel.naturalDuration) { pos, duration->
         "${formatTime(pos,duration)} / ${formatTime(duration,duration)}"
     }
 
     // endregion
 
-    init {
-        playerModel.playerSeekPosition.onEach(this::onPlayerSeekPositionChanged).launchIn(scope)
-    }
+//    init {
+//        playerModel.playerSeekPosition.onEach(this::onPlayerSeekPositionChanged).launchIn(scope)
+//    }
 
     /**
      * タイマーによって監視されるプレーヤーの再生位置（playerModel.playerSeekPosition）に応じて、スライダーのシーク位置を合わせる。
      */
-    open fun onPlayerSeekPositionChanged(pos:Long) {
-        sliderPosition.value = pos
-    }
+//    open fun onPlayerSeekPositionChanged(pos:Long) {
+//        sliderPosition.value = pos
+//    }
 
     override fun close() {
         scope.cancel()
