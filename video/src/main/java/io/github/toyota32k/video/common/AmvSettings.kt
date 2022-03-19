@@ -33,7 +33,7 @@ object AmvSettings {
      * @param　httpClientSource　videoライブラリと本体とで、httpClient（の設定やセッションなど）を共用するためのi/f
      */
     @JvmStatic
-    fun initialize(context: Context, cacheRootPath: File, bitrate:Int, allowPinP:Boolean, httpClientSource: IAmvHttpClientSource?) {
+    fun initialize(cacheRootPath: File, bitrate:Int, allowPinP:Boolean, httpClientSource: IAmvHttpClientSource?) {
         if (initialized) {
             return
         }

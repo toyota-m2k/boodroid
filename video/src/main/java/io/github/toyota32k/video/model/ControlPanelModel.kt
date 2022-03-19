@@ -46,9 +46,13 @@ open class ControlPanelModel(
 
     // region Commands
 
-    val commandPlay = Command { playerModel::play }
+    val commandPlay = Command { playerModel.play() }
     val commandPause = Command { playerModel.pause() }
     val commandTogglePlay = Command { playerModel.togglePlay() }
+    val commandNext = Command { playerModel.next() }
+    val commandPrev = Command { playerModel.previous() }
+    val commandSeekForward = Command { playerModel.seekRelative(11000) }
+    val commandSeekBackward = Command { playerModel.seekRelative(-5000) }
 
     // endregion
 
@@ -66,11 +70,11 @@ open class ControlPanelModel(
      */
 //    open val presentingPosition:Flow<Long> = sliderPosition
 
-    fun seekAndSetSlider(pos:Long) {
-        val clipped = playerModel.clipPosition(pos)
-//        sliderPosition.value = clipped
-        playerModel.seekTo(clipped)
-    }
+//    fun seekAndSetSlider(pos:Long) {
+//        val clipped = playerModel.clipPosition(pos)
+////        sliderPosition.value = clipped
+//        playerModel.seekTo(clipped)
+//    }
     /**
      * スライダーのカウンター表示文字列
      */

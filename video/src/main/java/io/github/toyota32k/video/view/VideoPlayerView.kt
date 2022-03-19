@@ -11,7 +11,7 @@ import io.github.toyota32k.video.R
 import io.github.toyota32k.video.common.AmvSettings
 import io.github.toyota32k.video.model.ControlPanelModel
 
-class PlayerView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
+class VideoPlayerView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
     : FrameLayout(context, attrs, defStyleAttr) {
     companion object {
         val logger get() = AmvSettings.logger
@@ -26,7 +26,7 @@ class PlayerView @JvmOverloads constructor(context: Context, attrs: AttributeSet
     fun bindViewModel(model: ControlPanelModel, binder: Binder) {
         this.model = model
         val owner = lifecycleOwner()!!
-        val scope = owner.lifecycleScope
+//        val scope = owner.lifecycleScope
 
         val player = findViewById<AmvExoVideoPlayer>(R.id.player)
         player.bindViewModel(model, binder)

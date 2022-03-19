@@ -3,5 +3,8 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="player_controller_fg">@color/white</color>
-    <color name="player_controller_bg">#aa000000</color>
+    <color name="player_controller_bg">@color/black</color>
+    <color name="player_button_enabled">?attr/colorPrimary</color>
+    <color name="player_button_disabled">#666</color>
+
 </resources>

@@ -51,7 +51,7 @@ class ControlPanel @JvmOverloads constructor(context: Context, attrs: AttributeS
         val seekForwardButton = findViewById<ImageButton>(R.id.seek_forward_button)
         val pinpButton = findViewById<ImageButton>(R.id.pinp_button)
         val fullscreenButton = findViewById<ImageButton>(R.id.fullscreen_button)
-        val closeButton = findViewById<ImageButton>(R.id.close_button)
+//        val closeButton = findViewById<ImageButton>(R.id.close_button)
         val slider = findViewById<Slider>(R.id.slider)
 
         slider.addOnChangeListener(this)
@@ -63,7 +63,7 @@ class ControlPanel @JvmOverloads constructor(context: Context, attrs: AttributeS
             VisibilityBinding.create(owner, playButton, model.playerModel.isPlaying.asLiveData(), BoolConvert.Inverse, VisibilityBinding.HiddenMode.HideByGone),
             VisibilityBinding.create(owner, pauseButton, model.playerModel.isPlaying.asLiveData(), BoolConvert.Straight, VisibilityBinding.HiddenMode.HideByGone),
 
-            MultiEnableBinding.create(owner, playButton,pauseButton, seekBackButton, seekForwardButton, fullscreenButton, pinpButton, slider, data=model.playerModel.isReady.asLiveData()),
+            MultiEnableBinding.create(owner, playButton, pauseButton, seekBackButton, seekForwardButton, fullscreenButton, pinpButton, slider, data=model.playerModel.isReady.asLiveData()),
             MultiEnableBinding.create(owner, prevChapterButton, nextChapterButton, data=model.playerModel.hasChapters.asLiveData()),
             EnableBinding.create(owner, prevVideoButton, model.playerModel.hasPrevious.asLiveData()),
             EnableBinding.create(owner, nextVideoButton, model.playerModel.hasNext.asLiveData()),
@@ -72,20 +72,32 @@ class ControlPanel @JvmOverloads constructor(context: Context, attrs: AttributeS
             TextBinding.create(owner, findViewById(R.id.duration_label), model.playerModel.naturalDuration.map { formatTime(it,it) }.asLiveData()),
 
             SliderBinding.create(owner, slider, model.playerModel.playerSeekPosition.map { it.toFloat() }.asLiveData(), min=null, max=model.playerModel.naturalDuration.map { max(100f, it.toFloat())}.asLiveData() ),
+
+            model.commandPlay.connectViewEx(playButton),
+            model.commandPause.connectViewEx(pauseButton),
+            model.commandNext.connectViewEx(nextVideoButton),
+            model.commandPrev.connectViewEx(prevVideoButton),
+            model.commandSeekBackward.connectViewEx(seekBackButton),
+            model.commandSeekForward.connectViewEx(seekForwardButton),
         )
     }
 
     private var isPlayingBeforeDragging = false
+    private var seekingCount = 0
     @SuppressLint("RestrictedApi")
     override fun onStartTrackingTouch(slider: Slider) {
+        logger.debug("seek start: $seekingCount")
+        seekingCount++
         isPlayingBeforeDragging = model.playerModel.isPlaying.value
         model.playerModel.pause()
-        model.playerModel.beginFastSeekMode()
+//        model.playerModel.beginFastSeekMode()
     }
 
     @SuppressLint("RestrictedApi")
     override fun onStopTrackingTouch(slider: Slider) {
-        model.playerModel.endFastSeekMode()
+        seekingCount--
+        logger.debug("seek end : $seekingCount")
+//        model.playerModel.endFastSeekMode()
         if(isPlayingBeforeDragging) {
             model.playerModel.play()
         }
@@ -94,7 +106,7 @@ class ControlPanel @JvmOverloads constructor(context: Context, attrs: AttributeS
     @SuppressLint("RestrictedApi")
     override fun onValueChange(slider: Slider, value: Float, fromUser: Boolean) {
         if(fromUser) {
-            model.playerModel.seekTo(value.roundToLong())
+            model.playerModel.seekManager.requestedPositionFromSlider.value = value.roundToLong()
         }
     }
 

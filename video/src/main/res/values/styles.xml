@@ -12,6 +12,7 @@
 
     <style name="ButtonOnBlackWithRipple">
         <item name="android:theme">@style/RippleOnBackgroundTheme</item>
-        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+<!--        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>-->
+        <item name="android:background">#FF80FF</item>
     </style>
 </resources>

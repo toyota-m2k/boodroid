@@ -1,3 +1,13 @@
 <resources>
-    <string name="app_name">boodroid</string>
+    <string name="app_name">BooDroid</string>
+    <string name="host_addr_label">Host Address</string>
+    <string name="host_hint">IP Address</string>
+    <string name="add_button">Add Host</string>
+    <string name="src_type_label">Source</string>
+    <string name="src_db">All</string>
+    <string name="src_listed">Listed</string>
+    <string name="src_selected">Selected</string>
+    <string name="rating_label">Rating</string>
+    <string name="mark_label">Mark</string>
+    <string name="category_label">Category</string>
 </resources>

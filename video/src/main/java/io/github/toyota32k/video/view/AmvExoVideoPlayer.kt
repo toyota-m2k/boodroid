@@ -53,7 +53,7 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
         LayoutInflater.from(context).inflate(R.layout.v2_video_exo_player, this)
         val sa = context.theme.obtainStyledAttributes(attrs,
             R.styleable.AmvExoVideoPlayer,defStyleAttr,0)
-        var showControlBar = false
+        val showControlBar: Boolean
         try {
             // タッチで再生/一時停止をトグルさせる動作の有効・無効
             //
@@ -90,7 +90,11 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
     }
 
     fun associatePlayer(flag:Boolean) {
-        playerView.player = if(flag) model.player else null
+        if(flag) {
+            model.associatePlayerView(playerView)
+        } else {
+            playerView.player = null
+        }
     }
 
     fun bindViewModel(controlPanelModel: ControlPanelModel, binder:Binder) {
@@ -100,7 +104,7 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
         val model = controlPanelModel.playerModel
         this.model = model
         if(controlPanelModel.autoAssociatePlayer) {
-            playerView.player = model.player
+            model.associatePlayerView(playerView)
         }
 
 //        controlPanelModel.hasPlayerOwnership.onEach { ownership->
@@ -112,6 +116,7 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
         binder.register(
             VisibilityBinding.create(owner, progressRing, model.isLoading.asLiveData(), BoolConvert.Straight, VisibilityBinding.HiddenMode.HideByInvisible),
             VisibilityBinding.create(owner, errorMessageView, model.isError.asLiveData(), BoolConvert.Straight, VisibilityBinding.HiddenMode.HideByInvisible),
+            VisibilityBinding.create(owner, findViewById(R.id.service_area), combine(model.isLoading,model.isError) {l,e-> l||e}.asLiveData(), BoolConvert.Straight, VisibilityBinding.HiddenMode.HideByInvisible),
             TextBinding.create(owner,errorMessageView, model.errorMessage.filterNotNull().asLiveData()),
         )
 
@@ -134,6 +139,7 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
+        if(!this::model.isInitialized) return
         if(w>0 && h>0) {
             logger.debug("width=$w (${context.px2dp(w)}dp), height=$h (${context.px2dp(h)}dp)")
             model.onRootViewSizeChanged(Size(w, h))

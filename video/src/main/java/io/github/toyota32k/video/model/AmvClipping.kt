@@ -31,7 +31,7 @@ data class AmvClipping (val start:Long, val end:Long=-1) {
         }
 
         fun isValidClipping(start:Long, end:Long, range:Long):Boolean {
-            val rangedEnd = min(end, range)
+//            val rangedEnd = min(end, range)
             return start>0 || min(end, range) > start
         }
     }
