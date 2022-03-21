@@ -3,6 +3,7 @@ package io.github.toyota32k.boodroid
 import android.app.Application
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import io.github.toyota32k.dialog.UtStandardString
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.video.common.AmvSettings
 
@@ -25,10 +26,15 @@ class BooApplication : Application(), ViewModelStoreOwner {
         instance_ = this
     }
 
+    override fun onCreate() {
+        super.onCreate()
+        UtStandardString.setContext(applicationContext,null)
+    }
+
     override fun onTerminate() {
         logger.debug()
-        super.onTerminate()
         releaseViewModelStore()
+        super.onTerminate()
     }
 
     companion object {

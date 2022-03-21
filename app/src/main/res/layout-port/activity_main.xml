@@ -17,14 +17,6 @@
         <include layout="@layout/panel_video_list"/>
     </LinearLayout>
 
-    <View
-        android:id="@+id/splitter"
-        android:layout_width="match_parent"
-        android:layout_height="3dp"
-        android:background="@color/primaryColor"
-        />
-
-
     <io.github.toyota32k.video.view.AmvExoVideoPlayer
         android:id="@+id/player"
         android:layout_width="match_parent"

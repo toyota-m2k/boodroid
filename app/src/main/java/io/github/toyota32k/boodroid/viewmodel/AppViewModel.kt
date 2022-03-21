@@ -5,17 +5,17 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.bindit.Command
 import io.github.toyota32k.boodroid.BooApplication
-import io.github.toyota32k.boodroid.data.LastPlayInfo
-import io.github.toyota32k.boodroid.data.Settings
-import io.github.toyota32k.boodroid.data.VideoListSource
+import io.github.toyota32k.boodroid.data.*
 import io.github.toyota32k.boodroid.dialog.SettingsDialog
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
 import io.github.toyota32k.video.model.ControlPanelModel
 import io.github.toyota32k.video.model.PlayerModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.Request
 
 class AppViewModel: ViewModel() {
     companion object {
@@ -66,12 +66,21 @@ class AppViewModel: ViewModel() {
             lastUpdate = src?.modifiedDate ?: 0L
             if(src!=null) {
                 logger.debug("list.count=${src.list.size}")
-                var index = 0
+                var index = -1
                 var position = 0L
-                val lpi = LastPlayInfo.get(BooApplication.instance)
-                if(lpi!=null) {
-                    index = src.list.indexOfFirst { lpi.id == it.id }
-                    position = if(index>=0) lpi.position else 0L
+                // 再生中なら、同じ場所から再開
+                val current = playerModel.currentSource.value
+                if(current!=null) {
+                    index = src.list.indexOfFirst { it.id == current.id }
+                    position = playerModel.playerSeekPosition.value
+                }
+                // 再生中でなければ、前回の再生位置から復元
+                if(index<0) {
+                    val lpi = LastPlayInfo.get(BooApplication.instance)
+                    if (lpi != null) {
+                        index = src.list.indexOfFirst { lpi.id == it.id }
+                        position = if (index >= 0) lpi.position else 0L
+                    }
                 }
                 playerModel.setSources(src.list, index, position)
 
@@ -93,6 +102,18 @@ class AppViewModel: ViewModel() {
         }
     }
 
+    fun registerUrl(rawUrl:String) {
+        val urlParam = rawUrl.split("\r", "\n", " ", "\t").firstOrNull { it.isNotBlank() } ?: return
+        val url = settings.urlToRegister(urlParam)
+        CoroutineScope(Dispatchers.IO).launch {
+            val req = Request.Builder()
+                .url(url)
+                .get()
+                .build()
+            NetClient.executeAsync(req)
+        }
+    }
+
     fun tryPlayAt(id: String) {
         val index = playerModel.videoSources.indexOfFirst { it.id == id }
         playerModel.playAt(index)
@@ -111,5 +132,13 @@ class AppViewModel: ViewModel() {
     }
     val refreshCommand = Command {
         refreshVideoList()
+    }
+
+    val syncToServerCommand = Command {
+        CurrentItemSynchronizer.syncTo()
+    }
+
+    val syncFromServerCommand = Command {
+        CurrentItemSynchronizer.syncFrom()
     }
 }

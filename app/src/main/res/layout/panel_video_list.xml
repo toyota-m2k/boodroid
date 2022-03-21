@@ -30,6 +30,22 @@
             android:gravity="end"
             >
             <ImageButton
+                android:id="@+id/up_button"
+                android:layout_width="@dimen/media_button_width"
+                android:layout_height="@dimen/media_button_height"
+                app:srcCompat="@drawable/ic_up"
+                app:tint="?attr/colorOnPrimary"
+                android:background="?attr/selectableItemBackground"
+                />
+            <ImageButton
+                android:id="@+id/down_button"
+                android:layout_width="@dimen/media_button_width"
+                android:layout_height="@dimen/media_button_height"
+                app:srcCompat="@drawable/ic_down"
+                app:tint="?attr/colorOnPrimary"
+                android:background="?attr/selectableItemBackground"
+                />
+            <ImageButton
                 android:id="@+id/refresh_button"
                 android:layout_width="@dimen/media_button_width"
                 android:layout_height="@dimen/media_button_height"
@@ -54,9 +70,10 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:choiceMode="singleChoice"
-        android:divider="@color/secondaryDarkColor"
-        android:dividerHeight="1dp"
-        android:background="?attr/colorSurface"
+        android:background="@drawable/border_list_view"
+        android:paddingBottom="@dimen/video_list_bottom_border_width"
+        android:paddingStart="@dimen/video_list_side_border_width"
+        android:paddingEnd="@dimen/video_list_side_border_width"
         />
 
 

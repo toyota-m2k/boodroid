@@ -10,35 +10,29 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.drawable.Icon
+import android.net.Uri
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Rational
+import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.bindit.Binder
-import io.github.toyota32k.bindit.Command
-import io.github.toyota32k.boodroid.dialog.SettingsDialog
+import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.boodroid.view.VideoListView
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.boodroid.viewmodel.MainViewModel
+import io.github.toyota32k.dialog.UtMessageBox
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
 import io.github.toyota32k.dialog.task.UtMortalActivity
 import io.github.toyota32k.utils.UtLog
-import io.github.toyota32k.utils.lifecycleOwner
 import io.github.toyota32k.video.model.ControlPanelModel
 import io.github.toyota32k.video.view.AmvExoVideoPlayer
 import io.github.toyota32k.video.view.ControlPanel
-import io.github.toyota32k.video.view.VideoPlayerView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 
 class MainActivity : UtMortalActivity() {
     override val logger = UtLog("Main", BooApplication.logger)
@@ -52,7 +46,6 @@ class MainActivity : UtMortalActivity() {
     private lateinit var controlPanel: ControlPanel
     private lateinit var videoListView: VideoListView
     private lateinit var playerView : AmvExoVideoPlayer
-    private lateinit var splitter:View
     private lateinit var listPanel:View
 
     private var landscape:Boolean? = null
@@ -77,7 +70,6 @@ class MainActivity : UtMortalActivity() {
         controlPanel = findViewById(R.id.controller)
         videoListView = findViewById(R.id.video_list)
 
-        splitter = findViewById(R.id.splitter)
         listPanel = findViewById(R.id.video_list_panel)
 
         playerView.bindViewModel(controlPanelModel, binder)
@@ -87,6 +79,8 @@ class MainActivity : UtMortalActivity() {
         binder.register(
             appViewModel.refreshCommand.connectViewEx(findViewById(R.id.refresh_button)),
             appViewModel.settingCommand.connectViewEx(findViewById(R.id.setting_button)),
+            appViewModel.syncToServerCommand.connectViewEx(findViewById(R.id.up_button)),
+            appViewModel.syncFromServerCommand.connectViewEx(findViewById(R.id.down_button)),
             appViewModel.controlPanelModel.commandPlayerTapped.bind(this, this::onPlayerTapped)
         )
 
@@ -160,7 +154,29 @@ class MainActivity : UtMortalActivity() {
         //
         // このイベントから、Activityは PinP に入るとき、Pause され、PinP から復帰するときに Resume されていることがわかる。
         // つまり、PinP中、Activity は Pauseされている、ということらしい。
+        handleUriInIntent(intent)
+    }
 
+    private fun isAcceptableUrl(url:String?):Boolean {
+        if(url==null) return false
+        if(!url.startsWith("https://")) return false
+        val host = Uri.parse(url).host ?: return false
+        return host.contains("youtube.com")||host.contains("youtu.be")
+    }
+
+    private fun handleUriInIntent(intent:Intent?) : Boolean {
+        if(intent?.action == Intent.ACTION_SEND) {
+            if(intent.type == "text/plain") {
+                intent.getStringExtra(Intent.EXTRA_TEXT)?.let {
+                    logger.debug(it)
+                    if(isAcceptableUrl(it)) {
+                        AppViewModel.instance.registerUrl(it)
+                        return true
+                    }
+                }
+            }
+        }
+        return false
     }
 
     /**
@@ -221,11 +237,11 @@ class MainActivity : UtMortalActivity() {
         enterPinP()
    }
 
-    private val except_player_view:Array<View> get() = arrayOf(listPanel, splitter, controlPanel)
+    private val exceptPlayerViews:Array<View> get() = arrayOf(listPanel, controlPanel)
 
     private fun layoutForFullscreen() {
         logger.debug()
-        for(v in except_player_view) {
+        for(v in exceptPlayerViews) {
             v.visibility = View.GONE
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -250,7 +266,7 @@ class MainActivity : UtMortalActivity() {
 
     private fun layoutForNormal() {
         logger.debug()
-        for(v in except_player_view) {
+        for(v in exceptPlayerViews) {
             v.visibility = View.VISIBLE
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -258,6 +274,7 @@ class MainActivity : UtMortalActivity() {
                 WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars()
             )
         } else {
+            @Suppress("DEPRECATION")
             window.decorView.systemUiVisibility =
                 (      View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
@@ -268,8 +285,40 @@ class MainActivity : UtMortalActivity() {
 
     override fun onDestroy() {
         logger.debug()
+        if(isFinishing) {
+            logger.debug("finishing")
+            val controlPanelModel = AppViewModel.instance.controlPanelModel
+            val current = controlPanelModel.playerModel.currentSource.value
+            if (current != null) {
+                val pos = controlPanelModel.playerModel.playerSeekPosition.value
+                LastPlayInfo.set(BooApplication.instance.applicationContext, current.id, pos, true)
+            }
+            controlPanelModel.playerModel.pause()
+        }
         super.onDestroy()
         binder.reset()
+    }
+
+    private fun queryToFinish() {
+        UtImmortalSimpleTask.run {
+            val dlg = showDialog("finishing") { UtMessageBox.createForYesNo("BooDroid", "Finish BooDroid") }
+            if(dlg.status.yes) {
+                finish()
+                true
+            } else false
+        }
+    }
+
+    override fun handleKeyEvent(keyCode: Int, event: KeyEvent?): Boolean {
+        if(keyCode==KeyEvent.KEYCODE_BACK) {
+            when(controlPanelModel.windowMode.value) {
+                ControlPanelModel.WindowMode.NORMAL-> queryToFinish()
+                ControlPanelModel.WindowMode.FULLSCREEN->controlPanelModel.setWindowMode(ControlPanelModel.WindowMode.NORMAL)
+                else-> return false
+            }
+            return true
+        }
+        return false
     }
 
     // region PinP
@@ -350,7 +399,7 @@ class MainActivity : UtMortalActivity() {
         logger.debug()
         isPinP = true
 
-        for(v in except_player_view) {
+        for(v in exceptPlayerViews) {
             v.visibility = View.GONE
         }
 
@@ -405,7 +454,6 @@ class MainActivity : UtMortalActivity() {
             onEnterPinP()
         }
     }
-
 
     // endregion
 

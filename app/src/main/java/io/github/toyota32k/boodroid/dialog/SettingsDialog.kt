@@ -17,7 +17,7 @@ import io.github.toyota32k.boodroid.viewmodel.SettingViewModel
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.utils.disposableObserve
 
-class SettingsDialog : UtDialog() {
+class SettingsDialog : UtDialog(isDialog=true) {
     private lateinit var viewModel: SettingViewModel
     private val binder = Binder()
 

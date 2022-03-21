@@ -17,6 +17,7 @@ import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.getAttrColor
 import io.github.toyota32k.boodroid.common.getAttrColorAsDrawable
+import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.boodroid.viewmodel.MainViewModel
 import io.github.toyota32k.utils.lifecycleOwner
 import io.github.toyota32k.video.model.PlayerModel
@@ -76,6 +77,7 @@ class VideoListView @JvmOverloads constructor(
                 if (pos >= 0) {
                     scrollToPosition(pos)
                 }
+                LastPlayInfo.set(owner, it.id, 0L, true)
             }
         }.launchIn(viewModel.viewModelScope)
 

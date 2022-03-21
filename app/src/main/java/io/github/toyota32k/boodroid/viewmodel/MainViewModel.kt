@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
+import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.video.model.ControlPanelModel
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -24,5 +25,9 @@ class MainViewModel : ViewModel() {
             prepared = true
         }
         return this
+    }
+
+    override fun onCleared() {
+        super.onCleared()
     }
 }
