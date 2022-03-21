@@ -9,7 +9,8 @@
     <string name="desc_seek_forward">Seek Forward</string>
     <string name="desc_next_chapter">Next Chapter</string>
     <string name="desc_next_video">Next Video</string>
-    <string name="desc_pinp">Picture in Picture</string>
-    <string name="desc_fullscreen">Full Screen</string>
+    <string name="desc_pinp">Enter Picture in Picture</string>
+    <string name="desc_fullscreen">Enter Fullscreen Mode</string>
     <string name="desc_close_button">Close</string>
+    <string name="desc_collapse">Exit Fullscreen Mode</string>
 </resources>

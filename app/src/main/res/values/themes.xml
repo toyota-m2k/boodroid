@@ -15,7 +15,7 @@
         <!-- Customize your theme here. -->
     </style>
 
-    <style name="Theme.Boodroid.NoActionBar">
+    <style name="Theme.Boodroid.NoActionBar" parent="Theme.Boodroid">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>

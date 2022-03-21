@@ -2,9 +2,12 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="player_controller_fg">@color/white</color>
-    <color name="player_controller_bg">@color/black</color>
-    <color name="player_button_enabled">?attr/colorPrimary</color>
-    <color name="player_button_disabled">#666</color>
+<!--    <color name="player_controller_fg">?attr/colorOnSurface</color>-->
+<!--    <color name="player_controller_bg">?attr/colorSurface</color>-->
+<!--    <color name="player_controller_fg">#FFFFFF</color>-->
+<!--    <color name="player_controller_bg">#FFFFFF</color>-->
+<!--    <color name="player_button_enabled">?attr/colorPrimary</color>-->
+<!--    <color name="player_button_enabled">#FF80FF</color>-->
+<!--    <color name="player_button_disabled">#666</color>-->
 
 </resources>

@@ -8,6 +8,7 @@
     android:paddingBottom="1dp"
     android:paddingStart="3dp"
     android:paddingEnd="3dp"
+    android:background="@drawable/bordered_list_item_bg"
     >
 
     <TextView
@@ -18,8 +19,8 @@
         android:padding="5dp"
         android:clickable="true"
         tools:text="abcdeig"
-        tools:textColor="@color/black"
-        tools:background="@color/white"
+        tools:textColor="?attr/colorOnSurface"
+        tools:background="@color/transparent"
         />
 
 </LinearLayout>

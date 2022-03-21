@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.video.common.AmvSettings
 
 class BooApplication : Application(), ViewModelStoreOwner {
     private var viewModelStore : ViewModelStore? = null
@@ -33,6 +34,6 @@ class BooApplication : Application(), ViewModelStoreOwner {
     companion object {
         private lateinit var instance_:BooApplication
         val instance get() = instance_
-        val logger = UtLog("App", omissionNamespace = "io.github.toyota32k.ytremote")
+        val logger = UtLog("App", AmvSettings.logger, omissionNamespace = "io.github.toyota32k.")
     }
 }

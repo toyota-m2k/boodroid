@@ -10,4 +10,7 @@
     <string name="rating_label">Rating</string>
     <string name="mark_label">Mark</string>
     <string name="category_label">Category</string>
+    <string name="pause">Pause</string>
+    <string name="play">Play</string>
+    <string name="seekTop">Seek to start</string>
 </resources>

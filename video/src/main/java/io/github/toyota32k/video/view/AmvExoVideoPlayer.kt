@@ -42,11 +42,12 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
     private val rootView:ViewGroup
 
     // 使う人（ActivityやFragment）がセットすること
-    private lateinit var model: PlayerModel
+    private lateinit var model: ControlPanelModel
     var useExoController:Boolean
         get() = playerView.useController
         set(v) { playerView.useController = v }
     val fitParent:Boolean
+    var playOnTouch:Boolean = false
 
 
     init {
@@ -59,13 +60,7 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
             //
             // デフォルト有効
             //      ユニットプレーヤー以外は無効化
-            if (sa.getBoolean(R.styleable.AmvExoVideoPlayer_playOnTouch, true)) {
-                this.setOnClickListener {
-                    if (it is AmvExoVideoPlayer) {
-                        it.model.togglePlay()
-                    }
-                }
-            }
+            playOnTouch = sa.getBoolean(R.styleable.AmvExoVideoPlayer_playOnTouch, true)
             // ExoPlayerのControllerを表示するかしないか・・・表示する場合も、カスタマイズされたControllerが使用される
             //
             // デフォルト無効
@@ -91,7 +86,7 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
 
     fun associatePlayer(flag:Boolean) {
         if(flag) {
-            model.associatePlayerView(playerView)
+            model.playerModel.associatePlayerView(playerView)
         } else {
             playerView.player = null
         }
@@ -101,10 +96,10 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
         val owner = lifecycleOwner()!!
         val scope = owner.lifecycleScope
 
-        val model = controlPanelModel.playerModel
-        this.model = model
+        this.model = controlPanelModel
+        val playerModel = controlPanelModel.playerModel
         if(controlPanelModel.autoAssociatePlayer) {
-            model.associatePlayerView(playerView)
+            playerModel.associatePlayerView(playerView)
         }
 
 //        controlPanelModel.hasPlayerOwnership.onEach { ownership->
@@ -114,14 +109,15 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
         val errorMessageView : TextView = findViewById(R.id.exp_errorMessage)
         val progressRing : View = findViewById(R.id.exp_progressRing)
         binder.register(
-            VisibilityBinding.create(owner, progressRing, model.isLoading.asLiveData(), BoolConvert.Straight, VisibilityBinding.HiddenMode.HideByInvisible),
-            VisibilityBinding.create(owner, errorMessageView, model.isError.asLiveData(), BoolConvert.Straight, VisibilityBinding.HiddenMode.HideByInvisible),
-            VisibilityBinding.create(owner, findViewById(R.id.service_area), combine(model.isLoading,model.isError) {l,e-> l||e}.asLiveData(), BoolConvert.Straight, VisibilityBinding.HiddenMode.HideByInvisible),
-            TextBinding.create(owner,errorMessageView, model.errorMessage.filterNotNull().asLiveData()),
+            VisibilityBinding.create(owner, progressRing, playerModel.isLoading.asLiveData(), BoolConvert.Straight, VisibilityBinding.HiddenMode.HideByInvisible),
+            VisibilityBinding.create(owner, errorMessageView, playerModel.isError.asLiveData(), BoolConvert.Straight, VisibilityBinding.HiddenMode.HideByInvisible),
+            VisibilityBinding.create(owner, findViewById(R.id.service_area), combine(playerModel.isLoading,playerModel.isError) {l,e-> l||e}.asLiveData(), BoolConvert.Straight, VisibilityBinding.HiddenMode.HideByInvisible),
+            TextBinding.create(owner,errorMessageView, playerModel.errorMessage.filterNotNull().asLiveData()),
+            controlPanelModel.commandPlayerTapped.connectViewEx(this),
         )
 
         val matchParent = Size(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-        combine(model.playerSize, model.stretchVideoToView) { playerSize, stretch ->
+        combine(playerModel.playerSize, playerModel.stretchVideoToView) { playerSize, stretch ->
             logger.debug("AmvExoVideoPlayer:Size=(${playerSize.width}w, ${playerSize.height}h (stretch=$stretch))")
             if(stretch) {
                 playerView.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
@@ -131,6 +127,17 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
                 playerSize
             }
         }.onEach(this::updateLayout).launchIn(scope)
+
+//        this.setOnClickListener {
+//            if(playOnTouch) {
+//                if (it is AmvExoVideoPlayer) {
+//                    it.model.playerModel.togglePlay()
+//                }
+//            } else {
+//
+//            }
+//        }
+
     }
 
     private fun updateLayout(videoSize:Size) {
@@ -142,7 +149,7 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
         if(!this::model.isInitialized) return
         if(w>0 && h>0) {
             logger.debug("width=$w (${context.px2dp(w)}dp), height=$h (${context.px2dp(h)}dp)")
-            model.onRootViewSizeChanged(Size(w, h))
+            model.playerModel.onRootViewSizeChanged(Size(w, h))
         }
     }
 

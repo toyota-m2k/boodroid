@@ -81,7 +81,12 @@ class PlayerModel(
 
     // 少し変則的だが、ChapterView で chapterListを取得したタイミングで true/falseをセットする
     val chapterList:StateFlow<IChapterList?> = MutableStateFlow(null)
-    val hasChapters:Flow<Boolean> = chapterList.map { it?.chapters?.isNotEmpty() ?: false }
+    val hasChapters:StateFlow<Boolean> = chapterList.map {
+//        it?.chapters?.isNotEmpty() ?: false
+        val r = it?.chapters?.isNotEmpty() ?: false
+        logger.debug("hasChapters=$r")
+        r
+    }.stateIn(scope, SharingStarted.Eagerly,false)
     var disabledRanges:List<Range>? = null
         private set
 
@@ -122,6 +127,12 @@ class PlayerModel(
         if(!isReady.value) return
         clippingSeekTo(player.currentPosition + seek, true )
     }
+
+    fun seekTo(pos:Long) {
+        if(!isReady.value) return
+        clippingSeekTo(pos, true)
+    }
+
 
 
     private fun MediaItem.getAmvSource(): IAmvSource {
@@ -187,6 +198,13 @@ class PlayerModel(
      * ExoPlayerの動画読み込みが成功したとき onVideoSizeChanged()イベントから設定される。
      */
     val videoSize: StateFlow<VideoSize?> = MutableStateFlow<VideoSize?>(null)
+
+    /**
+     * VideoSizeはExoPlayerの持ち物なので、ライブラリ利用者が明示的にexoplayerをリンクしていないとアクセスできない。
+     * そのような不憫な人のために中身を開示してあげる。
+     */
+    val videoWidth:Int? get() = videoSize.value?.width
+    val videoHeight:Int? get() = videoSize.value?.height
 
     /**
      * 動画プレーヤーを配置するルートビューのサイズ
@@ -345,8 +363,6 @@ class PlayerModel(
      */
     private fun clippingSeekTo(pos:Long, awareTrimming:Boolean) {
         val clippedPos = clipPosition(pos, if(awareTrimming) currentSource.value?.trimming else null )
-        val end = naturalDuration.value
-
         player.seekTo(clippedPos)
         playerSeekPosition.mutable.value = clippedPos
     }
@@ -367,6 +383,7 @@ class PlayerModel(
      */
     fun play() {
         if(isDisposed) return
+        errorMessage.mutable.value = null
         player.playWhenReady = true
     }
 
@@ -419,7 +436,7 @@ class PlayerModel(
         }
 
         override fun onLoadingChanged(isLoading: Boolean) {
-            logger.debug("loading = $isLoading")
+//            logger.debug("loading = $isLoading")
             if (isLoading && player.playbackState == Player.STATE_BUFFERING) {
                 if(state.value== PlayerState.None) {
                     state.mutable.value = PlayerState.Loading

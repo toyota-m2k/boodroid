@@ -85,6 +85,8 @@ class ChapterView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         // chapters
         if(duration<=0L) return
         val list = chapterList?.chapters ?: return
+        val dr = disabledRanges
+        if(list.isEmpty() && dr.isNullOrEmpty()) return
 
         // enabled range
         rect.set(0f,0f, width, height)
@@ -92,7 +94,6 @@ class ChapterView @JvmOverloads constructor(context: Context, attrs: AttributeSe
         canvas.drawRect(rect,paint)
 
         // disabled range
-        val dr = disabledRanges
         if(!dr.isNullOrEmpty()) {
             paint.setColor(disabledColor)
             for (r in dr) {

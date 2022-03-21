@@ -25,7 +25,7 @@ class VideoPlayerView @JvmOverloads constructor(context: Context, attrs: Attribu
 
     fun bindViewModel(model: ControlPanelModel, binder: Binder) {
         this.model = model
-        val owner = lifecycleOwner()!!
+//        val owner = lifecycleOwner()!!
 //        val scope = owner.lifecycleScope
 
         val player = findViewById<AmvExoVideoPlayer>(R.id.player)

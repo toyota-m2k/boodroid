@@ -53,6 +53,25 @@ open class ControlPanelModel(
     val commandPrev = Command { playerModel.previous() }
     val commandSeekForward = Command { playerModel.seekRelative(11000) }
     val commandSeekBackward = Command { playerModel.seekRelative(-5000) }
+    val commandFullscreen = Command { setWindowMode(WindowMode.FULLSCREEN) }
+    val commandPinP = Command { setWindowMode(WindowMode.PINP) }
+    val commandCollapse = Command { setWindowMode(WindowMode.NORMAL) }
+    val commandPlayerTapped = Command()
+
+    // endregion
+
+    // region Fullscreen/PinP
+
+    enum class WindowMode {
+        NORMAL,
+        FULLSCREEN,
+        PINP
+    }
+    val windowMode : StateFlow<WindowMode> = MutableStateFlow(WindowMode.NORMAL)
+    fun setWindowMode(mode:WindowMode) {
+        logger.debug("mode=${windowMode.value} --> $mode")
+        (windowMode as MutableStateFlow).value = mode
+    }
 
     // endregion
 
@@ -99,4 +118,5 @@ open class ControlPanelModel(
         scope.cancel()
         playerModel.close()
     }
+
 }
