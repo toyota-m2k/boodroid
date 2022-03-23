@@ -6,13 +6,13 @@
         円形rippleを使う
         https://qiita.com/kaleidot725/items/52b44eaea16b8351c09e
     -->
-    <style name="RippleOnBackgroundTheme">
-        <item name="android:colorControlHighlight">?android:attr/colorPrimary</item>
-    </style>
+<!--    <style name="RippleOnBackgroundTheme">-->
+<!--        <item name="android:colorControlHighlight">?android:attr/colorPrimary</item>-->
+<!--    </style>-->
 
-    <style name="ButtonOnBlackWithRipple">
-        <item name="android:theme">@style/RippleOnBackgroundTheme</item>
-<!--        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>-->
-        <item name="android:background">#FF80FF</item>
-    </style>
+<!--    <style name="ButtonOnBlackWithRipple">-->
+<!--        <item name="android:theme">@style/RippleOnBackgroundTheme</item>-->
+<!--&lt;!&ndash;        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>&ndash;&gt;-->
+<!--        <item name="android:background">#FF80FF</item>-->
+<!--    </style>-->
 </resources>
