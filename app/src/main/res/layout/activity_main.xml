@@ -16,7 +16,12 @@
         >
         <include layout="@layout/panel_video_list" />
     </LinearLayout>
-
+    <View
+        android:id="@+id/splitter"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="?attr/colorPrimary"
+        />
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"

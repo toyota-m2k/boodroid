@@ -45,6 +45,7 @@ class MainActivity : UtMortalActivity() {
 
     private lateinit var controlPanel: ControlPanel
     private lateinit var videoListView: VideoListView
+    private lateinit var splitter: View
     private lateinit var playerView : AmvExoVideoPlayer
     private lateinit var listPanel:View
 
@@ -69,6 +70,7 @@ class MainActivity : UtMortalActivity() {
         playerView = findViewById(R.id.player)
         controlPanel = findViewById(R.id.controller)
         videoListView = findViewById(R.id.video_list)
+        splitter = findViewById(R.id.splitter)
 
         listPanel = findViewById(R.id.video_list_panel)
 
@@ -244,7 +246,7 @@ class MainActivity : UtMortalActivity() {
         enterPinP()
    }
 
-    private val exceptPlayerViews:Array<View> get() = arrayOf(listPanel, controlPanel)
+    private val exceptPlayerViews:Array<View> get() = arrayOf(listPanel, controlPanel, splitter)
 
     private fun layoutForFullscreen() {
         logger.debug()

@@ -39,6 +39,7 @@ enum class ColorVariation(val v:Int, @IdRes val id:Int, @StyleRes val themeId:In
     PINK(0, R.id.chk_color_pink, R.style.Theme_Boodroid_Main),
     GREEN(1,R.id.chk_color_green, R.style.Theme_Boodroid_Alt01),
     BLUE(2,R.id.chk_color_blue, R.style.Theme_Boodroid_alt02),
+    PURPLE(3,R.id.chk_color_purple, R.style.Theme_Boodroid_alt03),
     ;
 
     private class IDResolver : IIDValueResolver<ColorVariation> {

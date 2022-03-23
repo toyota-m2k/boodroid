@@ -70,10 +70,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:choiceMode="singleChoice"
-        android:background="@drawable/border_list_view"
-        android:paddingBottom="@dimen/video_list_bottom_border_width"
-        android:paddingStart="@dimen/video_list_side_border_width"
-        android:paddingEnd="@dimen/video_list_side_border_width"
+        android:background="?attr/colorSurface"
         />
 
 
