@@ -95,10 +95,15 @@ class MainActivity : UtMortalActivity() {
 //        }
     }
 
+    fun updateTheme() {
+        finish()
+        startActivity(Intent(this, MainActivity::class.java))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(AppViewModel.instance.settings.colorVariation.themeId)
         super.onCreate(savedInstanceState)
         landscape = resources.configuration.isLandscape
-
         viewModel = MainViewModel.instanceFor(this)
         initViews()
         val appViewModel = AppViewModel.instance

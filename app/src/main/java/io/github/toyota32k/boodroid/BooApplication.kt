@@ -1,8 +1,11 @@
 package io.github.toyota32k.boodroid
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.UtStandardString
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.video.common.AmvSettings
@@ -29,6 +32,7 @@ class BooApplication : Application(), ViewModelStoreOwner {
     override fun onCreate() {
         super.onCreate()
         UtStandardString.setContext(applicationContext,null)
+        UtDialogConfig.solidBackgroundOnPhone = false
     }
 
     override fun onTerminate() {

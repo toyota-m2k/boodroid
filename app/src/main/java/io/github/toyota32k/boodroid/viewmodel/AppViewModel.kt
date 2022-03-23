@@ -1,13 +1,16 @@
 package io.github.toyota32k.boodroid.viewmodel
 
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.bindit.Command
 import io.github.toyota32k.boodroid.BooApplication
+import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.data.*
 import io.github.toyota32k.boodroid.dialog.SettingsDialog
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.video.model.ControlPanelModel
 import io.github.toyota32k.video.model.PlayerModel
 import kotlinx.coroutines.CoroutineScope
@@ -30,8 +33,21 @@ class AppViewModel: ViewModel() {
     var settings: Settings = Settings.empty
         set(v) {
             if(v!=field) {
+                val o = field
                 field = v
-                refreshVideoList()
+                if(v.listUrl(0)!=o.listUrl(0)) {
+                    refreshVideoList()
+                }
+                if(v.colorVariation!=o.colorVariation) {
+                    UtImmortalSimpleTask.run {
+                        withOwner {
+                            val activity = it.asActivity() as? MainActivity ?: return@withOwner
+                            activity.updateTheme()
+
+                        }
+                        true
+                    }
+                }
             }
         }
 
@@ -43,6 +59,11 @@ class AppViewModel: ViewModel() {
         if(!this::controlPanelModel.isInitialized) {
             controlPanelModel = ControlPanelModel.create(BooApplication.instance.applicationContext)
             settings = Settings.load(BooApplication.instance)
+            val mode = settings.theme.mode
+            if(AppCompatDelegate.getDefaultNightMode()!=mode) {
+                AppCompatDelegate.setDefaultNightMode(mode)
+            }
+
         }
         return this
     }
@@ -126,7 +147,11 @@ class AppViewModel: ViewModel() {
 
     val settingCommand = Command {
         UtImmortalSimpleTask.run("settings") {
-            this.showDialog(taskName) { SettingsDialog() }
+            val dlg = this.showDialog(taskName) { SettingsDialog() }
+            if(dlg.status.ok) {
+                withOwner { dlg.viewModel.save(it.asContext()) }
+
+            }
             true
         }
     }

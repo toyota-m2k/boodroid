@@ -1,8 +1,10 @@
 package io.github.toyota32k.boodroid.dialog
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.*
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.ListPopupWindow
 import androidx.lifecycle.map
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -10,15 +12,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButtonToggleGroup
 import io.github.toyota32k.bindit.*
 import io.github.toyota32k.boodroid.R
-import io.github.toyota32k.boodroid.data.Mark
-import io.github.toyota32k.boodroid.data.Rating
-import io.github.toyota32k.boodroid.data.SourceType
+import io.github.toyota32k.boodroid.data.*
 import io.github.toyota32k.boodroid.viewmodel.SettingViewModel
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.utils.disposableObserve
 
 class SettingsDialog : UtDialog(isDialog=true) {
-    private lateinit var viewModel: SettingViewModel
+    lateinit var viewModel: SettingViewModel
+        private set
     private val binder = Binder()
 
     init {
@@ -26,6 +27,7 @@ class SettingsDialog : UtDialog(isDialog=true) {
         cancellable = false
         gravityOption = GravityOption.CENTER
         draggable = true
+        guardColor = Color.argb(0xD0, 0xFF, 0xFF, 0xFF)
         setLimitWidth(500)
         heightOption = HeightOption.AUTO_SCROLL
         setLeftButton(BuiltInButtonType.CANCEL)
@@ -36,8 +38,10 @@ class SettingsDialog : UtDialog(isDialog=true) {
         val owner = requireActivity()
         viewModel = SettingViewModel.instanceFor(owner).prepare(owner)
         return inflater.inflate(R.layout.dialog_settings).also { root->
-            val sourceTypeSelector: RadioGroup = root.findViewById(R.id.sourcr_type_selector)
+            val sourceTypeSelector: RadioGroup = root.findViewById(R.id.source_type_selector)
             val ratingSelector: MaterialButtonToggleGroup = root.findViewById(R.id.rating_selector)
+            val themeSelector: RadioGroup = root.findViewById(R.id.theme_selector)
+            val colorVariationSelector:RadioGroup = root.findViewById(R.id.color_variation_selector)
             val markSelector: MaterialButtonToggleGroup = root.findViewById(R.id.mark_selector)
             val hostAddrEdit: EditText = root.findViewById(R.id.host_addr_edit)
             val addToListButton: View = root.findViewById(R.id.add_to_list_button)
@@ -45,9 +49,13 @@ class SettingsDialog : UtDialog(isDialog=true) {
             val categoryButton: Button = root.findViewById(R.id.category_button)
             hostList.layoutManager = LinearLayoutManager(context)
 
+//            logger.debug("DLG: sourceType=${viewModel.sourceType.value}")
+
             binder.register(
                 RadioGroupBinding.create(owner, sourceTypeSelector, viewModel.sourceType, SourceType.idResolver, BindingMode.TwoWay),
                 MaterialRadioButtonGroupBinding.create(owner, ratingSelector, viewModel.rating, Rating.idResolver, BindingMode.TwoWay),
+                RadioGroupBinding.create(owner, themeSelector, viewModel.theme, ThemeSetting.idResolver, BindingMode.TwoWay),
+                RadioGroupBinding.create(owner, colorVariationSelector, viewModel.colorVariation, ColorVariation.idResolver, BindingMode.TwoWay),
                 MaterialToggleButtonGroupBinding.create(owner, markSelector, viewModel.markList, Mark.idResolver, BindingMode.TwoWay),
                 EditTextBinding.create(owner, hostAddrEdit, viewModel.editingHost),
                 TextBinding.create(owner, categoryButton, viewModel.categoryList.currentLabel.map { it ?: "All" }),
@@ -72,10 +80,24 @@ class SettingsDialog : UtDialog(isDialog=true) {
                             viewModel.editingHost.value = activatedHost
                         }
                     }
-                }
+                },
+
+                viewModel.theme.disposableObserve(owner) { theme->
+                    val mode = theme?.mode ?: return@disposableObserve
+                    if(AppCompatDelegate.getDefaultNightMode()!=mode) {
+                        AppCompatDelegate.setDefaultNightMode(mode)
+                    }
+                },
             )
+//            logger.debug("DLG: sourceType=${viewModel.sourceType.value}, ${SourceType.idResolver.id2value(sourceTypeSelector.checkedRadioButtonId) }")
         }
     }
+
+//    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+//        super.onViewCreated(view, savedInstanceState)
+//        logger.debug("DLG: sourceType=${viewModel.sourceType.value}, ${SourceType.idResolver.id2value(view.findViewById<RadioGroup>(R.id.source_type_selector).checkedRadioButtonId) }")
+//
+//    }
 
     private var listPopup: ListPopupWindow? = null
     private fun selectCategory(view: View?) {
@@ -97,7 +119,6 @@ class SettingsDialog : UtDialog(isDialog=true) {
     }
 
     override fun onPositive() {
-        viewModel.save(context)
         super.onPositive()
     }
 

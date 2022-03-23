@@ -1,9 +1,14 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Theme.Boodroid" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.Boodroid.Main">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/primaryColor</item>
-        <item name="colorPrimaryVariant">@color/primaryDarkColor</item>
+        <item name="colorPrimaryVariant">@color/primaryColor</item>
         <item name="colorPrimaryDark">@color/primaryDarkColor</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
@@ -15,13 +20,44 @@
         <!-- Customize your theme here. -->
     </style>
 
-    <style name="Theme.Boodroid.NoActionBar" parent="Theme.Boodroid">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
+    <style name="Theme.Boodroid.Alt01">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/alt01_primaryColor</item>
+        <item name="colorPrimaryVariant">@color/alt01_primaryDarkColor</item>
+        <item name="colorPrimaryDark">@color/alt01_primaryDarkColor</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/alt01_secondaryColor</item>
+        <item name="colorSecondaryVariant">@color/alt01_secondaryDarkColor</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
     </style>
 
-    <style name="Theme.Boodroid.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="Theme.Boodroid.alt02">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/alt02_primaryColor</item>
+        <item name="colorPrimaryVariant">@color/alt02_primaryDarkColor</item>
+        <item name="colorPrimaryDark">@color/alt02_primaryDarkColor</item>
+        <item name="colorOnPrimary">@color/black</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/alt02_secondaryColor</item>
+        <item name="colorSecondaryVariant">@color/alt02_secondaryDarkColor</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+    </style>
 
-    <style name="Theme.Boodroid.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+<!--    <style name="Theme.Boodroid.NoActionBar" parent="Theme.Boodroid">-->
+<!--        <item name="windowActionBar">false</item>-->
+<!--        <item name="windowNoTitle">true</item>-->
+<!--    </style>-->
+
+<!--    <style name="Theme.Boodroid.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />-->
+
+<!--    <style name="Theme.Boodroid.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />-->
 
 </resources>

@@ -25,8 +25,8 @@ buildscript {
     ext.nav_fragment_ktx_version = "2.4.1"
     ext.preference_version = "1.2.0"
 
-    ext.m2k_bind_it_version = "1.1.13"
-    ext.m2k_android_dialog_version = "3.0.1"
+    ext.m2k_bind_it_version = "1.1.14"
+    ext.m2k_android_dialog_version = "3.0.2"
 
     ext.junit_version = "4.13.2"
     ext.androidx_test_ext_junit = '1.1.3'

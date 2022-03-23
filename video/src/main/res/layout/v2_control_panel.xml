@@ -141,7 +141,7 @@
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:fontFamily="monospace"
-            android:layout_gravity="center_horizontal"
+            android:layout_gravity="center_vertical"
             android:layout_marginStart="5dp"
             tools:text="00:00"
             />
@@ -169,6 +169,7 @@
                 android:paddingHorizontal="0dp"
                 android:layout_marginTop="-21dp"
                 app:labelBehavior="gone"
+                app:thumbColor="?attr/colorPrimaryVariant"
                 />
 
         </LinearLayout>
@@ -177,7 +178,7 @@
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:fontFamily="monospace"
-            android:layout_gravity="center_horizontal"
+            android:layout_gravity="center_vertical"
             android:layout_marginEnd="5dp"
             tools:text="99:99"
             />

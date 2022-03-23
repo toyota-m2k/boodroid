@@ -13,4 +13,12 @@
     <string name="pause">Pause</string>
     <string name="play">Play</string>
     <string name="seekTop">Seek to start</string>
+    <string name="theme_type_label">Theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="color_variation_label">Color Variation</string>
+    <string name="color_pink">Pink</string>
+    <string name="color_green">Green</string>
+    <string name="color_blue">Blue</string>
 </resources>

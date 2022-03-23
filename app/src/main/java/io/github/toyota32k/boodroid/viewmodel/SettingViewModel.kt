@@ -7,10 +7,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import io.github.toyota32k.bindit.Command
 import io.github.toyota32k.bindit.list.ObservableList
-import io.github.toyota32k.boodroid.data.Mark
-import io.github.toyota32k.boodroid.data.Rating
-import io.github.toyota32k.boodroid.data.Settings
-import io.github.toyota32k.boodroid.data.SourceType
+import io.github.toyota32k.boodroid.data.*
+import io.github.toyota32k.dialog.UtMessageBox
+import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
 import io.github.toyota32k.ytremote.data.*
 
 //class RatingRadioGroup : RadioButtonGroup<Rating>() {
@@ -62,6 +61,8 @@ class SettingViewModel : ViewModel() {
 
     val sourceType = MutableLiveData(SourceType.DB)
     val rating = MutableLiveData(Rating.NORMAL)
+    val theme = MutableLiveData(ThemeSetting.SYSTEM)
+    val colorVariation = MutableLiveData(ColorVariation.PINK)
     val markList = MutableLiveData<List<Mark>>(emptyList())
     val commandAddToList = Command()
     val commandCategory = Command()
@@ -101,9 +102,15 @@ class SettingViewModel : ViewModel() {
     }
 
     fun removeHost(address:String) {
-        hostList.value?.remove(address)
-        if(activeHost.value == address) {
-            activeHost.value = hostList.value?.firstOrNull()
+        UtImmortalSimpleTask.run {
+            val r = showDialog("remove host") { UtMessageBox.createForYesNo("BooDroid", "Removing host from list.") }.status
+            if(r.yes) {
+                hostList.value?.remove(address)
+                if(activeHost.value == address) {
+                    activeHost.value = hostList.value?.firstOrNull()
+                }
+            }
+            true
         }
     }
 
@@ -113,6 +120,8 @@ class SettingViewModel : ViewModel() {
                 hostList = hostList.value ?: listOf(),
                 sourceType = sourceType.value ?: SourceType.DB,
                 rating = rating.value ?: Rating.NORMAL,
+                theme = theme.value ?: ThemeSetting.SYSTEM,
+                colorVariation = colorVariation.value ?: ColorVariation.PINK,
                 marks = markList.value?: emptyList(),
                 category = categoryList.category)
 
@@ -122,6 +131,8 @@ class SettingViewModel : ViewModel() {
         hostList.value = ObservableList.from(s.hostList)
         sourceType.value = s.sourceType
         rating.value = s.rating
+        theme.value = s.theme
+        colorVariation.value = s.colorVariation
         markList.value = s.marks
         categoryList.category = s.category
     }

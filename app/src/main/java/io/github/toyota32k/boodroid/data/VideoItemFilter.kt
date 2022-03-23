@@ -12,12 +12,16 @@ enum class Rating(val v:Int, @IdRes val id:Int) {
     EXCELLENT(5, R.id.tg_rating_excellent);
 
     private class IDResolver : IIDValueResolver<Rating> {
-        override fun id2value(@IdRes id: Int):Rating  = valueOf(id)
+        override fun id2value(@IdRes id: Int):Rating  = Rating.id2value(id)
         override fun value2id(v: Rating): Int = v.id
     }
+
     companion object {
-        fun valueOf(@IdRes id: Int, def: Rating = NORMAL): Rating {
+        fun id2value(@IdRes id: Int, def: Rating = NORMAL): Rating {
             return values().find { it.id == id } ?: def
+        }
+        fun valueOf(v: Int, def: Rating = NORMAL): Rating {
+            return values().find { it.v == v } ?: def
         }
         val idResolver:IIDValueResolver<Rating> by lazy { IDResolver() }
     }
@@ -30,13 +34,16 @@ enum class Mark(val v:Int, @IdRes val id:Int) {
     HEART(3, R.id.tg_mark_heart);
 
     private class IDResolver : IIDValueResolver<Mark> {
-        override fun id2value(@IdRes id: Int): Mark = valueOf(id)
+        override fun id2value(@IdRes id: Int): Mark = Mark.id2value(id)
         override fun value2id(v: Mark): Int = v.id
     }
 
     companion object {
-        fun valueOf(@IdRes id: Int, def: Mark = NONE): Mark {
+        fun id2value(@IdRes id: Int, def: Mark = NONE): Mark {
             return values().find { it.id == id } ?: def
+        }
+        fun valueOf(v: Int, def: Mark = NONE): Mark {
+            return values().find { it.v == v } ?: def
         }
         val idResolver:IIDValueResolver<Mark> by lazy { IDResolver() }
     }
@@ -48,13 +55,16 @@ enum class SourceType(@IdRes val v:Int, val id:Int) {
     SELECTED(2, R.id.chk_src_selected);
 
     private class IDResolver : IIDValueResolver<SourceType> {
-        override fun id2value(@IdRes id: Int): SourceType = valueOf(id)
+        override fun id2value(@IdRes id: Int): SourceType = SourceType.id2value(id)
         override fun value2id(v: SourceType): Int = v.id
     }
 
     companion object {
-        fun valueOf(@IdRes id: Int, def: SourceType = DB): SourceType {
+        fun id2value(@IdRes id: Int, def: SourceType = DB): SourceType {
             return values().find { it.id == id } ?: def
+        }
+        fun valueOf(v: Int, def: SourceType = DB): SourceType {
+            return values().find { it.v == v } ?: def
         }
 
         val idResolver:IIDValueResolver<SourceType> by lazy { IDResolver() }
