@@ -102,16 +102,7 @@ class ChapterList(val ownerId:String) : SortedList<IChapter, Long>(10, false,
                     .url(url)
                     .get()
                     .build()
-                val json = NetClient.executeAsync(req).use { res ->
-                    if (res.code == 200) {
-                        val body = withContext(Dispatchers.IO) {
-                            res.body?.string()
-                        } ?: throw IllegalStateException("Server Response No Data.")
-                        JSONObject(body)
-                    } else {
-                        throw IllegalStateException("Server Response Error (${res.code})")
-                    }
-                }
+                val json = NetClient.executeAndGetJsonAsync(req)
                 // kotlin の reduce は、accumulatorとelementの型が同じ場合（sumみたいなやつ）しか扱えない。というより、accの初期値が、iterator.next()になっているし。
                 // 代わりに、fold を使うとうまくいくというハック情報。
                 json.getJSONArray("chapters").toIterable().fold<Any, ChapterList>(ChapterList(ownerId)) { acc, c-> acc.apply{ add(Chapter(c as JSONObject)) } }

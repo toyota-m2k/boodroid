@@ -17,16 +17,7 @@ data class VideoListSource(val list:List<IAmvSource>, val modifiedDate:Long) {
             .get()
             .build()
         return try {
-            val json = NetClient.executeAsync(req).use { res ->
-                if (res.code == 200) {
-                    val body = withContext(Dispatchers.IO) {
-                        res.body?.string()
-                    } ?: throw IllegalStateException("Server Response No Data.")
-                    JSONObject(body)
-                } else {
-                    throw IllegalStateException("Server Response Error (${res.code})")
-                }
-            }
+            val json = NetClient.executeAndGetJsonAsync(req)
             json.getString("update") == "1"
         } catch(e:Throwable) {
             UtLogger.stackTrace(e)
@@ -44,16 +35,7 @@ data class VideoListSource(val list:List<IAmvSource>, val modifiedDate:Long) {
                 .build()
 
             return try {
-                val json = NetClient.executeAsync(req).use { res ->
-                    if (res.code == 200) {
-                        val body = withContext(Dispatchers.IO) {
-                            res.body?.string()
-                        } ?: throw IllegalStateException("Server Response No Data.")
-                        JSONObject(body)
-                    } else {
-                        throw IllegalStateException("Server Response Error (${res.code})")
-                    }
-                }
+                val json = NetClient.executeAndGetJsonAsync(req)
                 val lastUpdate = json.getString("date").toLong()
                 val jsonList = json.getJSONArray("list")
                     ?: throw IllegalStateException("Server Response Null List.")

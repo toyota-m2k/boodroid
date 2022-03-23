@@ -2,6 +2,7 @@ package io.github.toyota32k.boodroid.data
 
 import io.github.toyota32k.utils.UtLogger
 import okhttp3.*
+import org.json.JSONObject
 import java.io.IOException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -17,6 +18,14 @@ object NetClient {
     suspend fun executeAsync(req:Request):Response {
         UtLogger.debug("NetClient: ${req.url}")
         return motherClient.newCall(req).executeAsync()
+    }
+
+    suspend fun executeAndGetJsonAsync(req:Request):JSONObject {
+        return executeAsync(req).use { res ->
+            if (res.code != 200) throw IllegalStateException("Server Response Error (${res.code})")
+            val body = res.body?.use { it.string() } ?: throw IllegalStateException("Server Response No Data.")
+            JSONObject(body)
+        }
     }
 
     /**

@@ -18,8 +18,11 @@ import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.getAttrColor
 import io.github.toyota32k.boodroid.common.getAttrColorAsDrawable
 import io.github.toyota32k.boodroid.data.LastPlayInfo
+import io.github.toyota32k.boodroid.data.VideoItem
+import io.github.toyota32k.boodroid.dialog.RatingDialog
 import io.github.toyota32k.boodroid.viewmodel.MainViewModel
 import io.github.toyota32k.utils.lifecycleOwner
+import io.github.toyota32k.video.common.IAmvSource
 import io.github.toyota32k.video.model.PlayerModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -35,6 +38,7 @@ class VideoListView @JvmOverloads constructor(
     @ColorInt private val normalTextColor: Int
     private val selectedColor:Drawable
     @ColorInt private val selectedTextColor:Int
+    private lateinit var model:PlayerModel
 
     init {
         context.theme!!.apply {
@@ -48,6 +52,7 @@ class VideoListView @JvmOverloads constructor(
     }
 
     fun bindViewModel(model: PlayerModel, binder: Binder) {
+        this.model = model
         val owner = lifecycleOwner()!!
 //        val scope = owner.lifecycleScope
         val viewModel = MainViewModel.instanceFor(owner as MainActivity)
@@ -56,7 +61,7 @@ class VideoListView @JvmOverloads constructor(
                 val textView = view.findViewById<TextView>(R.id.video_item_text)
                 textView.text = videoItem.name
                 itemBinder.register(
-                    Command().connectAndBind(owner, textView) { model.playAt(videoItem) },
+                    Command().connectAndBind(owner, textView) { onItemTapped(videoItem) },
                     GenericBoolBinding.create(owner, textView, model.currentSource.map { it?.id == videoItem.id }.asLiveData()) {v,hit->
                         val txv = v as TextView
                         if(hit) {
@@ -81,5 +86,13 @@ class VideoListView @JvmOverloads constructor(
             }
         }.launchIn(viewModel.viewModelScope)
 
+    }
+
+    private fun onItemTapped(videoItem:IAmvSource) {
+        if(model.currentSource.value == videoItem && videoItem is VideoItem) {
+            RatingDialog.show(videoItem)
+        } else {
+            model.playAt(videoItem)
+        }
     }
 }

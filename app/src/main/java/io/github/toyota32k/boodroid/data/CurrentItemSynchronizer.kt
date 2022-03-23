@@ -3,6 +3,7 @@ package io.github.toyota32k.boodroid.data
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.utils.UtLogger
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,7 +30,7 @@ object CurrentItemSynchronizer {
             .url(url)
             .put(json.toRequestBody("application/json".toMediaType()))
             .build()
-        vm.viewModelScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             NetClient.executeAsync(req).close()
         }
     }
@@ -44,19 +45,12 @@ object CurrentItemSynchronizer {
             .url(url)
             .get()
             .build()
-        vm.viewModelScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
-                val json = NetClient.executeAsync(req).use { res ->
-                    if (res.code == 200) {
-                        val body = withContext(Dispatchers.IO) {
-                            res.body?.string()
-                        } ?: throw IllegalStateException("Server Response No Data.")
-                        JSONObject(body)
-                    } else {
-                        throw IllegalStateException("Server Response Error (${res.code})")
-                    }
+                val json = NetClient.executeAndGetJsonAsync(req)
+                withContext(Dispatchers.Main) {
+                    vm.tryPlayAt(json.getString("id"))
                 }
-                vm.tryPlayAt(json.getString("id"))
             } catch(e:Throwable) {
                 UtLogger.stackTrace(e)
             }

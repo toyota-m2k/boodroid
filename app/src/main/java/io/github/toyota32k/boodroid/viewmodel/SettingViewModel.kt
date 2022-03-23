@@ -7,9 +7,14 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import io.github.toyota32k.bindit.Command
 import io.github.toyota32k.bindit.list.ObservableList
+import io.github.toyota32k.boodroid.common.UtImmortalTaskContextSource
 import io.github.toyota32k.boodroid.data.*
+import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtMessageBox
+import io.github.toyota32k.dialog.task.IUtImmortalTask
+import io.github.toyota32k.dialog.task.IUtImmortalTaskMutableContextSource
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.task.UtImmortalViewModelHelper
 import io.github.toyota32k.ytremote.data.*
 
 //class RatingRadioGroup : RadioButtonGroup<Rating>() {
@@ -53,7 +58,7 @@ import io.github.toyota32k.ytremote.data.*
 //        set(v) {selected = v}
 //}
 
-class SettingViewModel : ViewModel() {
+class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtImmortalTaskContextSource() {
     val activeHost = MutableLiveData<String?>()
     val editingHost = MutableLiveData<String>()
     val hostList = MutableLiveData<ObservableList<String>>(ObservableList())
@@ -68,9 +73,9 @@ class SettingViewModel : ViewModel() {
     val commandCategory = Command()
     val categoryList = CategoryList().apply { update() }
 
-    var prepared:Boolean = false
-    fun prepare(context: Context):SettingViewModel {
-        if(!prepared) {
+    var prepared: Boolean = false
+    fun prepare(context: Context): SettingViewModel {
+        if (!prepared) {
             prepared = true
             load(context)
         }
@@ -86,27 +91,27 @@ class SettingViewModel : ViewModel() {
 //            sourceType.value = SourceType.values().find {it.id==v}
 //        }
 
-    private fun hasHost(address:String) : Boolean {
-        return null != hostList.value?.find {it==address}
+    private fun hasHost(address: String): Boolean {
+        return null != hostList.value?.find { it == address }
     }
 
     fun addHost() {
         addHost(address = editingHost.value ?: return)
     }
 
-    private fun addHost(address:String) {
-        if(address.isNotBlank() && !hasHost(address)) {
+    private fun addHost(address: String) {
+        if (address.isNotBlank() && !hasHost(address)) {
             hostList.value?.add(address)
             activeHost.value = address
         }
     }
 
-    fun removeHost(address:String) {
+    fun removeHost(address: String) {
         UtImmortalSimpleTask.run {
             val r = showDialog("remove host") { UtMessageBox.createForYesNo("BooDroid", "Removing host from list.") }.status
-            if(r.yes) {
+            if (r.yes) {
                 hostList.value?.remove(address)
-                if(activeHost.value == address) {
+                if (activeHost.value == address) {
                     activeHost.value = hostList.value?.firstOrNull()
                 }
             }
@@ -116,16 +121,17 @@ class SettingViewModel : ViewModel() {
 
     val settings: Settings
         get() = Settings(
-                activeHost = activeHost.value,
-                hostList = hostList.value ?: listOf(),
-                sourceType = sourceType.value ?: SourceType.DB,
-                rating = rating.value ?: Rating.NORMAL,
-                theme = theme.value ?: ThemeSetting.SYSTEM,
-                colorVariation = colorVariation.value ?: ColorVariation.PINK,
-                marks = markList.value?: emptyList(),
-                category = categoryList.category)
+            activeHost = activeHost.value,
+            hostList = hostList.value ?: listOf(),
+            sourceType = sourceType.value ?: SourceType.DB,
+            rating = rating.value ?: Rating.NORMAL,
+            theme = theme.value ?: ThemeSetting.SYSTEM,
+            colorVariation = colorVariation.value ?: ColorVariation.PINK,
+            marks = markList.value ?: emptyList(),
+            category = categoryList.category
+        )
 
-    fun load(context:Context) {
+    fun load(context: Context) {
         val s = Settings.load(context)
         activeHost.value = s.activeHost ?: ""
         hostList.value = ObservableList.from(s.hostList)
@@ -137,9 +143,9 @@ class SettingViewModel : ViewModel() {
         categoryList.category = s.category
     }
 
-    fun save(context:Context):Boolean {
+    fun save(context: Context): Boolean {
         val s = settings
-        if(!s.isValid) {
+        if (!s.isValid) {
             return false
         }
         s.save(context)
@@ -147,8 +153,19 @@ class SettingViewModel : ViewModel() {
     }
 
     companion object {
-        fun instanceFor(activity: ViewModelStoreOwner):SettingViewModel {
-            return ViewModelProvider(activity, ViewModelProvider.NewInstanceFactory()).get(SettingViewModel::class.java)
-        }
+//        fun instanceFor(activity: ViewModelStoreOwner):SettingViewModel {
+//            return ViewModelProvider(activity, ViewModelProvider.NewInstanceFactory()).get(SettingViewModel::class.java)
+//        }
+        /**
+         * タスク開始時の初期化用
+         */
+        fun createBy(task: IUtImmortalTask, initialize: ((SettingViewModel) -> Unit)? = null): SettingViewModel
+            = UtImmortalViewModelHelper.createBy(SettingViewModel::class.java, task, initialize)
+
+        /**
+         * ダイアログから取得する用
+         */
+        fun instanceFor(dialog: IUtDialog): SettingViewModel
+            = UtImmortalViewModelHelper.instanceFor(SettingViewModel::class.java, dialog)
     }
 }

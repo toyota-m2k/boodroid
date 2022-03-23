@@ -13,6 +13,22 @@ fun JSONObject.safeGetLong(key:String, defValue:Long) : Long {
     }
 }
 
+fun JSONObject.safeGetInt(key:String, defValue:Int) : Int {
+    return try {
+        this.getInt(key)
+    }  catch (e:Throwable) {
+        defValue
+    }
+}
+
+fun JSONObject.safeGetNullableString(key:String) : String? {
+    return try {
+        this.getString(key)
+    }  catch (e:Throwable) {
+        return null
+    }
+}
+
 fun JSONArray.toIterable():Iterable<Any> {
     return Iterable {
         iterator {

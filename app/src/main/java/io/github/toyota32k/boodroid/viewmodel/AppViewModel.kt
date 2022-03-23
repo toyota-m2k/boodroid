@@ -10,7 +10,6 @@ import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.data.*
 import io.github.toyota32k.boodroid.dialog.SettingsDialog
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
-import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.video.model.ControlPanelModel
 import io.github.toyota32k.video.model.PlayerModel
 import kotlinx.coroutines.CoroutineScope
@@ -42,7 +41,7 @@ class AppViewModel: ViewModel() {
                     UtImmortalSimpleTask.run {
                         withOwner {
                             val activity = it.asActivity() as? MainActivity ?: return@withOwner
-                            activity.updateTheme()
+                            activity.restartActivityToUpdateTheme()
 
                         }
                         true
@@ -147,10 +146,10 @@ class AppViewModel: ViewModel() {
 
     val settingCommand = Command {
         UtImmortalSimpleTask.run("settings") {
+            SettingViewModel.createBy(this) { it.prepare(BooApplication.instance.applicationContext) }
             val dlg = this.showDialog(taskName) { SettingsDialog() }
             if(dlg.status.ok) {
                 withOwner { dlg.viewModel.save(it.asContext()) }
-
             }
             true
         }

@@ -4,10 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"        android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="1dp"
     android:paddingBottom="1dp"
-    android:paddingStart="3dp"
-    android:paddingEnd="3dp"
     android:background="@drawable/bordered_list_item_bg"
     >
 
@@ -16,7 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="start|center_vertical"
-        android:padding="5dp"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="8dp"
         android:clickable="true"
         tools:text="abcdeig"
         tools:textColor="?attr/colorOnSurface"

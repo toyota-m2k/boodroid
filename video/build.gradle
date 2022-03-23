@@ -51,7 +51,7 @@ dependencies {
     implementation "com.google.android.exoplayer:exoplayer-transformer:$exoplayer_version"
 
     implementation "com.github.toyota-m2k:bind-it:$m2k_bind_it_version"
-    implementation 'com.github.toyota-m2k:android-viewex:0.0.1'
+    implementation "com.github.toyota-m2k:android-viewex:$m2k_viewex_version"
 
     testImplementation "junit:junit:$junit_version"
     androidTestImplementation "androidx.test.ext:junit:$androidx_test_ext_junit"

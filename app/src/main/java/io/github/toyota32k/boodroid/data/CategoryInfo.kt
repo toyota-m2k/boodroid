@@ -54,7 +54,7 @@ class CategoryList() {
         if(hasData) return
         if(busy.getAndSet(true)) return
         if(!AppViewModel.instance.settings.isValid) return
-        CoroutineScope(Dispatchers.Default).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             val url = AppViewModel.instance.settings.urlToListCategories()
             val req = Request.Builder()
                     .url(url)
@@ -62,16 +62,7 @@ class CategoryList() {
                     .build()
 
             val list = try {
-                val json = NetClient.executeAsync(req).use { res ->
-                    if (res.code == 200) {
-                        val body = withContext(Dispatchers.IO) {
-                            res.body?.string()
-                        } ?: throw IllegalStateException("Server Response No Data.")
-                        JSONObject(body)
-                    } else {
-                        throw IllegalStateException("Server Response Error (${res.code})")
-                    }
-                }
+                val json = NetClient.executeAndGetJsonAsync(req)
                 val jsonList = json.getJSONArray("categories") ?: throw IllegalStateException("Server Response Null List.")
                 jsonList.toIterable().map { j -> CategoryInfo(j as JSONObject) }.sortedBy { it.sort }.toList()
             } catch (e: Throwable) {

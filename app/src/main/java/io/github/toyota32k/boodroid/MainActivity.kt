@@ -95,7 +95,9 @@ class MainActivity : UtMortalActivity() {
 //        }
     }
 
-    fun updateTheme() {
+    private var updatingTheme:Boolean = false
+    fun restartActivityToUpdateTheme() {
+        updatingTheme = true
         finish()
         startActivity(Intent(this, MainActivity::class.java))
     }
@@ -298,7 +300,9 @@ class MainActivity : UtMortalActivity() {
                 val pos = controlPanelModel.playerModel.playerSeekPosition.value
                 LastPlayInfo.set(BooApplication.instance.applicationContext, current.id, pos, true)
             }
-            controlPanelModel.playerModel.pause()
+            if(!updatingTheme) {
+                controlPanelModel.playerModel.pause()
+            }
         }
         super.onDestroy()
         binder.reset()

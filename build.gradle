@@ -27,6 +27,7 @@ buildscript {
 
     ext.m2k_bind_it_version = "1.1.14"
     ext.m2k_android_dialog_version = "3.0.2"
+    ext.m2k_viewex_version = "0.0.1"
 
     ext.junit_version = "4.13.2"
     ext.androidx_test_ext_junit = '1.1.3'

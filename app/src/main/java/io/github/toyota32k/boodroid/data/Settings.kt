@@ -107,6 +107,10 @@ class Settings(
         return baseUrl + "chapter?id=$id"
     }
 
+    fun urlReputation():String {
+        return baseUrl + "reputation"
+    }
+
 
 
     fun save(context: Context) {

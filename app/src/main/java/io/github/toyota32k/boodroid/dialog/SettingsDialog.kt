@@ -22,21 +22,28 @@ class SettingsDialog : UtDialog(isDialog=true) {
         private set
     private val binder = Binder()
 
-    init {
+    override fun preCreateBodyView() {
+        super.preCreateBodyView()
         scrollable = true
         cancellable = false
-        gravityOption = GravityOption.CENTER
         draggable = true
         guardColor = Color.argb(0xD0, 0xFF, 0xFF, 0xFF)
-        setLimitWidth(500)
-        heightOption = HeightOption.AUTO_SCROLL
+        if(isPhone) {
+            widthOption = WidthOption.FULL
+            heightOption = HeightOption.FULL
+            scrollable = true
+        } else {
+            heightOption = HeightOption.AUTO_SCROLL
+            gravityOption = GravityOption.CENTER
+            setLimitWidth(500)
+        }
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)
     }
 
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
         val owner = requireActivity()
-        viewModel = SettingViewModel.instanceFor(owner).prepare(owner)
+        viewModel = SettingViewModel.instanceFor(this)
         return inflater.inflate(R.layout.dialog_settings).also { root->
             val sourceTypeSelector: RadioGroup = root.findViewById(R.id.source_type_selector)
             val ratingSelector: MaterialButtonToggleGroup = root.findViewById(R.id.rating_selector)
