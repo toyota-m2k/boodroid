@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.video.VideoSize
@@ -51,6 +52,10 @@ class PlayerModel(
 
     fun associatePlayerView(view: StyledPlayerView) {
         view.player = player
+    }
+
+    fun associateNotificationManager(manager: PlayerNotificationManager) {
+        manager.setPlayer(player)
     }
 
     /**

@@ -49,8 +49,8 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_ktx_version"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_ktx_version"
 
-    implementation("androidx.work:work-runtime:$androidx_work_version")
-    implementation("androidx.work:work-runtime-ktx:$androidx_work_version")
+    implementation "com.google.android.exoplayer:exoplayer-ui:$exoplayer_version"
+    implementation "com.google.android.exoplayer:exoplayer-common:$exoplayer_version"
 
     implementation "com.github.toyota-m2k:bind-it:$m2k_bind_it_version"
     implementation "com.github.toyota-m2k:android-dialog:$m2k_android_dialog_version"

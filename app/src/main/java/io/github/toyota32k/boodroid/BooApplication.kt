@@ -45,6 +45,6 @@ class BooApplication : Application(), ViewModelStoreOwner {
     companion object {
         private lateinit var instance_:BooApplication
         val instance get() = instance_
-        val logger = UtLog("App", omissionNamespace = "io.github.toyota32k.")
+        val logger = UtLog("Boo.", omissionNamespace = "io.github.toyota32k.")
     }
 }

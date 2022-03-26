@@ -24,9 +24,11 @@ class SettingsDialog : UtDialog(isDialog=true) {
 
     override fun preCreateBodyView() {
         super.preCreateBodyView()
+        viewModel = SettingViewModel.instanceFor(this)
         scrollable = true
         cancellable = false
         draggable = true
+        title = viewModel.version
         guardColor = Color.argb(0xD0, 0xFF, 0xFF, 0xFF)
         if(isPhone) {
             widthOption = WidthOption.FULL
@@ -43,7 +45,6 @@ class SettingsDialog : UtDialog(isDialog=true) {
 
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
         val owner = requireActivity()
-        viewModel = SettingViewModel.instanceFor(this)
         return inflater.inflate(R.layout.dialog_settings).also { root->
             val sourceTypeSelector: RadioGroup = root.findViewById(R.id.source_type_selector)
             val ratingSelector: MaterialButtonToggleGroup = root.findViewById(R.id.rating_selector)

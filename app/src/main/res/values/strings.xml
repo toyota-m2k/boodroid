@@ -22,4 +22,7 @@
     <string name="color_green">Green</string>
     <string name="color_blue">Blue</string>
     <string name="color_purple">Purple</string>
+    <string name="channel_name">BooChannel</string>
+    <string name="channel_description">BooDroid Running Wild</string>
+
 </resources>
