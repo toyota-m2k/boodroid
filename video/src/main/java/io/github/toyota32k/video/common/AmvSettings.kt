@@ -13,33 +13,25 @@ interface IAmvHttpClientSource {
 }
 
 object AmvSettings {
-    val logger = UtLog("a-m-v", null, "io.github.toyota32k.")
+    var logger:UtLog = UtLog("AMV", null, "io.github.toyota32k.")
+        set(v) { field = UtLog("AMV", v) }
 
     private var initialized: Boolean = false
-//    private var allowPictureInPictureByCaller = false
     lateinit var workDirectory: File
-    var maxBitRate = 705 // k bps
-        private set
-    private var allowPictureInPicture = false
     private var httpClientSource: IAmvHttpClientSource? = null
 
     /**
      * 初期化. Application.onCreate()から呼び出す。
      *
-     * @param context   システムがPinPをサポートしているかをチェックするためのcontext (ApplicationContextで可）
      * @param cacheRootPath ダウンロードした動画のキャッシュ用ディレクトリ
-     * @param bitrate  貼り付ける動画の最大ビットレート
-     * @param allowPinP PinPを許可するか(VfEditionDef の定義）。。。実際にPinPが使えるかどうかは、OSのバージョン＋デバイスの対応状況によって変わる。
      * @param　httpClientSource　videoライブラリと本体とで、httpClient（の設定やセッションなど）を共用するためのi/f
      */
     @JvmStatic
-    fun initialize(cacheRootPath: File, bitrate:Int, allowPinP:Boolean, httpClientSource: IAmvHttpClientSource?) {
+    fun initialize(cacheRootPath: File, httpClientSource: IAmvHttpClientSource?) {
         if (initialized) {
             return
         }
         initialized = true
-        maxBitRate = bitrate
-        allowPictureInPicture = allowPinP && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
         AmvSettings.httpClientSource = httpClientSource
         val videoCache = File(cacheRootPath, ".video-cache")
         AmvCacheManager.initialize(videoCache)
@@ -58,8 +50,4 @@ object AmvSettings {
 
     val httpClient: OkHttpClient
         get() = httpClientSource?.getHttpClient() ?: OkHttpClient()
-
-    fun isPinPAvailable(context: Context) : Boolean {
-        return allowPictureInPicture && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && context.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
-    }
 }

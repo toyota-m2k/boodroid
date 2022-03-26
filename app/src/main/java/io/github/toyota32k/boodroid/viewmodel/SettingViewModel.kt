@@ -1,12 +1,11 @@
 package io.github.toyota32k.boodroid.viewmodel
 
+import android.app.Application
 import android.content.Context
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.*
 import io.github.toyota32k.bindit.Command
 import io.github.toyota32k.bindit.list.ObservableList
+import io.github.toyota32k.boodroid.common.PackageUtil
 import io.github.toyota32k.boodroid.common.UtImmortalTaskContextSource
 import io.github.toyota32k.boodroid.data.*
 import io.github.toyota32k.dialog.IUtDialog
@@ -72,12 +71,14 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
     val commandAddToList = Command()
     val commandCategory = Command()
     val categoryList = CategoryList().apply { update() }
+    lateinit var version : String
 
     var prepared: Boolean = false
     fun prepare(context: Context): SettingViewModel {
         if (!prepared) {
             prepared = true
             load(context)
+            version = "${PackageUtil.appName(context)} v${PackageUtil.getVersion(context)}"
         }
         return this
     }

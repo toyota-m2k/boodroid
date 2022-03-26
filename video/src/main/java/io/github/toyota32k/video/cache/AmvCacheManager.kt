@@ -30,7 +30,7 @@ import java.util.*
 import kotlin.math.min
 
 object AmvCacheManager {
-    val logger = UtLog("Cache", AmvSettings.logger)
+    val logger by lazy { UtLog("Cache", AmvSettings.logger) }
     private val MAX_CACHE_SIZE = if(BuildConfig.DEBUG) 20L * 1000 * 1000 else 1L * 1000*1000*1000   // 20MB(Debug) / 1GB(Release)
     private const val MAX_CACHE_COUNT = 200
 

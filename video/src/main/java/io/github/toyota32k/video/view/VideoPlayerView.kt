@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.widget.FrameLayout
 import androidx.lifecycle.lifecycleScope
 import io.github.toyota32k.bindit.Binder
+import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.utils.lifecycleOwner
 import io.github.toyota32k.video.R
 import io.github.toyota32k.video.common.AmvSettings
@@ -14,7 +15,7 @@ import io.github.toyota32k.video.model.ControlPanelModel
 class VideoPlayerView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
     : FrameLayout(context, attrs, defStyleAttr) {
     companion object {
-        val logger get() = AmvSettings.logger
+        val logger by lazy { UtLog("VPV", AmvSettings.logger) }
     }
 
     init {

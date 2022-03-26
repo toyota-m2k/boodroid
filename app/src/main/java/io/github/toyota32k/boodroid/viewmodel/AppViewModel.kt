@@ -10,6 +10,7 @@ import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.data.*
 import io.github.toyota32k.boodroid.dialog.SettingsDialog
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.video.model.ControlPanelModel
 import io.github.toyota32k.video.model.PlayerModel
 import kotlinx.coroutines.CoroutineScope
@@ -21,7 +22,7 @@ import okhttp3.Request
 
 class AppViewModel: ViewModel() {
     companion object {
-        val logger = BooApplication.logger
+        val logger = UtLog("AVP", BooApplication.logger)
         val instance: AppViewModel
             get() = ViewModelProvider(BooApplication.instance, ViewModelProvider.NewInstanceFactory())[AppViewModel::class.java].prepare()
     }
@@ -51,7 +52,7 @@ class AppViewModel: ViewModel() {
         }
 
     // 通信中フラグ
-    private val loading = MutableStateFlow<Boolean>(false)
+    private val loading = MutableStateFlow(false)
     private var lastUpdate : Long = 0L
 
     private fun prepare():AppViewModel {
@@ -62,7 +63,6 @@ class AppViewModel: ViewModel() {
             if(AppCompatDelegate.getDefaultNightMode()!=mode) {
                 AppCompatDelegate.setDefaultNightMode(mode)
             }
-
         }
         return this
     }
@@ -140,6 +140,7 @@ class AppViewModel: ViewModel() {
     }
 
     override fun onCleared() {
+        logger.debug()
         super.onCleared()
         controlPanelModel.close()
     }

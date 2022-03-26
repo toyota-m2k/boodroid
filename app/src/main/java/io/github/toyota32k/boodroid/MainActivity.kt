@@ -95,6 +95,13 @@ class MainActivity : UtMortalActivity() {
 //        if(!isPinP && controlPanelModel.windowMode.value == ControlPanelModel.WindowMode.PINP) {
 //            controlPanelModel.setWindowMode(ControlPanelModel.WindowMode.NORMAL)
 //        }
+
+        val intent = Intent(this, PlayerNotificationService::class.java)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
     }
 
     private var updatingTheme:Boolean = false
@@ -242,6 +249,7 @@ class MainActivity : UtMortalActivity() {
     }
 
     private fun layoutForPinP() {
+//        appViewModel.keepAlive(true)
         logger.debug()
         enterPinP()
    }
@@ -249,6 +257,7 @@ class MainActivity : UtMortalActivity() {
     private val exceptPlayerViews:Array<View> get() = arrayOf(listPanel, controlPanel, splitter)
 
     private fun layoutForFullscreen() {
+//        appViewModel.keepAlive(true)
         logger.debug()
         for(v in exceptPlayerViews) {
             v.visibility = View.GONE
@@ -274,6 +283,7 @@ class MainActivity : UtMortalActivity() {
     }
 
     private fun layoutForNormal() {
+//        appViewModel.keepAlive(false)
         logger.debug()
         for(v in exceptPlayerViews) {
             v.visibility = View.VISIBLE
@@ -303,7 +313,8 @@ class MainActivity : UtMortalActivity() {
                 LastPlayInfo.set(BooApplication.instance.applicationContext, current.id, pos, true)
             }
             if(!updatingTheme) {
-                controlPanelModel.playerModel.pause()
+                logger.debug("activity finishing")
+                PlayerNotificationService.terminate()
             }
         }
         super.onDestroy()
