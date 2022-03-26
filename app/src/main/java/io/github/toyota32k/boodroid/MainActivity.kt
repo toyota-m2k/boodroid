@@ -242,6 +242,7 @@ class MainActivity : UtMortalActivity() {
     }
 
     private fun layoutForPinP() {
+//        appViewModel.keepAlive(true)
         logger.debug()
         enterPinP()
    }
@@ -249,6 +250,7 @@ class MainActivity : UtMortalActivity() {
     private val exceptPlayerViews:Array<View> get() = arrayOf(listPanel, controlPanel, splitter)
 
     private fun layoutForFullscreen() {
+//        appViewModel.keepAlive(true)
         logger.debug()
         for(v in exceptPlayerViews) {
             v.visibility = View.GONE
@@ -274,6 +276,7 @@ class MainActivity : UtMortalActivity() {
     }
 
     private fun layoutForNormal() {
+//        appViewModel.keepAlive(false)
         logger.debug()
         for(v in exceptPlayerViews) {
             v.visibility = View.VISIBLE

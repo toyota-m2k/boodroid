@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import io.github.toyota32k.bindit.Binder
 import io.github.toyota32k.boodroid.common.getAttrColor
 import io.github.toyota32k.player.model.Range
+import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.utils.lifecycleOwner
 import io.github.toyota32k.video.R
 import io.github.toyota32k.video.common.AmvSettings
@@ -23,7 +24,7 @@ import kotlinx.coroutines.flow.onEach
 
 class ChapterView @JvmOverloads constructor(context: Context, attrs: AttributeSet?=null, defStyleAttr:Int=0) : View(context, attrs, defStyleAttr) {
     companion object {
-        val logger get() = AmvSettings.logger
+        val logger by lazy { UtLog("CV", AmvSettings.logger) }
     }
     private var mWidth:Int = 0
     private var mHeight:Int = 0

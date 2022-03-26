@@ -2,6 +2,7 @@ package io.github.toyota32k.video.model
 
 import android.content.Context
 import io.github.toyota32k.bindit.Command
+import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.video.common.AmvSettings
 import io.github.toyota32k.video.common.formatTime
 import kotlinx.coroutines.CoroutineScope
@@ -19,7 +20,7 @@ open class ControlPanelModel(
     val playerModel: PlayerModel
 ) : Closeable {
     companion object {
-        val logger get() = AmvSettings.logger
+        val logger by lazy { UtLog("CPM", AmvSettings.logger) }
         fun create(context: Context): ControlPanelModel {
             val playerViewModel = PlayerModel(context)
             return ControlPanelModel(playerViewModel)

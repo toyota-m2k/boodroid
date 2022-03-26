@@ -31,6 +31,7 @@ class BooApplication : Application(), ViewModelStoreOwner {
 
     override fun onCreate() {
         super.onCreate()
+        AmvSettings.logger = logger
         UtStandardString.setContext(applicationContext,null)
         UtDialogConfig.solidBackgroundOnPhone = false
     }
@@ -44,6 +45,6 @@ class BooApplication : Application(), ViewModelStoreOwner {
     companion object {
         private lateinit var instance_:BooApplication
         val instance get() = instance_
-        val logger = UtLog("App", AmvSettings.logger, omissionNamespace = "io.github.toyota32k.")
+        val logger = UtLog("App", omissionNamespace = "io.github.toyota32k.")
     }
 }

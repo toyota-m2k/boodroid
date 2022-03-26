@@ -17,6 +17,7 @@ import com.google.android.material.slider.Slider
 import io.github.toyota32k.bindit.*
 import io.github.toyota32k.boodroid.common.getColorAsDrawable
 import io.github.toyota32k.boodroid.common.getColorAwareOfTheme
+import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.utils.lifecycleOwner
 import io.github.toyota32k.video.R
 import io.github.toyota32k.video.common.AmvSettings
@@ -30,7 +31,7 @@ import kotlin.math.roundToLong
 class ControlPanel @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
     : FrameLayout(context, attrs, defStyleAttr), Slider.OnChangeListener {
     companion object {
-        val logger get() = AmvSettings.logger
+        val logger by lazy { UtLog("CP", AmvSettings.logger) }
     }
 
     init {

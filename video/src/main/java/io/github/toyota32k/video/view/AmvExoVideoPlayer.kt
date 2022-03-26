@@ -16,6 +16,7 @@ import io.github.toyota32k.bindit.Binder
 import io.github.toyota32k.bindit.BoolConvert
 import io.github.toyota32k.bindit.TextBinding
 import io.github.toyota32k.bindit.VisibilityBinding
+import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.video.common.AmvSettings
 import io.github.toyota32k.video.model.ControlPanelModel
 import io.github.toyota32k.video.model.PlayerModel
@@ -31,7 +32,7 @@ import kotlinx.coroutines.flow.onEach
 class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
     : FrameLayout(context, attrs, defStyleAttr) {
     companion object {
-        val logger get() = AmvSettings.logger
+        val logger by lazy { UtLog("EXO", AmvSettings.logger) }
 
         fun createViewModel(context:Context) : PlayerModel {
             return PlayerModel(context)

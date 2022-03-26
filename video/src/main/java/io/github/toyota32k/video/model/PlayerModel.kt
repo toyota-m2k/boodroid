@@ -12,6 +12,7 @@ import com.google.android.exoplayer2.video.VideoSize
 import io.github.toyota32k.bindit.list.ObservableList
 import io.github.toyota32k.player.model.Range
 import io.github.toyota32k.utils.SuspendableEvent
+import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.video.R
 import io.github.toyota32k.video.common.AmvSettings
 import io.github.toyota32k.video.common.AmvStringPool
@@ -261,7 +262,8 @@ class PlayerModel(
             .resultSize
     }.stateIn(scope, SharingStarted.Eagerly, Size(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
 
-    val isLoading = state.map { it== PlayerState.Loading }.stateIn(scope, SharingStarted.Eagerly, false)
+    val isDisturbing:StateFlow<Boolean> = MutableStateFlow(false)
+    val isLoading = combine(state, isDisturbing) { state,disturbing-> state == PlayerState.Loading || disturbing }.stateIn(scope, SharingStarted.Eagerly, false)
     val isReady = state.map { it== PlayerState.Playing || it== PlayerState.Paused }.stateIn(scope, SharingStarted.Eagerly, false)
     val isPlaying = state.map { it== PlayerState.Playing }.stateIn(scope, SharingStarted.Eagerly, false)
     val isError = errorMessage.map { !it.isNullOrBlank() }.stateIn(scope, SharingStarted.Lazily, false)
@@ -323,6 +325,7 @@ class PlayerModel(
      * 解放
      */
     override fun close() {
+        logger.debug()
         player.removeListener(listener)
         player.release()
         scope.cancel()
@@ -333,6 +336,7 @@ class PlayerModel(
      * 再初期化
      */
     fun reset() {
+        logger.debug()
         pause()
         currentSource.mutable.value = null
         hasPrevious.value = false
@@ -382,6 +386,7 @@ class PlayerModel(
      * （再生中でなければ）再生を開始する
      */
     fun play() {
+        logger.debug()
         if(isDisposed) return
         errorMessage.mutable.value = null
         player.playWhenReady = true
@@ -391,11 +396,13 @@ class PlayerModel(
      * 再生を中断する
      */
     fun pause() {
+        logger.debug()
         if(isDisposed) return
         player.playWhenReady = false
     }
 
     private fun onEnd() {
+        logger.debug()
         if(hasNext.value) {
             next()
         } else {
@@ -437,6 +444,7 @@ class PlayerModel(
 
         override fun onLoadingChanged(isLoading: Boolean) {
 //            logger.debug("loading = $isLoading")
+            isDisturbing.mutable.value = false
             if (isLoading && player.playbackState == Player.STATE_BUFFERING) {
                 if(state.value== PlayerState.None) {
                     state.mutable.value = PlayerState.Loading
@@ -450,7 +458,9 @@ class PlayerModel(
                         }
                         if (player.playbackState == Player.STATE_BUFFERING) {
                             // ２秒以上bufferingならロード中に戻す
-                            state.mutable.value = PlayerState.Loading
+//                            state.mutable.value = PlayerState.Loading
+                            logger.debug("buffering more than 2 sec")
+                            isDisturbing.mutable.value = true
                         }
                     }
                 }
@@ -703,6 +713,6 @@ class PlayerModel(
         get() = this as MutableStateFlow<T>
 
     companion object {
-        val logger = AmvSettings.logger
+        val logger by lazy { UtLog("PM", AmvSettings.logger) }
     }
 }
