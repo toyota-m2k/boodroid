@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.bindit.Command
 import io.github.toyota32k.boodroid.BooApplication
-import io.github.toyota32k.boodroid.KeepAliveWorker
 import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.data.*
 import io.github.toyota32k.boodroid.dialog.SettingsDialog
@@ -16,10 +15,7 @@ import io.github.toyota32k.video.model.ControlPanelModel
 import io.github.toyota32k.video.model.PlayerModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -56,7 +52,7 @@ class AppViewModel: ViewModel() {
         }
 
     // 通信中フラグ
-    private val loading = MutableStateFlow<Boolean>(false)
+    private val loading = MutableStateFlow(false)
     private var lastUpdate : Long = 0L
 
     private fun prepare():AppViewModel {
@@ -67,13 +63,6 @@ class AppViewModel: ViewModel() {
             if(AppCompatDelegate.getDefaultNightMode()!=mode) {
                 AppCompatDelegate.setDefaultNightMode(mode)
             }
-            controlPanelModel.playerModel.isPlaying.onEach {
-                if(it) {
-                    KeepAliveWorker.begin(BooApplication.instance)
-                } else {
-                    KeepAliveWorker.end()
-                }
-            }.launchIn(viewModelScope)
         }
         return this
     }
@@ -150,21 +139,10 @@ class AppViewModel: ViewModel() {
         playerModel.playAt(index)
     }
 
-    fun keepAlive(flag:Boolean) {
-        viewModelScope.launch {
-            if(flag) {
-                KeepAliveWorker.begin(BooApplication.instance)
-            } else {
-                KeepAliveWorker.end()
-            }
-        }
-    }
-
     override fun onCleared() {
         logger.debug()
         super.onCleared()
         controlPanelModel.close()
-        keepAlive(false)
     }
 
     val settingCommand = Command {
