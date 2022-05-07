@@ -50,11 +50,16 @@
     </GridLayout>
 
 
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/host_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="45dp"
+        android:minHeight="150dp"
         android:choiceMode="singleChoice"
         android:divider="@android:color/transparent"
         android:dividerHeight="5dp"
@@ -62,6 +67,16 @@
         android:padding="5dp"
         android:layout_marginTop="@dimen/setting_spacing"
         />
+
+    <TextView
+        android:id="@+id/empty_list_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_host"
+        android:layout_gravity="center"
+        />
+    </FrameLayout>
+
 
     <TextView
         android:id="@+id/source_type_label"

@@ -2,17 +2,18 @@ package io.github.toyota32k.boodroid.view
 
 import android.content.Context
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.lifecycle.asLiveData
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.github.toyota32k.bindit.*
+import io.github.toyota32k.bindit.Binder
+import io.github.toyota32k.bindit.Command
+import io.github.toyota32k.bindit.GenericBoolBinding
+import io.github.toyota32k.bindit.RecyclerViewBinding
 import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.getAttrColor
@@ -24,8 +25,6 @@ import io.github.toyota32k.boodroid.viewmodel.MainViewModel
 import io.github.toyota32k.utils.lifecycleOwner
 import io.github.toyota32k.video.common.IAmvSource
 import io.github.toyota32k.video.model.PlayerModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -57,7 +56,7 @@ class VideoListView @JvmOverloads constructor(
 //        val scope = owner.lifecycleScope
         val viewModel = MainViewModel.instanceFor(owner as MainActivity)
         binder.register(
-            RecycleViewBinding.create(owner, this, model.videoSources, R.layout.list_item_video) { itemBinder, view, videoItem ->
+            RecyclerViewBinding.create(owner, this, model.videoSources, R.layout.list_item_video) { itemBinder, view, videoItem ->
                 val textView = view.findViewById<TextView>(R.id.video_item_text)
                 textView.text = videoItem.name
                 itemBinder.register(

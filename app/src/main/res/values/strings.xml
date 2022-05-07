@@ -24,5 +24,9 @@
     <string name="color_purple">Purple</string>
     <string name="channel_name">BooChannel</string>
     <string name="channel_description">BooDroid Running Wild</string>
+    <string name="confirm_remove_host">Removing the host from list.</string>
+    <string name="confirm_close_on_editing_host">Editing host is not registered.</string>
+    <string name="confirm_close_with_no_host">No hosts are registered.</string>
+    <string name="no_host">NO HOSTS</string>
 
 </resources>

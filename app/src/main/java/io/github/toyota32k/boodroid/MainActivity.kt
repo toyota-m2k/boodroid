@@ -17,6 +17,7 @@ import android.util.Rational
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
+import android.view.WindowManager
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.bindit.Binder
@@ -259,6 +260,7 @@ class MainActivity : UtMortalActivity() {
     private fun layoutForFullscreen() {
 //        appViewModel.keepAlive(true)
         logger.debug()
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         for(v in exceptPlayerViews) {
             v.visibility = View.GONE
         }
@@ -285,6 +287,7 @@ class MainActivity : UtMortalActivity() {
     private fun layoutForNormal() {
 //        appViewModel.keepAlive(false)
         logger.debug()
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         for(v in exceptPlayerViews) {
             v.visibility = View.VISIBLE
         }

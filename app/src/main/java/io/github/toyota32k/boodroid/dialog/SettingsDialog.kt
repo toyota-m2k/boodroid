@@ -7,13 +7,13 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.ListPopupWindow
 import androidx.lifecycle.map
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButtonToggleGroup
 import io.github.toyota32k.bindit.*
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.data.*
 import io.github.toyota32k.boodroid.viewmodel.SettingViewModel
+import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.utils.disposableObserve
 
@@ -55,7 +55,8 @@ class SettingsDialog : UtDialog(isDialog=true) {
             val addToListButton: View = root.findViewById(R.id.add_to_list_button)
             val hostList: RecyclerView = root.findViewById(R.id.host_list)
             val categoryButton: Button = root.findViewById(R.id.category_button)
-            hostList.layoutManager = LinearLayoutManager(context)
+            val emptyListMessage: TextView = root.findViewById(R.id.empty_list_message)
+//            hostList.layoutManager = LinearLayoutManager(context)
 
 //            logger.debug("DLG: sourceType=${viewModel.sourceType.value}")
 
@@ -67,11 +68,12 @@ class SettingsDialog : UtDialog(isDialog=true) {
                 MaterialToggleButtonGroupBinding.create(owner, markSelector, viewModel.markList, Mark.idResolver, BindingMode.TwoWay),
                 EditTextBinding.create(owner, hostAddrEdit, viewModel.editingHost),
                 TextBinding.create(owner, categoryButton, viewModel.categoryList.currentLabel.map { it ?: "All" }),
+                VisibilityBinding.create(owner, emptyListMessage, viewModel.hostCount.map { it==0 }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone),
                 viewModel.commandAddToList.connectAndBind(owner, addToListButton) { viewModel.addHost() },
                 viewModel.commandAddToList.connectViewEx(hostAddrEdit),
                 viewModel.commandCategory.connectAndBind(owner, categoryButton, this::selectCategory),
 
-                RecycleViewBinding.create(owner, hostList, viewModel.hostList.value!!, R.layout.list_item_host) { binder, view, address ->
+                RecyclerViewBinding.create(owner, hostList, viewModel.hostList, R.layout.list_item_host) { binder, view, address ->
                     val textView = view.findViewById<TextView>(R.id.address_text)
                     textView.text = address
                     binder.register(
@@ -84,7 +86,7 @@ class SettingsDialog : UtDialog(isDialog=true) {
                 viewModel.activeHost.disposableObserve(owner) { activatedHost->
                     if(!activatedHost.isNullOrEmpty()) {
                         val editing = viewModel.editingHost.value
-                        if(editing.isNullOrBlank()|| viewModel.hostList.value?.contains(editing) == true) {
+                        if(editing.isNullOrBlank()|| viewModel.hostList.contains(editing) == true) {
                             viewModel.editingHost.value = activatedHost
                         }
                     }
@@ -96,6 +98,9 @@ class SettingsDialog : UtDialog(isDialog=true) {
                         AppCompatDelegate.setDefaultNightMode(mode)
                     }
                 },
+                viewModel.commandComplete.bind(owner) {
+                    complete(if(viewModel.result) IUtDialog.Status.POSITIVE else IUtDialog.Status.NEGATIVE)
+                }
             )
 //            logger.debug("DLG: sourceType=${viewModel.sourceType.value}, ${SourceType.idResolver.id2value(sourceTypeSelector.checkedRadioButtonId) }")
         }
@@ -127,7 +132,11 @@ class SettingsDialog : UtDialog(isDialog=true) {
     }
 
     override fun onPositive() {
-        super.onPositive()
+        viewModel.checkOnClosing(true)
+    }
+
+    override fun onNegative() {
+        viewModel.checkOnClosing(false)
     }
 
 }
