@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.ListPopupWindow
 import androidx.lifecycle.map
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import io.github.toyota32k.bindit.*
 import io.github.toyota32k.boodroid.R
@@ -16,6 +17,7 @@ import io.github.toyota32k.boodroid.viewmodel.SettingViewModel
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.utils.disposableObserve
+import io.github.toyota32k.utils.listChildren
 
 class SettingsDialog : UtDialog(isDialog=true) {
     lateinit var viewModel: SettingViewModel
@@ -69,6 +71,7 @@ class SettingsDialog : UtDialog(isDialog=true) {
                 EditTextBinding.create(owner, hostAddrEdit, viewModel.editingHost),
                 TextBinding.create(owner, categoryButton, viewModel.categoryList.currentLabel.map { it ?: "All" }),
                 VisibilityBinding.create(owner, emptyListMessage, viewModel.hostCount.map { it==0 }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone),
+                MultiEnableBinding.create(owner, views = (ratingSelector.listChildren<MaterialButton>() + markSelector.listChildren<MaterialButton>() + categoryButton).toList().toTypedArray(), data=viewModel.sourceType.map { it==SourceType.DB }, alphaOnDisabled = 0.5f),
                 viewModel.commandAddToList.connectAndBind(owner, addToListButton) { viewModel.addHost() },
                 viewModel.commandAddToList.connectViewEx(hostAddrEdit),
                 viewModel.commandCategory.connectAndBind(owner, categoryButton, this::selectCategory),
@@ -86,7 +89,7 @@ class SettingsDialog : UtDialog(isDialog=true) {
                 viewModel.activeHost.disposableObserve(owner) { activatedHost->
                     if(!activatedHost.isNullOrEmpty()) {
                         val editing = viewModel.editingHost.value
-                        if(editing.isNullOrBlank()|| viewModel.hostList.contains(editing) == true) {
+                        if(editing.isNullOrBlank() || viewModel.hostList.contains(editing)) {
                             viewModel.editingHost.value = activatedHost
                         }
                     }
