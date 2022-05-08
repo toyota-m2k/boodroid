@@ -31,7 +31,11 @@ object CurrentItemSynchronizer {
             .put(json.toRequestBody("application/json".toMediaType()))
             .build()
         CoroutineScope(Dispatchers.IO).launch {
-            NetClient.executeAsync(req).close()
+            try {
+                NetClient.executeAsync(req).close()
+            } catch(e:Throwable) {
+                UtLogger.stackTrace(e)
+            }
         }
     }
 

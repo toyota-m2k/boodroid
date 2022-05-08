@@ -130,7 +130,11 @@ class AppViewModel: ViewModel() {
                 .url(url)
                 .get()
                 .build()
-            NetClient.executeAsync(req)
+            try {
+                NetClient.executeAsync(req)
+            } catch (e:Throwable) {
+                logger.stackTrace(e)
+            }
         }
     }
 

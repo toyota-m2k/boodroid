@@ -91,7 +91,11 @@ class RatingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtIm
             .put(json.toString().toRequestBody("application/json".toMediaType()))
             .build()
         CoroutineScope(Dispatchers.IO).launch {
-            NetClient.executeAsync(req).close()
+            try {
+                NetClient.executeAsync(req).close()
+            } catch (e:Throwable) {
+                logger.stackTrace(e)
+            }
         }
     }
 
