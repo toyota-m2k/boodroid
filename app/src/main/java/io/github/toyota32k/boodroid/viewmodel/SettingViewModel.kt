@@ -1,7 +1,9 @@
 package io.github.toyota32k.boodroid.viewmodel
 
+import android.app.Application
 import android.content.Context
 import androidx.annotation.StringRes
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -74,9 +76,10 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
     val commandCategory = Command()
     val categoryList = CategoryList().apply { update() }
     lateinit var version : String
+    val context:Context get() = BooApplication.instance.applicationContext
 
     var prepared: Boolean = false
-    fun prepare(context: Context): SettingViewModel {
+    fun prepare(): SettingViewModel {
         if (!prepared) {
             prepared = true
             load(context)
@@ -140,11 +143,16 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
                     return@launch
                 }
             }
-            if (done && hostList.isNullOrEmpty()) {
+            if (done && hostList.isEmpty()) {
                 if (!confirm(R.string.confirm_close_with_no_host)) {
                     return@launch
                 }
             }
+            if(done) {
+                save()
+                AppViewModel.instance.settings = settings
+            }
+
             result = done
             commandComplete.invoke()
         }
@@ -174,7 +182,7 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
         categoryList.category = s.category
     }
 
-    fun save(context: Context): Boolean {
+    fun save(): Boolean {
         val s = settings
         if (!s.isValid) {
             return false

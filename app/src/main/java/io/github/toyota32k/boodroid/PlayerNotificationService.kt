@@ -5,15 +5,15 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.IBinder
+import androidx.core.app.NotificationCompat
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
-import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.utils.UtLog
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import io.github.toyota32k.video.model.ControlPanelModel
+import io.github.toyota32k.video.model.PlayerModel
 
 /**
  * 端末スリープ中でも、バックグラウンドで再生を続けられるようにするためのサービスクラス
@@ -25,8 +25,10 @@ import kotlinx.coroutines.flow.onEach
  * アプリがバックグラウンドに回っても、このサービスがフォアグラウンドに居座るので、再生が続けられる、という動作。
  */
 class PlayerNotificationService : Service() {
-    private val appViewModel:AppViewModel by lazy { AppViewModel.instance }
     private lateinit var playerNotificationManager: PlayerNotificationManager
+
+    private var controlPanelModel:ControlPanelModel? = null
+    private val playerModel:PlayerModel? get() = controlPanelModel?.playerModel
 
     companion object {
         private val logger = UtLog("SRV", BooApplication.logger)
@@ -39,22 +41,27 @@ class PlayerNotificationService : Service() {
          * Activityを戻るボタンで閉じたときには、サービスが残ってしまう。
          * Activity#onDestroy(isFinishing==true)で明示的にサービスを終了する。
          */
-        private val terminator = MutableStateFlow<Boolean>(false)
-        fun terminate() {
-            terminator.value = true
-        }
+//        private val terminator = MutableStateFlow<Boolean>(false)
+//        fun terminate() {
+//            logger.debug("request termination.")
+//            terminator.value = true
+//        }
     }
 
     override fun onCreate() {
         super.onCreate()
         logger.debug()
 
+        if(controlPanelModel==null) {
+            controlPanelModel = AppViewModel.instance.controlPanelModelSource.fetch()
+        }
+//        terminator.value = false
         val context = this
         val adapter = object : PlayerNotificationManager.MediaDescriptionAdapter {
             override fun createCurrentContentIntent(player: Player): PendingIntent? {
                 // return pending intent
                 logger.debug()
-                val intent = Intent(context, MainActivity::class.java);
+                val intent = Intent(context, MainActivity::class.java)
                 return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             }
 
@@ -65,9 +72,9 @@ class PlayerNotificationService : Service() {
 
             //pass title (mostly playing audio name)
             override fun getCurrentContentTitle(player: Player): String {
-                val title = appViewModel.playerModel.currentSource.value?.name
+                val title = playerModel?.currentSource?.value?.name ?: "untitled"
                 logger.debug("$title")
-                return if(title.isNullOrBlank()) "untitled" else title
+                return title
             }
 
             // pass image as bitmap
@@ -94,10 +101,21 @@ class PlayerNotificationService : Service() {
                 notificationId: Int,
                 dismissedByUser: Boolean
             ) {
-                logger.debug()
+                logger.debug("notification cancelled --> terminate service by stopSelf()")
                 stopSelf()
             }
 
+        }
+
+        if(Build.VERSION.SDK_INT >= 26) {
+            // 起動後、再生が開始されないと、playerからの通知が行われず、
+            // Context.startForegroundService() did not then call Service.startForeground() みたいな例外が出る。
+            // これを回避するため、サービス起動後、1回、startForeground()を呼んでおく。
+            // ref. https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforeground
+            startForeground(notificationId,
+                NotificationCompat.Builder(this, channelId)
+                .setContentTitle("")
+                .setContentText("").build())
         }
 
         playerNotificationManager = PlayerNotificationManager
@@ -109,11 +127,14 @@ class PlayerNotificationService : Service() {
             .build()
 
         //attach player to playerNotificationManager
-        appViewModel.playerModel.associateNotificationManager(playerNotificationManager)
+        playerModel?.associateNotificationManager(playerNotificationManager)
 
-        terminator.onEach {
-            if(it) stopSelf()
-        }.launchIn(UtImmortalTaskManager.immortalTaskScope)
+//        terminator.onEach {
+//            if(it) {
+//                logger.debug("terminating ... stopSelf()")
+//                stopSelf()
+//            }
+//        }.launchIn(UtImmortalTaskManager.immortalTaskScope)
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -129,8 +150,12 @@ class PlayerNotificationService : Service() {
     // detach player
     override fun onDestroy() {
         logger.debug()
+        if(controlPanelModel!=null) {
+            AppViewModel.instance.controlPanelModelSource.release(controlPanelModel!!)
+            controlPanelModel = null
+        }
         playerNotificationManager.setPlayer(null)
-        AppViewModel.instance.controlPanelModel.close()
+//        AppViewModel.instance.controlPanelModel.close()
         super.onDestroy()
     }
 

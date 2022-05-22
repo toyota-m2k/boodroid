@@ -39,10 +39,10 @@ class MainActivity : UtMortalActivity() {
     override val logger = UtLog("Main", BooApplication.logger)
 
     private val binder = Binder()
-    private lateinit var viewModel :MainViewModel
-
+    private val viewModel :MainViewModel by lazy { MainViewModel.instanceFor(this) }
     private val appViewModel:AppViewModel by lazy { AppViewModel.instance }
-    private val controlPanelModel:ControlPanelModel by lazy { appViewModel.controlPanelModel }
+    private val controlPanelModel:ControlPanelModel get() = viewModel.controlPanelModel
+    private val playerModel get() = controlPanelModel.playerModel
 
     private lateinit var controlPanel: ControlPanel
     private lateinit var videoListView: VideoListView
@@ -63,7 +63,7 @@ class MainActivity : UtMortalActivity() {
      * そのため、setContentViewがらみの処理を切り出しておく。
      */
     private fun initViews() {
-        logger.debug("mode=${AppViewModel.instance.controlPanelModel.windowMode.value}")
+        logger.debug("mode=${controlPanelModel.windowMode.value}")
         setContentView(R.layout.activity_main)
 
         binder.reset()
@@ -84,7 +84,7 @@ class MainActivity : UtMortalActivity() {
             appViewModel.settingCommand.connectViewEx(findViewById(R.id.setting_button)),
             appViewModel.syncToServerCommand.connectViewEx(findViewById(R.id.up_button)),
             appViewModel.syncFromServerCommand.connectViewEx(findViewById(R.id.down_button)),
-            appViewModel.controlPanelModel.commandPlayerTapped.bind(this, this::onPlayerTapped)
+            controlPanelModel.commandPlayerTapped.bind(this, this::onPlayerTapped)
         )
 
         when(controlPanelModel.windowMode.value) {
@@ -97,12 +97,6 @@ class MainActivity : UtMortalActivity() {
 //            controlPanelModel.setWindowMode(ControlPanelModel.WindowMode.NORMAL)
 //        }
 
-        val intent = Intent(this, PlayerNotificationService::class.java)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
-        }
     }
 
     private var updatingTheme:Boolean = false
@@ -116,7 +110,6 @@ class MainActivity : UtMortalActivity() {
         setTheme(AppViewModel.instance.settings.colorVariation.themeId)
         super.onCreate(savedInstanceState)
         landscape = resources.configuration.isLandscape
-        viewModel = MainViewModel.instanceFor(this)
         initViews()
         val appViewModel = AppViewModel.instance
         if (!AppViewModel.instance.settings.isValid) {
@@ -137,7 +130,7 @@ class MainActivity : UtMortalActivity() {
 //            logger.debug("collection END")
 //        }
 
-        AppViewModel.instance.controlPanelModel.windowMode
+        controlPanelModel.windowMode
             .onEach { mode ->
                 when (mode) {
                     ControlPanelModel.WindowMode.NORMAL-> layoutForNormal()
@@ -172,7 +165,29 @@ class MainActivity : UtMortalActivity() {
         // このイベントから、Activityは PinP に入るとき、Pause され、PinP から復帰するときに Resume されていることがわかる。
         // つまり、PinP中、Activity は Pauseされている、ということらしい。
         handleUriInIntent(intent)
+
+        startPlayerService()
     }
+
+    private fun startPlayerService() {
+        try {
+            logger.info("startForegroundService calling.")
+            val intent = Intent(this, PlayerNotificationService::class.java)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+        } catch(e:Throwable) {
+            logger.stackTrace(e, "cannot start service.")
+        }
+    }
+
+    private fun stopPlayerService() {
+        logger.debug()
+        stopService(Intent(application, PlayerNotificationService::class.java))
+    }
+
 
     private fun isAcceptableUrl(url:String?):Boolean {
         if(url==null) return false
@@ -187,7 +202,7 @@ class MainActivity : UtMortalActivity() {
                 intent.getStringExtra(Intent.EXTRA_TEXT)?.let {
                     logger.debug(it)
                     if(isAcceptableUrl(it)) {
-                        AppViewModel.instance.registerUrl(it)
+                        AppViewModel.instance.registerYoutubeUrl(it)
                         return true
                     }
                 }
@@ -309,15 +324,14 @@ class MainActivity : UtMortalActivity() {
         logger.debug()
         if(isFinishing) {
             logger.debug("finishing")
-            val controlPanelModel = AppViewModel.instance.controlPanelModel
-            val current = controlPanelModel.playerModel.currentSource.value
+            val current = playerModel.currentSource.value
             if (current != null) {
-                val pos = controlPanelModel.playerModel.playerSeekPosition.value
+                val pos = playerModel.playerSeekPosition.value
                 LastPlayInfo.set(BooApplication.instance.applicationContext, current.id, pos, true)
             }
             if(!updatingTheme) {
                 logger.debug("activity finishing")
-                PlayerNotificationService.terminate()
+                stopPlayerService()
             }
         }
         super.onDestroy()
@@ -328,7 +342,8 @@ class MainActivity : UtMortalActivity() {
         UtImmortalSimpleTask.run {
             val dlg = showDialog("finishing") { UtMessageBox.createForYesNo("BooDroid", "Finish BooDroid") }
             if(dlg.status.yes) {
-                finish()
+                stopPlayerService()
+                finishAndRemoveTask()
                 true
             } else false
         }

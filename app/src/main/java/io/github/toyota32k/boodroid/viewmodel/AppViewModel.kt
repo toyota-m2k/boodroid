@@ -10,7 +10,9 @@ import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.data.*
 import io.github.toyota32k.boodroid.dialog.SettingsDialog
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.utils.UtLazyResetableValue
 import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.utils.UtResetableValue
 import io.github.toyota32k.video.model.ControlPanelModel
 import io.github.toyota32k.video.model.PlayerModel
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Request
+import java.io.Closeable
 
 class AppViewModel: ViewModel() {
     companion object {
@@ -27,16 +30,58 @@ class AppViewModel: ViewModel() {
             get() = ViewModelProvider(BooApplication.instance, ViewModelProvider.NewInstanceFactory())[AppViewModel::class.java].prepare()
     }
 
-    lateinit var controlPanelModel:ControlPanelModel
-    val playerModel:PlayerModel get() = controlPanelModel.playerModel
+    class RefCounteredControlPanelModel {
+        private val resetable = UtResetableValue<ControlPanelModel>()
+        private var refCount:Int = 0
 
-    var settings: Settings = Settings.empty
+        fun fetch():ControlPanelModel {
+            synchronized(this) {
+                if (!resetable.hasValue) {
+                    resetable.value = ControlPanelModel.create(BooApplication.instance.applicationContext)
+                    refCount = 0
+                }
+                refCount++
+                return resetable.value
+            }
+        }
+        fun release(v:ControlPanelModel) {
+            synchronized(this) {
+                if(v == resetable.value) {
+                    refCount--
+                    if (refCount <= 0) {
+                        resetable.reset {
+                            it.close()
+                        }
+                    }
+                }
+            }
+        }
+
+        fun withModel(fn:(ControlPanelModel)->Unit) {
+            val v = fetch()
+            try {
+                fn(v)
+            } finally {
+                release(v)
+            }
+        }
+    }
+
+    val controlPanelModelSource = RefCounteredControlPanelModel()
+
+//    private val controlPanelModelEntity = UtLazyResetableValue<ControlPanelModel>()
+
+
+    //lateinit var controlPanelModel:ControlPanelModel
+    // val playerModel:PlayerModel get() = controlPanelModel.playerModel
+
+    var settings: Settings = Settings.load(BooApplication.instance)
         set(v) {
             if(v!=field) {
                 val o = field
                 field = v
                 if(v.listUrl(0)!=o.listUrl(0)) {
-                    refreshVideoList()
+                    refreshCommand.invoke()
                 }
                 if(v.colorVariation!=o.colorVariation) {
                     UtImmortalSimpleTask.run {
@@ -52,13 +97,13 @@ class AppViewModel: ViewModel() {
         }
 
     // 通信中フラグ
-    private val loading = MutableStateFlow(false)
-    private var lastUpdate : Long = 0L
+    val loading = MutableStateFlow(false)
+    var lastUpdate : Long = 0L
 
+    private var prepared:Boolean = false
     private fun prepare():AppViewModel {
-        if(!this::controlPanelModel.isInitialized) {
-            controlPanelModel = ControlPanelModel.create(BooApplication.instance.applicationContext)
-            settings = Settings.load(BooApplication.instance)
+        if(!prepared) {
+//            settings = Settings.load(BooApplication.instance)
             val mode = settings.theme.mode
             if(AppCompatDelegate.getDefaultNightMode()!=mode) {
                 AppCompatDelegate.setDefaultNightMode(mode)
@@ -67,62 +112,8 @@ class AppViewModel: ViewModel() {
         return this
     }
 
-    private fun refreshVideoList() {
-        logger.debug()
-        viewModelScope.launch {
-            if(loading.value == true) {
-                logger.error("busy.")
-                return@launch
-            }
-            val src = try {
-                loading.value = true
-                withContext(Dispatchers.Default) {
-                    VideoListSource.retrieve()
-                }
-            } finally {
-                loading.value = false
-            }
 
-            lastUpdate = src?.modifiedDate ?: 0L
-            if(src!=null) {
-                logger.debug("list.count=${src.list.size}")
-                var index = -1
-                var position = 0L
-                // 再生中なら、同じ場所から再開
-                val current = playerModel.currentSource.value
-                if(current!=null) {
-                    index = src.list.indexOfFirst { it.id == current.id }
-                    position = playerModel.playerSeekPosition.value
-                }
-                // 再生中でなければ、前回の再生位置から復元
-                if(index<0) {
-                    val lpi = LastPlayInfo.get(BooApplication.instance)
-                    if (lpi != null) {
-                        index = src.list.indexOfFirst { lpi.id == it.id }
-                        position = if (index >= 0) lpi.position else 0L
-                    }
-                }
-                playerModel.setSources(src.list, index, position)
-
-
-
-//                if(updateTimerTask==null) {
-//                    updateTimerTask = Timer().run {
-//                        schedule(60000,60000) {
-//                            updateVideoList()
-//                        }
-//                    }
-//                }
-            } else {
-                logger.debug("list empty")
-                playerModel.setSources(emptyList())
-//                updateTimerTask?.cancel()
-//                updateTimerTask = null
-            }
-        }
-    }
-
-    fun registerUrl(rawUrl:String) {
+    fun registerYoutubeUrl(rawUrl:String) {
         val urlParam = rawUrl.split("\r", "\n", " ", "\t").firstOrNull { it.isNotBlank() } ?: return
         val url = settings.urlToRegister(urlParam)
         CoroutineScope(Dispatchers.IO).launch {
@@ -138,36 +129,20 @@ class AppViewModel: ViewModel() {
         }
     }
 
-    fun tryPlayAt(id: String) {
-        val index = playerModel.videoSources.indexOfFirst { it.id == id }
-        playerModel.playAt(index)
-    }
-
     override fun onCleared() {
         logger.debug()
         super.onCleared()
-        controlPanelModel.close()
     }
 
     val settingCommand = Command {
         UtImmortalSimpleTask.run("settings") {
-            SettingViewModel.createBy(this) { it.prepare(BooApplication.instance.applicationContext) }
-            val dlg = this.showDialog(taskName) { SettingsDialog() }
-            if(dlg.status.ok) {
-                withOwner { dlg.viewModel.save(it.asContext()) }
-            }
-            true
+            SettingViewModel.createBy(this) { it.prepare() }
+            this.showDialog(taskName) { SettingsDialog() }.status.ok
         }
     }
-    val refreshCommand = Command {
-        refreshVideoList()
-    }
+    val refreshCommand = Command()
 
-    val syncToServerCommand = Command {
-        CurrentItemSynchronizer.syncTo()
-    }
+    val syncToServerCommand = Command()
 
-    val syncFromServerCommand = Command {
-        CurrentItemSynchronizer.syncFrom()
-    }
+    val syncFromServerCommand = Command ()
 }
