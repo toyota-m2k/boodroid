@@ -7,38 +7,38 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     >
-    <GridLayout
+    <LinearLayout
         android:id="@+id/host_addr_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:columnCount="3">
+        android:orientation="horizontal"
+        >
         <TextView
             android:id="@+id/host_addr_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_column="0"
             android:text="@string/host_addr_label"
+            android:layout_gravity="center_vertical"
             />
 
-        <EditText
-            android:id="@+id/host_addr_edit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_column="1"
-            android:layout_columnWeight="1"
-            android:inputType="textUri"
-            android:imeOptions="actionDone"
-            tools:text="192.168.0.10:3500"
-            android:layout_marginStart="10dp"
-            android:hint="@string/host_hint"
-            android:autofillHints="@string/host_hint"
-            />
+<!--        <EditText-->
+<!--            android:id="@+id/host_addr_edit"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_column="1"-->
+<!--            android:layout_columnWeight="1"-->
+<!--            android:inputType="textUri"-->
+<!--            android:imeOptions="actionDone"-->
+<!--            tools:text="192.168.0.10:3500"-->
+<!--            android:layout_marginStart="10dp"-->
+<!--            android:hint="@string/host_hint"-->
+<!--            android:autofillHints="@string/host_hint"-->
+<!--            />-->
 
         <ImageButton
             android:id="@+id/add_to_list_button"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_column="2"
             android:textAllCaps="false"
             app:iconGravity="textStart"
             app:iconPadding="0dp"
@@ -47,7 +47,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/add_button"
             app:tint="?attr/colorPrimaryVariant" />
-    </GridLayout>
+    </LinearLayout>
 
 
     <FrameLayout
@@ -64,8 +64,7 @@
         android:divider="@android:color/transparent"
         android:dividerHeight="5dp"
         android:background="@drawable/bordered_bg"
-        android:padding="5dp"
-        android:layout_marginTop="@dimen/setting_spacing"
+        android:paddingHorizontal="5dp"
         />
 
     <TextView

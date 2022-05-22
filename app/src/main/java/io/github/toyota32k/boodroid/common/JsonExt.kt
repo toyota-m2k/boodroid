@@ -28,6 +28,13 @@ fun JSONObject.safeGetNullableString(key:String) : String? {
         return null
     }
 }
+fun JSONObject.safeGetString(key:String) : String {
+    return try {
+        this.getString(key) ?: ""
+    }  catch (e:Throwable) {
+        return ""
+    }
+}
 
 fun JSONArray.toIterable():Iterable<Any> {
     return Iterable {

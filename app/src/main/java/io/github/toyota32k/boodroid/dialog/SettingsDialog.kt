@@ -41,6 +41,7 @@ class SettingsDialog : UtDialog(isDialog=true) {
             gravityOption = GravityOption.CENTER
             setLimitWidth(500)
         }
+        gravityOption = GravityOption.CENTER
         setLeftButton(BuiltInButtonType.CANCEL)
         setRightButton(BuiltInButtonType.DONE)
     }
@@ -53,7 +54,7 @@ class SettingsDialog : UtDialog(isDialog=true) {
             val themeSelector: RadioGroup = root.findViewById(R.id.theme_selector)
             val colorVariationSelector:RadioGroup = root.findViewById(R.id.color_variation_selector)
             val markSelector: MaterialButtonToggleGroup = root.findViewById(R.id.mark_selector)
-            val hostAddrEdit: EditText = root.findViewById(R.id.host_addr_edit)
+//            val hostAddrEdit: EditText = root.findViewById(R.id.host_addr_edit)
             val addToListButton: View = root.findViewById(R.id.add_to_list_button)
             val hostList: RecyclerView = root.findViewById(R.id.host_list)
             val categoryButton: Button = root.findViewById(R.id.category_button)
@@ -68,12 +69,12 @@ class SettingsDialog : UtDialog(isDialog=true) {
                 RadioGroupBinding.create(owner, themeSelector, viewModel.theme, ThemeSetting.idResolver, BindingMode.TwoWay),
                 RadioGroupBinding.create(owner, colorVariationSelector, viewModel.colorVariation, ColorVariation.idResolver, BindingMode.TwoWay),
                 MaterialToggleButtonGroupBinding.create(owner, markSelector, viewModel.markList, Mark.idResolver, BindingMode.TwoWay),
-                EditTextBinding.create(owner, hostAddrEdit, viewModel.editingHost),
+//                EditTextBinding.create(owner, hostAddrEdit, viewModel.editingHost),
                 TextBinding.create(owner, categoryButton, viewModel.categoryList.currentLabel.map { it ?: "All" }),
                 VisibilityBinding.create(owner, emptyListMessage, viewModel.hostCount.map { it==0 }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone),
                 MultiEnableBinding.create(owner, views = (ratingSelector.listChildren<MaterialButton>() + markSelector.listChildren<MaterialButton>() + categoryButton).toList().toTypedArray(), data=viewModel.sourceType.map { it==SourceType.DB }, alphaOnDisabled = 0.5f),
                 viewModel.commandAddToList.connectAndBind(owner, addToListButton) { viewModel.addHost() },
-                viewModel.commandAddToList.connectViewEx(hostAddrEdit),
+//                viewModel.commandAddToList.connectViewEx(hostAddrEdit),
                 viewModel.commandCategory.connectAndBind(owner, categoryButton, this::selectCategory),
 
                 RecyclerViewBinding.create(owner, hostList, viewModel.hostList, R.layout.list_item_host) { binder, view, address ->
