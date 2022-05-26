@@ -20,7 +20,7 @@ import io.github.toyota32k.utils.asMutableLiveData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 
-class HostAddressDialog : UtDialog() {
+class HostAddressDialog : UtDialog(isDialog=true) {
     class HostAddressDialogViewModel: ViewModel(), IUtImmortalTaskMutableContextSource by UtImmortalTaskContextSource() {
         val name = MutableStateFlow("")
         val address = MutableStateFlow("")
@@ -57,7 +57,7 @@ class HostAddressDialog : UtDialog() {
     }
 
     private var binder = Binder()
-    private val viewModel = HostAddressDialogViewModel.instanceFor(this)
+    private val viewModel by lazy { HostAddressDialogViewModel.instanceFor(this) }
 
     override fun preCreateBodyView() {
         super.preCreateBodyView()

@@ -109,9 +109,9 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
 //            sourceType.value = SourceType.values().find {it.id==v}
 //        }
 
-    fun hasHost(entity: HostAddressEntity): Boolean {
-        return null != hostList.find { it.address == entity.address }
-    }
+//    fun hasHost(entity: HostAddressEntity): Boolean {
+//        return null != hostList.find { it.address == entity.address }
+//    }
 
 //    fun addHost() {
 //        viewModelScope.launch {
@@ -121,9 +121,22 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
 //    }
 
     private fun addHost(entity: HostAddressEntity) {
-        if (entity.address.isNotBlank() && !hasHost(entity)) {
-            hostList.add(entity)
-            activeHost.value = entity
+        if(entity.address.isBlank()) return
+        val org = hostList.find { it.address == entity.address }
+        if(org!=null) {
+            if(entity.name.isBlank() || entity.name == org.name) return
+            hostList.remove(org)
+        }
+        hostList.add(entity)
+        activeHost.value = entity
+    }
+
+    fun addHost() {
+        viewModelScope.launch {
+            val v = HostAddressDialog.getHostAddress(activeHost.value)
+            if(v!=null && v.address.isNotBlank()) {
+                addHost(v)
+            }
         }
     }
 
@@ -142,23 +155,15 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
         }
     }
 
-    fun addHost() {
-        viewModelScope.launch {
-            val v = HostAddressDialog.getHostAddress(activeHost.value)
-            if(v!=null && v.address.isNotBlank()) {
-                addHost(v)
-            }
-        }
-    }
-
     fun editHost(entity: HostAddressEntity) {
         viewModelScope.launch {
             val v = HostAddressDialog.getHostAddress(entity)
-            if(v!=null && v.address.isNotBlank()) {
-                if(entity.address==v.address && v.name.isNotBlank()) {
-                    val index = hostList.indexOfFirst { it. }
+            if(v!=null && entity!=v &&  v.address.isNotBlank()) {
+                hostList.remove(entity)
+                hostList.add(v)
+                if(activeHost.value == null || activeHost.value==entity) {
+                    activeHost.value = v
                 }
-                addHost(v)
             }
         }
     }

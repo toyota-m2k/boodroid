@@ -77,23 +77,15 @@ class SettingsDialog : UtDialog(isDialog=true) {
 //                viewModel.commandAddToList.connectViewEx(hostAddrEdit),
                 viewModel.commandCategory.connectAndBind(owner, categoryButton, this::selectCategory),
 
-                RecyclerViewBinding.create(owner, hostList, viewModel.hostList, R.layout.list_item_host) { binder, view, address ->
-                    val textView = view.findViewById<TextView>(R.id.address_text)
-                    textView.text = address
+                RecyclerViewBinding.create(owner, hostList, viewModel.hostList, R.layout.list_item_host) { binder, view, host ->
+                    view.findViewById<TextView>(R.id.name_text).text = if(host.name.isBlank()) "no name" else host.name
+                    view.findViewById<TextView>(R.id.address_text).text = host.address
                     binder.register(
-                        Command().connectAndBind(owner, view.findViewById(R.id.item_container)) {  viewModel.activeHost.value = address },
-                        Command().connectAndBind(owner, view.findViewById(R.id.del_button)) {  viewModel.removeHost(address) },
-                        VisibilityBinding.create(owner, view.findViewById(R.id.check_mark), viewModel.activeHost.map { it==address }, BoolConvert.Straight, VisibilityBinding.HiddenMode.HideByInvisible),
+                        Command().connectAndBind(owner, view.findViewById(R.id.item_container)) {  viewModel.activeHost.value = host },
+                        Command().connectAndBind(owner, view.findViewById(R.id.edit_button)) {  viewModel.editHost(host) },
+                        Command().connectAndBind(owner, view.findViewById(R.id.del_button)) {  viewModel.removeHost(host) },
+                        VisibilityBinding.create(owner, view.findViewById(R.id.check_mark), viewModel.activeHost.map { it==host }, BoolConvert.Straight, VisibilityBinding.HiddenMode.HideByInvisible),
                     )
-                },
-
-                viewModel.activeHost.disposableObserve(owner) { activatedHost->
-                    if(!activatedHost.isNullOrEmpty()) {
-                        val editing = viewModel.editingHost.value
-                        if(editing.isNullOrBlank() || viewModel.hostList.contains(editing)) {
-                            viewModel.editingHost.value = activatedHost
-                        }
-                    }
                 },
 
                 viewModel.theme.disposableObserve(owner) { theme->
