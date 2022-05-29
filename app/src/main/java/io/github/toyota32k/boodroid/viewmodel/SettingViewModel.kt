@@ -143,13 +143,13 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
     fun removeHost(entity: HostAddressEntity) {
         viewModelScope.launch {
             if(confirm(R.string.confirm_remove_host)) {
+                val activeHostIndex = hostList.indexOf(activeHost.value)
                 val index = hostList.indexOfFirst { it.address == entity.address }
                 if(index>=0) {
                     hostList.removeAt(index)
-                }
-                hostList.remove(entity)
-                if (activeHost.value?.address == entity.address) {
-                    activeHost.value = hostList.firstOrNull()
+                    if(index == activeHostIndex) {
+                        activeHost.value = hostList.firstOrNull()
+                    }
                 }
             }
         }
@@ -218,9 +218,6 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
 
     fun save(): Boolean {
         val s = settings
-        if (!s.isValid) {
-            return false
-        }
         s.save(context)
         return true
     }

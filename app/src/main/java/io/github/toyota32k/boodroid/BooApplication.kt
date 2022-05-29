@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.UtStandardString
 import io.github.toyota32k.utils.UtLog
@@ -33,7 +34,16 @@ class BooApplication : Application(), ViewModelStoreOwner {
         super.onCreate()
         AmvSettings.logger = logger
         UtStandardString.setContext(applicationContext,null)
-        UtDialogConfig.solidBackgroundOnPhone = false
+        UtDialogConfig.apply {
+            solidBackgroundOnPhone = false
+            showDialogImmediately = false
+            showInDialogModeAsDefault = true
+        }
+
+        val appViewModel = AppViewModel.instance
+        if (!AppViewModel.instance.settings.isValid) {
+            appViewModel.settingCommand.invoke()
+        }
     }
 
     override fun onTerminate() {

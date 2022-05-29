@@ -21,7 +21,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:src="@drawable/ic_check"
-        app:tint="?attr/colorSecondary"
+        app:tint="?attr/colorPrimary"
         />
     <LinearLayout
         android:layout_width="wrap_content"
@@ -57,7 +57,7 @@
         app:layout_constraintEnd_toStartOf="@+id/del_button"
         android:src="@drawable/ic_edit"
         android:background="?attr/selectableItemBackgroundBorderless"
-        app:tint="?attr/colorPrimary" />
+        app:tint="?attr/colorPrimaryVariant" />
     <ImageButton
         android:id="@+id/del_button"
         android:layout_width="40dp"
@@ -67,5 +67,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:src="@drawable/ic_close"
         android:background="?attr/selectableItemBackgroundBorderless"
-        app:tint="?attr/colorPrimaryVariant" />
+        app:tint="?attr/colorSecondary" />
 </androidx.constraintlayout.widget.ConstraintLayout>
