@@ -13,6 +13,7 @@
         <entry key="..\:/dev/android/boodroid/app/src/main/res/drawable/ic_check.xml" value="0.1605" />
         <entry key="..\:/dev/android/boodroid/app/src/main/res/drawable/ic_down.xml" value="0.148" />
         <entry key="..\:/dev/android/boodroid/app/src/main/res/drawable/ic_dreadful.xml" value="0.1605" />
+        <entry key="..\:/dev/android/boodroid/app/src/main/res/drawable/ic_edit.xml" value="0.1835" />
         <entry key="..\:/dev/android/boodroid/app/src/main/res/drawable/ic_excellent.xml" value="0.2515" />
         <entry key="..\:/dev/android/boodroid/app/src/main/res/drawable/ic_flag.xml" value="0.2515" />
         <entry key="..\:/dev/android/boodroid/app/src/main/res/drawable/ic_good.xml" value="0.1605" />
@@ -25,9 +26,10 @@
         <entry key="..\:/dev/android/boodroid/app/src/main/res/drawable/xc_setting.xml" value="0.2515" />
         <entry key="..\:/dev/android/boodroid/app/src/main/res/layout-port/activity_main.xml" value="0.12878787878787878" />
         <entry key="..\:/dev/android/boodroid/app/src/main/res/layout/activity_main.xml" value="0.18149466192170818" />
+        <entry key="..\:/dev/android/boodroid/app/src/main/res/layout/dialog_host_address.xml" value="0.1578125" />
         <entry key="..\:/dev/android/boodroid/app/src/main/res/layout/dialog_lating.xml" value="0.17395833333333333" />
         <entry key="..\:/dev/android/boodroid/app/src/main/res/layout/dialog_rating.xml" value="0.1" />
-        <entry key="..\:/dev/android/boodroid/app/src/main/res/layout/dialog_settings.xml" value="0.1" />
+        <entry key="..\:/dev/android/boodroid/app/src/main/res/layout/dialog_settings.xml" value="0.300561797752809" />
         <entry key="..\:/dev/android/boodroid/app/src/main/res/layout/list_item_category.xml" value="0.297554347826087" />
         <entry key="..\:/dev/android/boodroid/app/src/main/res/layout/list_item_host.xml" value="0.297554347826087" />
         <entry key="..\:/dev/android/boodroid/app/src/main/res/layout/list_item_video.xml" value="0.15789473684210525" />

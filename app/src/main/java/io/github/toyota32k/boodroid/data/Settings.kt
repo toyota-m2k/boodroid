@@ -9,9 +9,13 @@ import androidx.preference.PreferenceManager
 import io.github.toyota32k.bindit.IIDValueResolver
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.R
+import io.github.toyota32k.boodroid.common.safeGetString
+import io.github.toyota32k.boodroid.common.toIterable
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.utils.UtLogger
+import org.json.JSONArray
+import org.json.JSONObject
 import java.lang.IllegalStateException
 
 enum class ThemeSetting(val v:Int, @IdRes val id:Int, val mode:Int) {
@@ -57,10 +61,12 @@ enum class ColorVariation(val v:Int, @IdRes val id:Int, @StyleRes val themeId:In
     }
 }
 
+data class HostAddressEntity(val name:String, val address:String)
 
 class Settings(
-    val activeHost: String?,
-    val hostList: List<String>,
+//    val activeHost: HostAddressEntity?,
+    val activeHostIndex:Int,
+    val hostList: List<HostAddressEntity>,
     val sourceType: SourceType,
     val rating:Rating,
     val theme:ThemeSetting,
@@ -68,10 +74,12 @@ class Settings(
     val marks:List<Mark>,
     val category:String?) {
 
-    val isValid get() = !activeHost.isNullOrBlank()
+    val activeHost:HostAddressEntity?
+        get() = if(0<=activeHostIndex&&activeHostIndex<hostList.size) hostList.get(activeHostIndex) else null
+    val isValid get() = !activeHost?.address.isNullOrBlank()
 
-    private val hostPort:String?
-        get() = activeHost?.let { host ->
+    val hostAddress:String?
+        get() = activeHost?.address?.let { host ->
             return if(host.contains(":")) {
                 host
             } else {
@@ -79,7 +87,7 @@ class Settings(
             }
         }
     @Suppress("SpellCheckingInspection")
-    val baseUrl : String get() = "http://${hostPort}/ytplayer/"
+    val baseUrl : String get() = "http://${hostAddress}/ytplayer/"
 
 
     fun listUrl(date:Long):String {
@@ -112,15 +120,14 @@ class Settings(
         return baseUrl + "reputation"
     }
 
-
-
     fun save(context: Context) {
         UtLogger.assert(isValid, "invalid settings")
 //        logger.debug("Settings:saving $this")
         val pref = PreferenceManager.getDefaultSharedPreferences(context) ?: throw IllegalStateException("no preference manager.")
         pref.edit {
-            if(activeHost!=null) putString(KEY_ACTIVE_HOST, activeHost) else remove(KEY_ACTIVE_HOST)
-            if(hostList.isNotEmpty()) putStringSet(KEY_HOST_LIST, hostList.toSet()) else remove(KEY_HOST_LIST)
+//            if(activeHost!=null) putString(KEY_ACTIVE_HOST, activeHost) else remove(KEY_ACTIVE_HOST)
+            putInt(KEY_ACTIVE_HOST_INDEX, activeHostIndex)
+            putString(KEY_HOST_ENTITY_LIST, serializeHosts(hostList))
             putInt(KEY_SOURCE_TYPE, sourceType.v)
             putInt(KEY_RATING, rating.v)
             putInt(KEY_THEME, theme.v)
@@ -134,8 +141,8 @@ class Settings(
     companion object {
         val logger = UtLog("Settings", BooApplication.logger)
 
-        const val KEY_ACTIVE_HOST = "activeHost"
-        const val KEY_HOST_LIST = "hostList"
+        const val KEY_ACTIVE_HOST_INDEX = "activeHostIndex"
+        const val KEY_HOST_ENTITY_LIST = "hostEntityList"
         const val KEY_SOURCE_TYPE = "sourceType"
         const val KEY_RATING = "rating"
         const val KEY_THEME = "theme"
@@ -146,8 +153,8 @@ class Settings(
         fun load(context: Context): Settings {
             val pref = PreferenceManager.getDefaultSharedPreferences(context)
             return Settings(
-                activeHost = pref.getString(KEY_ACTIVE_HOST, null),
-                hostList = pref.getStringSet(KEY_HOST_LIST, null)?.toList() ?: listOf(),
+                activeHostIndex = pref.getInt(KEY_ACTIVE_HOST_INDEX, -1),
+                hostList =  deserializeHosts(pref.getString(KEY_HOST_ENTITY_LIST, null)),
                 sourceType = SourceType.valueOf(pref.getInt(KEY_SOURCE_TYPE, -1)),
                 rating = Rating.valueOf(pref.getInt(KEY_RATING, -1)),
                 theme = ThemeSetting.valueOf(pref.getInt(KEY_THEME, -1)),
@@ -157,6 +164,34 @@ class Settings(
 //                .apply {logger.debug("Settings:Loaded $this")}
         }
 
-        val empty:Settings = Settings(null, listOf(), SourceType.DB, Rating.NORMAL, ThemeSetting.SYSTEM, ColorVariation.PINK, listOf(), null)
+        fun serializeHosts(list:List<HostAddressEntity>):String {
+            return list.fold(JSONArray()) {json, v->
+                json.put(JSONObject().apply  {
+                    put("n", v.name)
+                    put("a", v.address)
+                })
+                json
+            }.toString().apply { logger.debug(this) }
+        }
+
+        fun deserializeHosts(jsonString:String?):List<HostAddressEntity> {
+            return try {
+                val json = JSONArray(jsonString ?: return emptyList())
+                json.toIterable().mapNotNull {
+                    (it as? JSONObject)?.run {
+                        HostAddressEntity(
+                            safeGetString("n"),
+                            safeGetString("a")
+                        )
+                    }
+                }
+            } catch(e:Throwable) {
+                logger.stackTrace(e)
+                emptyList()
+            }
+        }
+
+
+        val empty:Settings = Settings(-1, listOf(), SourceType.DB, Rating.NORMAL, ThemeSetting.SYSTEM, ColorVariation.PINK, listOf(), null)
     }
 }

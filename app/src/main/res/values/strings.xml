@@ -28,5 +28,8 @@
     <string name="confirm_close_on_editing_host">Editing host is not registered.</string>
     <string name="confirm_close_with_no_host">No hosts are registered.</string>
     <string name="no_host">NO HOSTS</string>
+    <string name="host_name_label">Name</string>
+    <string name="name_hint">any name</string>
+    <string name="host_address_label">Address</string>
 
 </resources>
