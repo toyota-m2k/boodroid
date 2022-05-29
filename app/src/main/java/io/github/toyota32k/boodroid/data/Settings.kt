@@ -121,7 +121,7 @@ class Settings(
     }
 
     fun save(context: Context) {
-        UtLogger.assert(isValid, "invalid settings")
+//        UtLogger.assert(isValid, "invalid settings")
 //        logger.debug("Settings:saving $this")
         val pref = PreferenceManager.getDefaultSharedPreferences(context) ?: throw IllegalStateException("no preference manager.")
         pref.edit {

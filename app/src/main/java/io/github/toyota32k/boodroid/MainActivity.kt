@@ -111,10 +111,6 @@ class MainActivity : UtMortalActivity() {
         super.onCreate(savedInstanceState)
         landscape = resources.configuration.isLandscape
         initViews()
-        val appViewModel = AppViewModel.instance
-        if (!AppViewModel.instance.settings.isValid) {
-            appViewModel.settingCommand.invoke()
-        }
 
 //        lifecycleScope.launch {
 //            repeatOnLifecycle(Lifecycle.State.STARTED) {
