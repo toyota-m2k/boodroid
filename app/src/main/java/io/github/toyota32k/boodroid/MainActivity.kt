@@ -169,6 +169,11 @@ class MainActivity : UtMortalActivity() {
         startPlayerService()
     }
 
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        handleUriInIntent(intent)
+    }
+
     private fun startPlayerService() {
         try {
             logger.info("startForegroundService calling.")
