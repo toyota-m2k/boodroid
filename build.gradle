@@ -14,7 +14,7 @@ buildscript {
     ext.androidx_media_version ='1.5.0'
     ext.androidx_test_runner_version = '1.4.0'
     ext.androidx_test_espresso_version = '3.4.0'
-    ext.androidx_constraint_version = '2.1.3'
+    ext.androidx_constraint_version = '2.1.4'
     ext.androidx_work_version = "2.7.1"
 
     ext.recycle_view_version = "1.2.1"
@@ -27,7 +27,7 @@ buildscript {
     ext.preference_version = "1.2.0"
 
     ext.m2k_bind_it_version = "1.2.6"
-    ext.m2k_android_dialog_version = "3.0.4"
+    ext.m2k_android_dialog_version = "3.1.0"
     ext.m2k_viewex_version = "0.0.1"
 
     ext.junit_version = "4.13.2"
