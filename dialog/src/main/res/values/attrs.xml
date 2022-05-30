@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colors for Dialog Body -->
+    <attr name="color_dlg_bg" format="color"/>
+    <attr name="color_dlg_border" format="color"/>
+
+    <!-- Colors for Dialog Title bar -->
+    <attr name="color_dlg_title_bg" format="color"/>
+    <attr name="color_dlg_title_text" format="color"/>
+    <attr name="color_dlg_title_separator_upper" format="color"/>
+    <attr name="color_dlg_title_separator_lower" format="color"/>
+
+    <!-- Colors for DONE button -->
+    <attr name="color_dlg_button_bg_normal" format="color"/>
+    <attr name="color_dlg_button_bg_pressed" format="color"/>
+    <attr name="color_dlg_button_bg_disabled" format="color"/>
+
+    <attr name="color_dlg_button_border_normal" format="color"/>
+    <attr name="color_dlg_button_border_pressed" format="color"/>
+    <attr name="color_dlg_button_border_disabled" format="color"/>
+
+    <attr name="color_dlg_button_text_normal" format="color"/>
+    <attr name="color_dlg_button_text_pressed" format="color"/>
+    <attr name="color_dlg_button_text_disabled" format="color"/>
+
+    <!-- Colors for Cancel button -->
+    <attr name="color_dlg_white_button_bg_normal" format="color"/>
+    <attr name="color_dlg_white_button_bg_pressed" format="color"/>
+    <attr name="color_dlg_white_button_bg_disabled" format="color"/>
+
+    <attr name="color_dlg_white_button_border_normal" format="color"/>
+    <attr name="color_dlg_white_button_border_pressed" format="color"/>
+    <attr name="color_dlg_white_button_border_disabled" format="color"/>
+
+    <attr name="color_dlg_white_button_text_normal" format="color"/>
+    <attr name="color_dlg_white_button_text_pressed" format="color"/>
+    <attr name="color_dlg_white_button_text_disabled" format="color"/>
+
+</resources>

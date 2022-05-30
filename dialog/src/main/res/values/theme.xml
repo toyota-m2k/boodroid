@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="UtDialogTheme">
+        <!-- Colors for Dialog Body -->
+        <item name="color_dlg_bg">?attr/colorSurface</item>
+        <item name="color_dlg_border">?attr/colorPrimary</item>
+
+        <!-- Colors for Dialog Title bar -->
+        <item name="color_dlg_title_bg">?attr/colorPrimary</item>
+        <item name="color_dlg_title_text">?attr/colorOnPrimary</item>
+        <item name="color_dlg_title_separator_upper">@color/transparent</item>
+        <item name="color_dlg_title_separator_lower">@color/transparent</item>
+
+        <!-- Colors for DONE button -->
+        <item name="color_dlg_button_bg_normal">?attr/colorSecondary</item>
+        <item name="color_dlg_button_bg_pressed">@color/secondary_70</item>
+        <item name="color_dlg_button_bg_disabled">@color/on_surface_30</item>
+
+        <item name="color_dlg_button_border_normal">@color/secondary_70</item>
+        <item name="color_dlg_button_border_pressed">@color/secondary_70</item>
+        <item name="color_dlg_button_border_disabled">@color/on_surface_50</item>
+
+        <item name="color_dlg_button_text_normal">?attr/colorOnSecondary</item>
+        <item name="color_dlg_button_text_pressed">@color/on_secondary_70</item>
+        <item name="color_dlg_button_text_disabled">@color/on_surface_70</item>
+
+        <!-- Colors for Cancel button -->
+        <item name="color_dlg_white_button_bg_normal">?attr/colorSurface</item>
+        <item name="color_dlg_white_button_bg_pressed">@color/on_surface_50</item>
+        <item name="color_dlg_white_button_bg_disabled">@color/on_surface_30</item>
+
+        <item name="color_dlg_white_button_border_normal">@color/on_surface_50</item>
+        <item name="color_dlg_white_button_border_pressed">@color/on_surface_50</item>
+        <item name="color_dlg_white_button_border_disabled">@color/on_surface_50</item>
+
+        <item name="color_dlg_white_button_text_normal">?attr/colorOnSurface</item>
+        <item name="color_dlg_white_button_text_pressed">?attr/colorOnSurface</item>
+        <item name="color_dlg_white_button_text_disabled">@color/on_surface_70</item>
+    </style>
+
+    <style name="UtDialogAlternativeTheme" parent="UtDialogTheme">
+        <!-- Colors for Dialog Body -->
+        <item name="color_dlg_bg">#ececec</item>
+        <item name="color_dlg_border">#c1c1c1</item>
+
+        <!-- Colors for Dialog Title bar -->
+        <item name="color_dlg_title_bg">@color/transparent</item>
+        <item name="color_dlg_title_text">#000000</item>
+        <item name="color_dlg_title_separator_upper">#c1c1c1</item>
+        <item name="color_dlg_title_separator_lower">#FFFFFF</item>
+
+        <!-- Colors for DONE button -->
+        <item name="color_dlg_button_bg_normal">#0d9fbe</item>
+        <item name="color_dlg_button_bg_pressed">#0a8099</item>
+        <item name="color_dlg_button_bg_disabled">#FFFFFF</item>
+
+        <item name="color_dlg_button_border_normal">#158aa2</item>
+        <item name="color_dlg_button_border_pressed">#127084</item>
+        <item name="color_dlg_button_border_disabled">#cccccc</item>
+
+        <item name="color_dlg_button_text_normal">#FFFFFF</item>
+        <item name="color_dlg_button_text_pressed">#FFFFFF</item>
+        <item name="color_dlg_button_text_disabled">#a0a0a0</item>
+
+        <!-- Colors for Cancel button -->
+        <item name="color_dlg_white_button_bg_normal">#FFFFFF</item>
+        <item name="color_dlg_white_button_bg_pressed">#d9d9d9</item>
+        <item name="color_dlg_white_button_bg_disabled">#FFFFFF</item>
+
+        <item name="color_dlg_white_button_border_normal">#cccccc</item>
+        <item name="color_dlg_white_button_border_pressed">#c8c8c8</item>
+        <item name="color_dlg_white_button_border_disabled">#cccccc</item>
+
+        <item name="color_dlg_white_button_text_normal">#323a45</item>
+        <item name="color_dlg_white_button_text_pressed">#323a45</item>
+        <item name="color_dlg_white_button_text_disabled">#a0a0a0</item>
+    </style>
+
+</resources>

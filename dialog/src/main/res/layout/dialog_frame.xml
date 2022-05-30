@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/transparent"
+    >
+
+    <!--
+    FrameLayout(rootView)を全画面表示としておき、dialog_view (dialogView) を（プログラム的に）指定位置に配置する。
+    したがって、dialog_view の layout_width/height 指定はダミーであり無視される。
+    また、xmlからのrootViewの背景(background)指定は無視されるようなので、これもプログラム的に(dialog.windowに対して)設定する。
+    -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/dialog_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/dlg_background"
+        >
+        <!-- ヘッダー（ボタン＋タイトル）領域 -->
+        <FrameLayout
+            android:orientation="horizontal"
+            android:id="@+id/header"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/dlg_header_height"
+            android:background="?attr/color_dlg_title_bg"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            >
+            <!-- Note: 明示的に android.widget.Button を指定する。-->
+            <!-- 普通のButtonにすると、Theme.MaterialComponents を有効にしたとき、background/textColor が期待通りに設定されない -->
+            <android.widget.Button
+                style="@style/dlg_left_button_style"
+                android:id="@+id/left_button"
+                android:background="@drawable/dlg_button_bg_white"
+                android:textColor="@color/dlg_button_fg_white"
+                tools:text="キャンセル"
+                />
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_gravity="center|center_horizontal"
+                >
+                <ProgressBar
+                    android:id="@+id/progress_on_title_bar"
+                    android:layout_width="20dp"
+                    android:layout_height="16dp"
+                    android:visibility="invisible"
+                    tools:visibility="visible"
+                    style="?android:attr/progressBarStyleSmall"
+                    />
+                <TextView
+                    android:id="@+id/dialog_title"
+                    style="@style/dlg_title_style"
+                    tools:text="設定"/>
+                <Space
+                    android:layout_width="20dp"
+                    android:layout_height="match_parent"/>
+
+            </LinearLayout>
+
+            <android.widget.Button
+                style="@style/dlg_right_button_style"
+                android:id="@+id/right_button"
+                android:background="@drawable/dlg_button_bg_blue"
+                android:textColor="@color/dlg_button_fg_blue"
+                tools:text="完了"
+                />
+        </FrameLayout>
+        <!-- ヘッダーとボディのセパレータ -->
+        <View
+            android:id="@+id/separator"
+            android:layout_height="2dp"
+            android:layout_width="0dp"
+            app:layout_constraintTop_toBottomOf="@+id/header"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:background="@drawable/dlg_header_separator"
+            android:layout_marginStart="1dp"
+            android:layout_marginEnd="1dp"
+            />
+
+        <!-- height option == AUTO_SCROLL の場合のサイズ計算の基準とするダミービュー -->
+        <View
+            android:id="@+id/ref_container_view"
+            android:layout_width="1dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="@dimen/dlg_content_margin_top"
+            android:layout_marginBottom="@dimen/dlg_content_margin_bottom"
+            android:layout_marginStart="@dimen/dlg_content_margin_left"
+            android:layout_marginEnd="@dimen/dlg_content_margin_right"
+            android:visibility="invisible"
+            app:layout_constraintTop_toBottomOf="@+id/separator"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            />
+
+        <!-- ダイアログのボディを配置する領域（スクロールなし）-->
+        <FrameLayout
+            android:id="@+id/body_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/dlg_content_margin_top"
+            android:layout_marginBottom="@dimen/dlg_content_margin_bottom"
+            android:layout_marginStart="@dimen/dlg_content_margin_left"
+            android:layout_marginEnd="@dimen/dlg_content_margin_right"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@+id/separator"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:visibility="visible"
+            tools:layout_height="100dp"
+            tools:layout_width ="200dp"
+            >
+        </FrameLayout>
+
+        <!-- ダイアログのボディを配置する領域（スクロールあり）-->
+        <ScrollView
+            android:id="@+id/body_scroller"
+            android:layout_height="0dp"
+            android:layout_width="wrap_content"
+            android:layout_marginTop="@dimen/dlg_content_margin_top"
+            android:layout_marginBottom="@dimen/dlg_content_margin_bottom"
+            android:layout_marginStart="@dimen/dlg_content_margin_left"
+            android:layout_marginEnd="@dimen/dlg_content_margin_right"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@+id/separator"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:visibility="visible"
+            tools:layout_height="200dp"
+            tools:layout_width="300dp"
+            >
+        </ScrollView>
+
+        <!-- busyのときに、ダイアログコンテントをブロックするためのガードビュー-->
+        <View
+            android:id="@+id/body_guard_view"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="@dimen/dlg_content_margin_top"
+            android:layout_marginBottom="@dimen/dlg_content_margin_bottom"
+            android:layout_marginStart="@dimen/dlg_content_margin_left"
+            android:layout_marginEnd="@dimen/dlg_content_margin_right"
+            android:visibility="invisible"
+            app:layout_constraintTop_toBottomOf="@+id/separator"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:background="#0000"
+            android:clickable="true"
+            android:focusable="true"
+            />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>

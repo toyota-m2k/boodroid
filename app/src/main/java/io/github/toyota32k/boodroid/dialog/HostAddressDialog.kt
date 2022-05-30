@@ -63,6 +63,7 @@ class HostAddressDialog : UtDialog(isDialog=true) {
         super.preCreateBodyView()
         parentVisibilityOption = ParentVisibilityOption.NONE
         draggable = true
+//        animationEffect = false
         guardColor = GuardColor.DIM.color
         if(isPhone) {
             widthOption = WidthOption.FULL
@@ -83,6 +84,10 @@ class HostAddressDialog : UtDialog(isDialog=true) {
                 EnableBinding.create(this, rightButton, viewModel.address.map { it.isNotBlank() }.asLiveData()),
             )
         }
+    }
+
+    override fun onPositive() {
+        super.onPositive()
     }
 
 }

@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.*
 
 class MainActivity : UtMortalActivity() {
     override val logger = UtLog("Main", BooApplication.logger)
+    var enableService = false
 
     private val binder = Binder()
     private val viewModel :MainViewModel by lazy { MainViewModel.instanceFor(this) }
@@ -171,6 +172,7 @@ class MainActivity : UtMortalActivity() {
     }
 
     private fun startPlayerService() {
+        if(!enableService) return
         try {
             logger.info("startForegroundService calling.")
             val intent = Intent(this, PlayerNotificationService::class.java)
@@ -185,6 +187,7 @@ class MainActivity : UtMortalActivity() {
     }
 
     private fun stopPlayerService() {
+        if(!enableService) return
         logger.debug()
         stopService(Intent(application, PlayerNotificationService::class.java))
     }

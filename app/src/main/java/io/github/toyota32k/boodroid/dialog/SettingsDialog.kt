@@ -27,6 +27,7 @@ class SettingsDialog : UtDialog(isDialog=true) {
     override fun preCreateBodyView() {
         super.preCreateBodyView()
         viewModel = SettingViewModel.instanceFor(this)
+//        animationEffect = false
         scrollable = true
         cancellable = false
         draggable = true
