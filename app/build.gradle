@@ -40,6 +40,9 @@ dependencies {
     implementation "com.google.android.material:material:$material_version"
     implementation "androidx.preference:preference:$preference_version"
 
+    implementation "androidx.room:room-runtime:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+
     implementation("com.squareup.okhttp3:okhttp:$okhttp_version")
 
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutine_version"
