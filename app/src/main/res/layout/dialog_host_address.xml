@@ -7,20 +7,6 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/host_name_label"
-        />
-    <EditText
-        android:id="@+id/host_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/name_hint"
-        android:autofillHints="@string/name_hint"
-        android:inputType="text"
-        android:imeOptions="actionNext"
-        />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:text="@string/host_address_label"
         />
     <EditText
@@ -31,5 +17,19 @@
         android:autofillHints="@string/host_hint"
         android:inputType="textUri"
         android:imeOptions="actionDone"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/host_name_label"
+        />
+    <EditText
+        android:id="@+id/host_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/name_hint"
+        android:autofillHints="@string/name_hint"
+        android:inputType="text"
+        android:imeOptions="actionNext"
         />
 </LinearLayout>

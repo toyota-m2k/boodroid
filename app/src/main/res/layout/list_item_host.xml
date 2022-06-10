@@ -38,6 +38,7 @@
             android:layout_marginHorizontal="10dp"
             android:textColor="?attr/colorOnSurface"
             tools:text="Boo Server"
+            android:textStyle="bold"
             />
         <TextView
             android:id="@+id/address_text"
