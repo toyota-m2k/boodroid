@@ -34,6 +34,14 @@
             android:layout_gravity="center_vertical"
             >
             <ImageButton
+                android:id="@+id/select_button"
+                android:layout_width="@dimen/media_button_width"
+                android:layout_height="@dimen/media_button_height"
+                app:srcCompat="@drawable/ic_select"
+                app:tint="?attr/colorOnPrimary"
+                android:background="?attr/selectableItemBackground"
+                />
+            <ImageButton
                 android:id="@+id/up_button"
                 android:layout_width="@dimen/media_button_width"
                 android:layout_height="@dimen/media_button_height"

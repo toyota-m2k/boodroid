@@ -6,13 +6,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
-    <CheckBox
-        android:id="@+id/checkbox_offline_mode"
+    <TextView
+        android:id="@+id/source_list_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/offline_mode"
+        android:text="@string/source_list_label"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:textStyle="bold"
+        />
+    <TextView
+        android:id="@+id/target_list_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/target_list_label"
+        app:layout_constraintStart_toStartOf="@id/target_list"
+        app:layout_constraintTop_toTopOf="parent"
+        android:textStyle="bold"
         />
 
 <!--    <Button-->
@@ -29,7 +39,7 @@
         android:id="@+id/buttons"
         android:layout_width="100dp"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/checkbox_offline_mode"
+        app:layout_constraintTop_toBottomOf="@id/source_list_label"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/source_list"
         app:layout_constraintEnd_toStartOf="@+id/target_list"
@@ -72,7 +82,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/checkbox_offline_mode"
+        app:layout_constraintTop_toBottomOf="@+id/source_list_label"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/buttons"
         android:background="@drawable/bordered_bg"
@@ -84,7 +94,7 @@
         android:layout_height="0dp"
         app:layout_constraintStart_toEndOf="@id/buttons"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/checkbox_offline_mode"
+        app:layout_constraintTop_toBottomOf="@+id/source_list_label"
         app:layout_constraintBottom_toBottomOf="parent"
         android:background="@drawable/bordered_bg"
         android:padding="1dp"

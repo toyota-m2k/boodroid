@@ -1,15 +1,14 @@
 package io.github.toyota32k.boodroid.dialog
 
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
-import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.ColorInt
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
@@ -22,7 +21,6 @@ import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.UtImmortalTaskContextSource
 import io.github.toyota32k.boodroid.common.getAttrColor
 import io.github.toyota32k.boodroid.common.getAttrColorAsDrawable
-import io.github.toyota32k.boodroid.data.Settings
 import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.boodroid.data.VideoListSource
 import io.github.toyota32k.boodroid.offline.CachedVideoItem
@@ -30,12 +28,8 @@ import io.github.toyota32k.boodroid.offline.OfflineManager
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialog
-import io.github.toyota32k.dialog.task.IUtImmortalTask
-import io.github.toyota32k.dialog.task.IUtImmortalTaskMutableContextSource
-import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
-import io.github.toyota32k.dialog.task.UtImmortalViewModelHelper
+import io.github.toyota32k.dialog.task.*
 import io.github.toyota32k.utils.UtObservableFlag
-import io.github.toyota32k.utils.asMutableLiveData
 import io.github.toyota32k.video.common.IAmvSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -48,7 +42,7 @@ class OfflineDialog : UtDialog(isDialog = true) {
     data class Selectable<T>(val value:T, var selected:Boolean=false)
 
     class OfflineDialogViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtImmortalTaskContextSource() {
-        val offlineMode = MutableStateFlow(AppViewModel.instance.offlineMode)
+//        val offlineMode = MutableStateFlow(AppViewModel.instance.offlineMode)
         val sourceList = ObservableList<Selectable<VideoItem>>()
         val targetList = ObservableList<Selectable<IAmvSource>>()
 
@@ -167,8 +161,17 @@ class OfflineDialog : UtDialog(isDialog = true) {
         suspend fun complete():Boolean {
             if(loadingSources.value) return false
 
-            OfflineManager.instance.setOfflineVideos(targetList.map { it.value }, downloadProgress) ?: return false
-            AppViewModel.instance.settings = Settings(AppViewModel.instance.settings, offlineMode = offlineMode.value)
+            val newList = OfflineManager.instance.setOfflineVideos(targetList.map { it.value }, downloadProgress) ?: return false
+//            AppViewModel.instance.settings = Settings(AppViewModel.instance.settings, offlineMode = offlineMode.value)
+            val oldMode = AppViewModel.instance.offlineMode
+            val newMode = if(!oldMode && newList.isNotEmpty()) {
+                UtImmortalSimpleTask.runAsync("enterOfflineMode") {
+                    val context = BooApplication.instance.applicationContext
+                    fun s(@StringRes id:Int) : String = context.getString(id)
+                    showYesNoMessageBox(s(R.string.app_name), s(R.string.query_enter_offline_mode))
+                }
+            } else oldMode
+            AppViewModel.instance.updateOfflineMode(newMode, updateList = true)
             return true
         }
 
@@ -272,7 +275,7 @@ class OfflineDialog : UtDialog(isDialog = true) {
                     )
             }
             binder.register(
-                CheckBinding.create(this, dlg.findViewById(R.id.checkbox_offline_mode), viewModel.offlineMode.asMutableLiveData(this)),
+//                CheckBinding.create(this, dlg.findViewById(R.id.source_list_label), viewModel.offlineMode.asMutableLiveData(this)),
 
                 EnableBinding.create(this, addButton, viewModel.isSourceSelected.asLiveData()),
                 EnableBinding.create(this, delButton, viewModel.isTargetSelected.asLiveData()),

@@ -6,13 +6,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <CheckBox
-        android:id="@+id/checkbox_offline_mode"
+    <TextView
+        android:id="@+id/source_list_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/offline_mode"
+        android:text="@string/source_list_label"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:textStyle="bold"
         />
     <LinearLayout
         android:id="@+id/buttons"
@@ -71,7 +72,7 @@
         android:id="@+id/source_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@+id/checkbox_offline_mode"
+        app:layout_constraintTop_toBottomOf="@+id/source_list_label"
         app:layout_constraintBottom_toTopOf="@+id/buttons"
         android:background="@drawable/bordered_bg"
         android:padding="1dp"
@@ -82,9 +83,19 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@+id/buttons"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/target_list_label"
         android:background="@drawable/bordered_bg"
         android:padding="1dp"
+        />
+
+    <TextView
+        android:id="@+id/target_list_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/target_list_label"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:textStyle="bold"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

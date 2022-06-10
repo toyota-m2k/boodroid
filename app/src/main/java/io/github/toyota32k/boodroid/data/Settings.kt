@@ -13,7 +13,6 @@ import io.github.toyota32k.boodroid.common.safeGetString
 import io.github.toyota32k.boodroid.common.toIterable
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.utils.UtLog
-import io.github.toyota32k.utils.UtLogger
 import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.IllegalStateException
@@ -209,7 +208,6 @@ class Settings(
                 emptyList()
             }
         }
-
 
         val empty:Settings = Settings(-1, listOf(), SourceType.DB, Rating.NORMAL, ThemeSetting.SYSTEM, ColorVariation.PINK, listOf(), null, false)
     }

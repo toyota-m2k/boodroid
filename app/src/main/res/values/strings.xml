@@ -42,5 +42,12 @@
     <string name="source_list">Source</string>
     <string name="target_list">Download List</string>
     <string name="reset">Reset</string>
+    <string name="source_list_label">Source Videos</string>
+    <string name="target_list_label">Offline Videos</string>
+    <string name="query_enter_offline_mode">Enter Offline Mode?</string>
+    <string name="menu_item_enter_offline_mode">Enter Offline Mode</string>
+    <string name="menu_item_exit_offline_mode">Exit Offline Mode</string>
+    <string name="menu_item_setup_offline_mode">Setup Offline Mode</string>
+    <string name="menu_item_select_offline_videos">Select Offline Videos</string>
 
 </resources>

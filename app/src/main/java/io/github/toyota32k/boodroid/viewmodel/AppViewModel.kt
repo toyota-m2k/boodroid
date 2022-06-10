@@ -25,6 +25,29 @@ class AppViewModel: ViewModel() {
         val instance: AppViewModel
             get() = ViewModelProvider(BooApplication.instance, ViewModelProvider.NewInstanceFactory())[AppViewModel::class.java].prepare()
     }
+    // region Initialization / Termination
+
+    private var prepared:Boolean = false
+    private fun prepare():AppViewModel {
+        if(!prepared) {
+//            settings = Settings.load(BooApplication.instance)
+            prepared = true
+            val mode = settings.theme.mode
+            if(AppCompatDelegate.getDefaultNightMode()!=mode) {
+                AppCompatDelegate.setDefaultNightMode(mode)
+            }
+        }
+        return this
+    }
+
+    override fun onCleared() {
+        logger.debug()
+        super.onCleared()
+    }
+
+    // endregion
+
+    // region Player/ControlPanel ViewModel
 
     class RefCounteredControlPanelModel {
         private val resetable = UtResetableValue<ControlPanelModel>()
@@ -52,28 +75,32 @@ class AppViewModel: ViewModel() {
                 }
             }
         }
-
-        fun withModel(fn:(ControlPanelModel)->Unit) {
-            val v = fetch()
-            try {
-                fn(v)
-            } finally {
-                release(v)
-            }
-        }
     }
 
     val controlPanelModelSource = RefCounteredControlPanelModel()
 
-//    private val controlPanelModelEntity = UtLazyResetableValue<ControlPanelModel>()
+    // endregion
 
-    //lateinit var controlPanelModel:ControlPanelModel
-    // val playerModel:PlayerModel get() = controlPanelModel.playerModel
-    val offlineModeFlow = MutableStateFlow<Boolean>(false)
-    var offlineMode
-        get() = offlineModeFlow.value
-        private set(v) { offlineModeFlow.value = v }
+    // region Settings / Offline Mode
 
+    /**
+     * 設定ダイアログを開く
+     */
+    val settingCommand = Command {
+        UtImmortalSimpleTask.run("settings") {
+            SettingViewModel.createBy(this) { it.prepare() }
+            this.showDialog(taskName) { SettingsDialog() }.status.ok
+        }
+    }
+
+    /**
+     * サーバーの設定などが変更され、動画リストの更新が必要になったことを知らせるイベント
+     */
+    val refreshCommand = Command()
+
+    /**
+     * 環境設定
+     */
     var settings: Settings = Settings.load(BooApplication.instance)
         set(v) {
             if(v!=field) {
@@ -96,55 +123,26 @@ class AppViewModel: ViewModel() {
             }
         }
 
-    // 通信中フラグ
-    val loading = MutableStateFlow(false)
-    var lastUpdate : Long = 0L
+    /**
+     * オフラインモード
+     */
+    val offlineModeFlow = MutableStateFlow(false)
+    var offlineMode
+        get() = offlineModeFlow.value
+        private set(v) { offlineModeFlow.value = v }
 
-    private var prepared:Boolean = false
-    private fun prepare():AppViewModel {
-        if(!prepared) {
-//            settings = Settings.load(BooApplication.instance)
-            val mode = settings.theme.mode
-            if(AppCompatDelegate.getDefaultNightMode()!=mode) {
-                AppCompatDelegate.setDefaultNightMode(mode)
-            }
-        }
-        return this
-    }
-
-
-    fun registerYoutubeUrl(rawUrl:String) {
-        val urlParam = rawUrl.split("\r", "\n", " ", "\t").firstOrNull { it.isNotBlank() } ?: return
-        val url = settings.urlToRegister(urlParam)
-        CoroutineScope(Dispatchers.IO).launch {
-            val req = Request.Builder()
-                .url(url)
-                .get()
-                .build()
-            try {
-                NetClient.executeAsync(req)
-            } catch (e:Throwable) {
-                logger.stackTrace(e)
-            }
+    /**
+     * オフラインモードを変更する
+     */
+    fun updateOfflineMode(mode:Boolean, updateList:Boolean) {
+        if(settings.offlineMode != mode) {
+            // モードが変更になった場合、Settings.save() --> AppViewModel#settings のセッターで refresh コマンドが呼ばれる
+            Settings(settings, offlineMode = mode).save(BooApplication.instance.applicationContext)
+        } else if(mode && updateList) {
+            // オフラインモードのまま変わらない場合、リストが更新された時は、明示的にrefreshする
+            refreshCommand.invoke()
         }
     }
 
-    override fun onCleared() {
-        logger.debug()
-        super.onCleared()
-    }
-
-    val settingCommand = Command {
-        UtImmortalSimpleTask.run("settings") {
-            SettingViewModel.createBy(this) { it.prepare() }
-            this.showDialog(taskName) { SettingsDialog() }.status.ok
-        }
-    }
-    val refreshCommand = Command()
-
-    val syncToServerCommand = Command()
-
-    val syncFromServerCommand = Command ()
-
-    val menuCommand = Command()
+    // endregion
 }
