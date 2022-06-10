@@ -28,11 +28,11 @@ fun JSONObject.safeGetNullableString(key:String) : String? {
         return null
     }
 }
-fun JSONObject.safeGetString(key:String) : String {
+fun JSONObject.safeGetString(key:String, defValue:String="") : String {
     return try {
-        this.getString(key) ?: ""
+        this.getString(key) ?: defValue
     }  catch (e:Throwable) {
-        return ""
+        return defValue
     }
 }
 

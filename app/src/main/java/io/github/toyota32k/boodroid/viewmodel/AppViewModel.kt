@@ -3,25 +3,21 @@ package io.github.toyota32k.boodroid.viewmodel
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.bindit.Command
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
-import io.github.toyota32k.boodroid.data.*
+import io.github.toyota32k.boodroid.data.NetClient
+import io.github.toyota32k.boodroid.data.Settings
 import io.github.toyota32k.boodroid.dialog.SettingsDialog
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
-import io.github.toyota32k.utils.UtLazyResetableValue
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.utils.UtResetableValue
 import io.github.toyota32k.video.model.ControlPanelModel
-import io.github.toyota32k.video.model.PlayerModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.Request
-import java.io.Closeable
 
 class AppViewModel: ViewModel() {
     companion object {
@@ -71,16 +67,20 @@ class AppViewModel: ViewModel() {
 
 //    private val controlPanelModelEntity = UtLazyResetableValue<ControlPanelModel>()
 
-
     //lateinit var controlPanelModel:ControlPanelModel
     // val playerModel:PlayerModel get() = controlPanelModel.playerModel
+    val offlineModeFlow = MutableStateFlow<Boolean>(false)
+    var offlineMode
+        get() = offlineModeFlow.value
+        private set(v) { offlineModeFlow.value = v }
 
     var settings: Settings = Settings.load(BooApplication.instance)
         set(v) {
             if(v!=field) {
                 val o = field
                 field = v
-                if(v.listUrl(0)!=o.listUrl(0)) {
+                if(v.listUrl(0)!=o.listUrl(0) || v.offlineMode || v.offlineMode!=o.offlineMode) {
+                    offlineMode = v.offlineMode
                     refreshCommand.invoke()
                 }
                 if(v.colorVariation!=o.colorVariation) {
@@ -145,4 +145,6 @@ class AppViewModel: ViewModel() {
     val syncToServerCommand = Command()
 
     val syncFromServerCommand = Command ()
+
+    val menuCommand = Command()
 }

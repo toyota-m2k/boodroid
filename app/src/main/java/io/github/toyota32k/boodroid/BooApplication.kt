@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import io.github.toyota32k.boodroid.offline.OfflineManager
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.UtStandardString
@@ -13,6 +14,8 @@ import io.github.toyota32k.video.common.AmvSettings
 
 class BooApplication : Application(), ViewModelStoreOwner {
     private var viewModelStore : ViewModelStore? = null
+
+    val offlineManager: OfflineManager by lazy { OfflineManager(this) }
 
     override fun getViewModelStore(): ViewModelStore {
         if(viewModelStore==null) {

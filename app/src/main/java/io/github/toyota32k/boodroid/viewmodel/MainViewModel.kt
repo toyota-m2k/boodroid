@@ -6,8 +6,13 @@ import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.boodroid.data.NetClient
+import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.boodroid.data.VideoListSource
+import io.github.toyota32k.boodroid.dialog.OfflineDialog
+import io.github.toyota32k.boodroid.offline.OfflineData
+import io.github.toyota32k.boodroid.offline.OfflineManager
 import io.github.toyota32k.utils.UtLogger
+import io.github.toyota32k.video.common.IAmvSource
 import io.github.toyota32k.video.model.ControlPanelModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,6 +46,7 @@ class MainViewModel : ViewModel() {
                 appViewModel.refreshCommand.bindForever { refreshVideoList() },
                 appViewModel.syncFromServerCommand.bindForever { syncFromServer() },
                 appViewModel.syncToServerCommand.bindForever { syncToServer() },
+                appViewModel.menuCommand.bindForever { setupOfflineMode() }
             )
             refreshVideoList()
         }
@@ -61,8 +67,29 @@ class MainViewModel : ViewModel() {
         get() = appViewModel.lastUpdate
         set(v) { appViewModel.lastUpdate = v }
 
+    private data class PlayPositionInfo(val index:Int, val position:Long)
 
-    private fun refreshVideoList() {
+    private fun getPlayPositionInfo(list:List<IAmvSource>):PlayPositionInfo {
+        var index = -1
+        var position = 0L
+        // 再生中なら、同じ場所から再開
+        val current = playerModel.currentSource.value
+        if(current!=null) {
+            index = list.indexOfFirst { it.id == current.id }
+            position = playerModel.playerSeekPosition.value
+        }
+        // 再生中でなければ、前回の再生位置から復元
+        if(index<0) {
+            val lpi = LastPlayInfo.get(BooApplication.instance)
+            if (lpi != null) {
+                index = list.indexOfFirst { lpi.id == it.id }
+                position = if (index >= 0) lpi.position else 0L
+            }
+        }
+        return PlayPositionInfo(index, position)
+    }
+
+    private fun refreshVideoListFromServer() {
         AppViewModel.logger.debug()
         viewModelScope.launch {
             if(loading.value == true) {
@@ -84,26 +111,8 @@ class MainViewModel : ViewModel() {
             if(src!=null) {
                 lastUpdate = src.modifiedDate
                 AppViewModel.logger.debug("list.count=${src.list.size}")
-                var index = -1
-                var position = 0L
-                // 再生中なら、同じ場所から再開
-                val current = playerModel.currentSource.value
-                if(current!=null) {
-                    index = src.list.indexOfFirst { it.id == current.id }
-                    position = playerModel.playerSeekPosition.value
-                }
-                // 再生中でなければ、前回の再生位置から復元
-                if(index<0) {
-                    val lpi = LastPlayInfo.get(BooApplication.instance)
-                    if (lpi != null) {
-                        index = src.list.indexOfFirst { lpi.id == it.id }
-                        position = if (index >= 0) lpi.position else 0L
-                    }
-                }
-                playerModel.setSources(src.list, index, position)
-
-
-
+                val pos = getPlayPositionInfo(src.list)
+                playerModel.setSources(src.list, pos.index, pos.position)
 //                if(updateTimerTask==null) {
 //                    updateTimerTask = Timer().run {
 //                        schedule(60000,60000) {
@@ -121,11 +130,27 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    private fun refreshVideoListFromLocal() {
+        AppViewModel.logger.debug()
+        val om = OfflineManager.instance
+        if(om.busy.value) return
+        val list = om.getOfflineVideos()
+        val pos = getPlayPositionInfo(list)
+        playerModel.setSources(list, pos.index, pos.position)
+    }
+
+    fun refreshVideoList() {
+        if(AppViewModel.instance.offlineMode) {
+            refreshVideoListFromLocal()
+        } else {
+            refreshVideoListFromServer()
+        }
+    }
+
     fun tryPlayAt(id: String) {
         val index = playerModel.videoSources.indexOfFirst { it.id == id }
         playerModel.playAt(index)
     }
-
 
     /**
      * BooRemote で再生中の動画をBooTubeの動画リスト上で選択する
@@ -168,6 +193,15 @@ class MainViewModel : ViewModel() {
                 UtLogger.stackTrace(e)
             }
         }
+    }
+
+    private fun setupOfflineMode() {
+        playerModel.pause()
+        val list:List<VideoItem>? =if(!AppViewModel.instance.offlineMode) {
+            @Suppress("UNCHECKED_CAST")
+            playerModel.videoSources as List<VideoItem>
+        } else null
+        OfflineDialog.setupOfflineMode(list)
     }
 
 }

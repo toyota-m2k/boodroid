@@ -78,12 +78,13 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
     val categoryList = CategoryList().apply { update() }
     lateinit var version : String
     val context:Context get() = BooApplication.instance.applicationContext
+    val originalSettings: Settings by lazy { Settings.load(context) }
 
     var prepared: Boolean = false
     fun prepare(): SettingViewModel {
         if (!prepared) {
             prepared = true
-            load(context)
+            load()
             version = "${PackageUtil.appName(context)} v${PackageUtil.getVersion(context)}"
         }
         return this
@@ -201,11 +202,12 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
             theme = theme.value ?: ThemeSetting.SYSTEM,
             colorVariation = colorVariation.value ?: ColorVariation.PINK,
             marks = markList.value ?: emptyList(),
-            category = categoryList.category
+            category = categoryList.category,
+            offlineMode = originalSettings.offlineMode
         )
 
-    fun load(context: Context) {
-        val s = Settings.load(context)
+    fun load() {
+        val s = originalSettings
         activeHost.value = if(0<=s.activeHostIndex && s.activeHostIndex<s.hostList.size) s.hostList[s.activeHostIndex] else null
         hostList.replace(s.hostList)
         sourceType.value = s.sourceType

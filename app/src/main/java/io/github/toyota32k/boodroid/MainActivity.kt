@@ -84,6 +84,7 @@ class MainActivity : UtMortalActivity() {
             appViewModel.settingCommand.connectViewEx(findViewById(R.id.setting_button)),
             appViewModel.syncToServerCommand.connectViewEx(findViewById(R.id.up_button)),
             appViewModel.syncFromServerCommand.connectViewEx(findViewById(R.id.down_button)),
+            appViewModel.menuCommand.connectViewEx(findViewById(R.id.boo_title_button)),
             controlPanelModel.commandPlayerTapped.bind(this, this::onPlayerTapped)
         )
 

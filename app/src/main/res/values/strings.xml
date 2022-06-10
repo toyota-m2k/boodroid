@@ -31,5 +31,16 @@
     <string name="host_name_label">Name</string>
     <string name="name_hint">any name</string>
     <string name="host_address_label">Address</string>
+    <string name="offline_mode">Offline Mode</string>
+    <string name="host_label">Host</string>
+    <string name="select_host">Select Host</string>
+    <string name="add_arrow"><![CDATA[Add >]]></string>
+    <string name="del_arrow"><![CDATA[< Del]]></string>
+    <string name="clear_all">Clear All</string>
+    <string name="add_arrow_v">▼ Add</string>
+    <string name="del_arrow_v">Del ▲</string>
+    <string name="source_list">Source</string>
+    <string name="target_list">Download List</string>
+    <string name="reset">Reset</string>
 
 </resources>

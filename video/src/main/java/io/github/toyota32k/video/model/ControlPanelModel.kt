@@ -52,6 +52,8 @@ open class ControlPanelModel(
     val commandTogglePlay = Command { playerModel.togglePlay() }
     val commandNext = Command { playerModel.next() }
     val commandPrev = Command { playerModel.previous() }
+    val commandNextChapter = Command { playerModel.nextChapter() }
+    val commandPrevChapter = Command { playerModel.prevChapter() }
     val commandSeekForward = Command { playerModel.seekRelative(11000) }
     val commandSeekBackward = Command { playerModel.seekRelative(-5000) }
     val commandFullscreen = Command { setWindowMode(WindowMode.FULLSCREEN) }

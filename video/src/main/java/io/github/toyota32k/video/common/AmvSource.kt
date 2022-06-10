@@ -8,6 +8,7 @@ interface IAmvSource {
     val name:String
     val uri:String
     val trimming: Range
+    val type: String    // 拡張子(.なし）
     suspend fun getChapterList():IChapterList?
 
     fun disabledRanges(chapterList:IChapterList?):List<Range>? {

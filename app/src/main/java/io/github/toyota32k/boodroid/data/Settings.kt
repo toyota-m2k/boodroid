@@ -72,7 +72,22 @@ class Settings(
     val theme:ThemeSetting,
     val colorVariation: ColorVariation,
     val marks:List<Mark>,
-    val category:String?) {
+    val category:String?,
+    val offlineMode:Boolean,
+    ) {
+    // コピーコンストラクタ
+    constructor(
+        src:Settings,
+        activeHostIndex:Int = src.activeHostIndex,
+        hostList: List<HostAddressEntity> = src.hostList,
+        sourceType: SourceType = src.sourceType,
+        rating:Rating = src.rating,
+        theme:ThemeSetting = src.theme,
+        colorVariation: ColorVariation = src.colorVariation,
+        marks:List<Mark> = src.marks,
+        category:String? = src.category,
+        offlineMode:Boolean = src.offlineMode,
+    ) : this(activeHostIndex, hostList, sourceType, rating, theme, colorVariation, marks, category, offlineMode)
 
     val activeHost:HostAddressEntity?
         get() = if(0<=activeHostIndex&&activeHostIndex<hostList.size) hostList.get(activeHostIndex) else null
@@ -134,6 +149,7 @@ class Settings(
             putInt(KEY_COLOR_VARIATION, colorVariation.v)
             putStringSet(KEY_MARKS, marks.map {it.toString()}.toSet())
             if(!category.isNullOrBlank()) putString(KEY_CATEGORY, category) else remove(KEY_CATEGORY)
+            putBoolean(KEY_OFFLINE, offlineMode)
         }
         AppViewModel.instance.settings = this
     }
@@ -149,6 +165,7 @@ class Settings(
         const val KEY_COLOR_VARIATION = "colorVariation"
         const val KEY_MARKS = "marks"
         const val KEY_CATEGORY = "category"
+        const val KEY_OFFLINE = "offline"
 
         fun load(context: Context): Settings {
             val pref = PreferenceManager.getDefaultSharedPreferences(context)
@@ -160,7 +177,9 @@ class Settings(
                 theme = ThemeSetting.valueOf(pref.getInt(KEY_THEME, -1)),
                 colorVariation = ColorVariation.valueOf(pref.getInt(KEY_COLOR_VARIATION,-1)),
                 marks = pref.getStringSet(KEY_MARKS, null)?.map { Mark.valueOf(it) } ?: listOf(),
-                category = pref.getString(KEY_CATEGORY, null))
+                category = pref.getString(KEY_CATEGORY, null),
+                offlineMode = pref.getBoolean(KEY_OFFLINE, false),
+            )
 //                .apply {logger.debug("Settings:Loaded $this")}
         }
 
@@ -192,6 +211,6 @@ class Settings(
         }
 
 
-        val empty:Settings = Settings(-1, listOf(), SourceType.DB, Rating.NORMAL, ThemeSetting.SYSTEM, ColorVariation.PINK, listOf(), null)
+        val empty:Settings = Settings(-1, listOf(), SourceType.DB, Rating.NORMAL, ThemeSetting.SYSTEM, ColorVariation.PINK, listOf(), null, false)
     }
 }

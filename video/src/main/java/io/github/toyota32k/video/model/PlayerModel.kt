@@ -96,6 +96,19 @@ class PlayerModel(
     var disabledRanges:List<Range>? = null
         private set
 
+    fun nextChapter() {
+        val c = chapterList.value?.run {
+            next(player.currentPosition)
+        } ?: return
+        seekTo(c.position)
+    }
+    fun prevChapter() {
+        val c = chapterList.value?.run {
+            prev(player.currentPosition)
+        } ?: return
+        seekTo(c.position)
+    }
+
     suspend fun onUpdateCurrentSource(src:IAmvSource?) {
         chapterList.mutable.value = null
         val list = src?.getChapterList()
