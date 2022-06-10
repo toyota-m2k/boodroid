@@ -171,7 +171,7 @@ class OfflineDialog : UtDialog(isDialog = true) {
                     showYesNoMessageBox(s(R.string.app_name), s(R.string.query_enter_offline_mode))
                 }
             } else oldMode
-            AppViewModel.instance.updateOfflineMode(newMode, updateList = true)
+            AppViewModel.instance.updateOfflineMode(newMode, filter = false, updateList = true)
             return true
         }
 
@@ -207,7 +207,7 @@ class OfflineDialog : UtDialog(isDialog = true) {
             selectedColor = getAttrColorAsDrawable(com.google.android.material.R.attr.colorSecondary, Color.BLUE)
             selectedTextColor = getAttrColor(com.google.android.material.R.attr.colorOnSecondary, Color.WHITE)
         }
-        bodyGuardColor = Color.argb(0xDD,0xFF, 0xFF, 0xFF) // GuardColor.SEE_THROUGH.color
+        bodyGuardColor = context.getColor(R.color.guard_color)
         widthOption = WidthOption.FULL
         heightOption = HeightOption.FULL
         cancellable = false

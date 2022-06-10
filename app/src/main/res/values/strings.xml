@@ -49,5 +49,8 @@
     <string name="menu_item_exit_offline_mode">Exit Offline Mode</string>
     <string name="menu_item_setup_offline_mode">Setup Offline Mode</string>
     <string name="menu_item_select_offline_videos">Select Offline Videos</string>
+    <string name="select_all">Select All</string>
+    <string name="unselect_all">Unselect All</string>
+    <string name="enable_filter">Enable Filter</string>
 
 </resources>

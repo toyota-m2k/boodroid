@@ -29,6 +29,9 @@ interface OfflineDataTable {
     @Query("UPDATE t_offline_data SET sortOrder=:order WHERE videoUrl=:url")
     fun setSortOrder(url:String, order:Int)
 
+    @Query("UPDATE t_offline_data SET sortOrder=:order, filter=:filter WHERE videoUrl=:url")
+    fun setFilterAndSortOrder(url:String, filter:Int, order:Int)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(vararg offlineData:OfflineData)
 

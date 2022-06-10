@@ -5,7 +5,6 @@ import androidx.room.Room
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.data.NetClient
 import io.github.toyota32k.boodroid.data.VideoItem
-import io.github.toyota32k.player.model.Range
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.utils.UtObservableFlag
 import io.github.toyota32k.video.common.IAmvSource
@@ -205,7 +204,7 @@ class OfflineManager(context: Context) {
                 null
             } else {
                 logger.debug("loading: ${it.name}")
-                CachedVideoItem(id = it.videoUrl, name = it.name ?: "", trimming = Range(it.trimmingStart, it.trimmingEnd), type = it.type ?: "mp4", file = file)
+                CachedVideoItem(it, file)
             }
         }
     }
@@ -296,6 +295,20 @@ class OfflineManager(context: Context) {
             }
         }
     }
+
+    suspend fun updateFilter(list:List<CachedVideoItem>) {
+        withContext(Dispatchers.IO) {
+            database.runInTransaction {
+                list.forEachIndexed { index, item ->
+                    val entry = getOfflineData(item.keyUrl())
+                    if (entry != null && (entry.sortOrder != index || entry.filter != item.filter)) {
+                        database.dataTable().setFilterAndSortOrder(entry.videoUrl, item.filter, index)
+                    }
+                }
+            }
+        }
+    }
+
 
     fun cleanup() {
         val items = getOfflineVideos()

@@ -14,6 +14,7 @@ import io.github.toyota32k.boodroid.data.NetClient
 import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.boodroid.data.VideoListSource
 import io.github.toyota32k.boodroid.dialog.OfflineDialog
+import io.github.toyota32k.boodroid.dialog.VideoSelectDialog
 import io.github.toyota32k.boodroid.offline.OfflineManager
 import io.github.toyota32k.dialog.UtSingleSelectionBox
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
@@ -62,7 +63,7 @@ class MainViewModel : ViewModel() {
                 syncFromServerCommand.bindForever { syncFromServer() },
                 syncToServerCommand.bindForever { syncToServer() },
                 menuCommand.bindForever { showMenu() },
-                selectOfflineVideoCommand.bindForever { selectOfflineVideos() }
+                selectOfflineVideoCommand.bindForever { setupOfflineFilter() }
             )
             refreshVideoList()
         }
@@ -149,7 +150,11 @@ class MainViewModel : ViewModel() {
         AppViewModel.logger.debug()
         val om = OfflineManager.instance
         if (om.busy.value) return
-        val list = om.getOfflineVideos()
+        val list = om.getOfflineVideos().run {
+            if(AppViewModel.instance.offlineFilter) {
+                filter { it.filter>0 }
+            } else this
+        }
         val pos = getPlayPositionInfo(list)
         playerModel.setSources(list, pos.index, pos.position)
     }
@@ -245,15 +250,18 @@ class MainViewModel : ViewModel() {
             val dlg = showDialog(taskName) { UtSingleSelectionBox.create(s(R.string.app_name), menuItems) }
             if(dlg.status.positive) {
                 when(dlg.selectedIndex) {
-                    0-> AppViewModel.instance.updateOfflineMode(!AppViewModel.instance.offlineMode, updateList = false)
+                    0-> AppViewModel.instance.updateOfflineMode(!AppViewModel.instance.offlineMode, filter = AppViewModel.instance.offlineFilter, updateList = false)
                     1-> setupOfflineMode()
-                    2-> selectOfflineVideos()
+                    2-> setupOfflineFilter()
                 }
             }
             true
         }
     }
 
+    /**
+     * オフラインモードの設定
+     */
     private fun setupOfflineMode() {
         playerModel.pause()
         val list:List<VideoItem>? =if(!AppViewModel.instance.offlineMode) {
@@ -263,8 +271,12 @@ class MainViewModel : ViewModel() {
         OfflineDialog.setupOfflineMode(list)
     }
 
-    private fun selectOfflineVideos() {
-
+    /**
+     *
+     */
+    private fun setupOfflineFilter() {
+        playerModel.pause()
+        VideoSelectDialog.setupOfflineVideoFilter()
     }
 
 }

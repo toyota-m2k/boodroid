@@ -194,7 +194,7 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
     }
 
     val settings: Settings
-        get() = Settings(
+        get() = Settings(originalSettings,
             activeHostIndex = hostList.indexOfFirst { it.address == activeHost.value?.address },
             hostList = hostList,
             sourceType = sourceType.value ?: SourceType.DB,
@@ -203,7 +203,6 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
             colorVariation = colorVariation.value ?: ColorVariation.PINK,
             marks = markList.value ?: emptyList(),
             category = categoryList.category,
-            offlineMode = originalSettings.offlineMode
         )
 
     fun load() {

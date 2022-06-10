@@ -126,18 +126,20 @@ class AppViewModel: ViewModel() {
     /**
      * オフラインモード
      */
-    val offlineModeFlow = MutableStateFlow(false)
+    val offlineModeFlow = MutableStateFlow(settings.offlineMode)
     var offlineMode
         get() = offlineModeFlow.value
         private set(v) { offlineModeFlow.value = v }
+    val offlineFilter:Boolean
+        get() = settings.offlineFilter
 
     /**
      * オフラインモードを変更する
      */
-    fun updateOfflineMode(mode:Boolean, updateList:Boolean) {
-        if(settings.offlineMode != mode) {
+    fun updateOfflineMode(mode:Boolean, filter:Boolean, updateList:Boolean) {
+        if(settings.offlineMode != mode || settings.offlineFilter != filter) {
             // モードが変更になった場合、Settings.save() --> AppViewModel#settings のセッターで refresh コマンドが呼ばれる
-            Settings(settings, offlineMode = mode).save(BooApplication.instance.applicationContext)
+            Settings(settings, offlineMode = mode, offlineFilter = filter).save(BooApplication.instance.applicationContext)
         } else if(mode && updateList) {
             // オフラインモードのまま変わらない場合、リストが更新された時は、明示的にrefreshする
             refreshCommand.invoke()

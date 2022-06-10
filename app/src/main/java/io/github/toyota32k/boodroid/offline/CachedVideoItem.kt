@@ -17,7 +17,9 @@ class CachedVideoItem(
     override val trimming: Range,
     override val type: String,
     val file: File,
+    var filter: Int,
 ) : IAmvSource {
+    constructor(offlineData: OfflineData, file:File): this(offlineData.videoUrl, offlineData.name?:"", Range(offlineData.trimmingStart, offlineData.trimmingEnd), offlineData.type?:"mp4", file, offlineData.filter)
     companion object {
         val idRegex:Regex by lazy { Regex("ytplayer/video\\?=(.*)") }
     }
