@@ -34,6 +34,22 @@
             android:layout_gravity="center_vertical"
             >
             <ImageButton
+                android:id="@+id/online_button"
+                android:layout_width="@dimen/media_button_width"
+                android:layout_height="@dimen/media_button_height"
+                app:srcCompat="@drawable/ic_cloud"
+                app:tint="?attr/colorOnPrimary"
+                android:background="?attr/selectableItemBackground"
+                />
+            <ImageButton
+                android:id="@+id/offline_button"
+                android:layout_width="@dimen/media_button_width"
+                android:layout_height="@dimen/media_button_height"
+                app:srcCompat="@drawable/ic_briefcase"
+                app:tint="?attr/colorOnPrimary"
+                android:background="?attr/selectableItemBackground"
+                />
+            <ImageButton
                 android:id="@+id/select_button"
                 android:layout_width="@dimen/media_button_width"
                 android:layout_height="@dimen/media_button_height"
@@ -42,21 +58,30 @@
                 android:background="?attr/selectableItemBackground"
                 />
             <ImageButton
-                android:id="@+id/up_button"
+                android:id="@+id/sync_button"
                 android:layout_width="@dimen/media_button_width"
                 android:layout_height="@dimen/media_button_height"
-                app:srcCompat="@drawable/ic_up"
+                app:srcCompat="@drawable/ic_up_down"
                 app:tint="?attr/colorOnPrimary"
                 android:background="?attr/selectableItemBackground"
                 />
-            <ImageButton
-                android:id="@+id/down_button"
-                android:layout_width="@dimen/media_button_width"
-                android:layout_height="@dimen/media_button_height"
-                app:srcCompat="@drawable/ic_down"
-                app:tint="?attr/colorOnPrimary"
-                android:background="?attr/selectableItemBackground"
-                />
+
+<!--            <ImageButton-->
+<!--                android:id="@+id/up_button"-->
+<!--                android:layout_width="@dimen/media_button_width"-->
+<!--                android:layout_height="@dimen/media_button_height"-->
+<!--                app:srcCompat="@drawable/ic_up"-->
+<!--                app:tint="?attr/colorOnPrimary"-->
+<!--                android:background="?attr/selectableItemBackground"-->
+<!--                />-->
+<!--            <ImageButton-->
+<!--                android:id="@+id/down_button"-->
+<!--                android:layout_width="@dimen/media_button_width"-->
+<!--                android:layout_height="@dimen/media_button_height"-->
+<!--                app:srcCompat="@drawable/ic_down"-->
+<!--                app:tint="?attr/colorOnPrimary"-->
+<!--                android:background="?attr/selectableItemBackground"-->
+<!--                />-->
             <ImageButton
                 android:id="@+id/refresh_button"
                 android:layout_width="@dimen/media_button_width"

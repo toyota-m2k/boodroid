@@ -6,13 +6,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/enable_offline_mode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/enable_offline_mode"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
     <TextView
         android:id="@+id/source_list_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/source_list_label"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/enable_offline_mode"
         android:textStyle="bold"
         />
     <TextView
@@ -21,7 +29,7 @@
         android:layout_height="wrap_content"
         android:text="@string/target_list_label"
         app:layout_constraintStart_toStartOf="@id/target_list"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/enable_offline_mode"
         android:textStyle="bold"
         />
 
@@ -39,7 +47,7 @@
         android:id="@+id/buttons"
         android:layout_width="100dp"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/source_list_label"
+        app:layout_constraintTop_toBottomOf="@id/enable_offline_mode"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/source_list"
         app:layout_constraintEnd_toStartOf="@+id/target_list"

@@ -106,6 +106,9 @@ class Settings(
     val baseUrl : String get() = "http://${hostAddress}/ytplayer/"
 
 
+    fun urlCapability(): String {
+        return baseUrl + "capability"
+    }
     fun listUrl(date:Long):String {
         return VideoItemFilter(this).urlWithQueryString(date)
     }

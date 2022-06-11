@@ -9,10 +9,8 @@ import io.github.toyota32k.bindit.Command
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.R
-import io.github.toyota32k.boodroid.data.LastPlayInfo
-import io.github.toyota32k.boodroid.data.NetClient
-import io.github.toyota32k.boodroid.data.VideoItem
-import io.github.toyota32k.boodroid.data.VideoListSource
+import io.github.toyota32k.boodroid.common.IUtPropertyHost
+import io.github.toyota32k.boodroid.data.*
 import io.github.toyota32k.boodroid.dialog.OfflineDialog
 import io.github.toyota32k.boodroid.dialog.VideoSelectDialog
 import io.github.toyota32k.boodroid.offline.OfflineManager
@@ -46,7 +44,11 @@ class MainViewModel : ViewModel() {
 
     val syncFromServerCommand = Command ()
 
-    val menuCommand = Command()
+    val syncWithServerCommand = Command()
+
+//    val menuCommand = Command()
+
+    val setupOfflineModeCommand = Command()
 
     val selectOfflineVideoCommand = Command()
 
@@ -62,7 +64,9 @@ class MainViewModel : ViewModel() {
                 appViewModel.refreshCommand.bindForever { refreshVideoList() },
                 syncFromServerCommand.bindForever { syncFromServer() },
                 syncToServerCommand.bindForever { syncToServer() },
-                menuCommand.bindForever { showMenu() },
+//                menuCommand.bindForever { showMenu() },
+                syncWithServerCommand.bindForever { syncWithServer() },
+                setupOfflineModeCommand.bindForever { setupOfflineMode() },
                 selectOfflineVideoCommand.bindForever { setupOfflineFilter() }
             )
             refreshVideoList()
@@ -114,7 +118,8 @@ class MainViewModel : ViewModel() {
             }
             val src = try {
                 loading.value = true
-                withContext(Dispatchers.Default) {
+                withContext(Dispatchers.IO) {
+                    appViewModel.setCapability(ServerCapability.get())
                     VideoListSource.retrieve()
                 }
             } catch(e:Throwable) {
@@ -232,32 +237,52 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private fun showMenu() {
-        val list = OfflineManager.instance.database.dataTable().getAll()
-        if(list.isEmpty()) {
-            setupOfflineMode()
-            return
-        }
-
+    private fun syncWithServer() {
         UtImmortalSimpleTask.run("OfflineMenu") {
             val context = BooApplication.instance.applicationContext
             fun s(@StringRes id:Int):String = context.getString(id)
             val menuItems = arrayOf(
-                s(if(AppViewModel.instance.offlineMode) R.string.menu_item_exit_offline_mode else R.string.menu_item_enter_offline_mode),
-                s(R.string.menu_item_setup_offline_mode),
-                s(R.string.menu_item_select_offline_videos),
+                s(R.string.menu_sync_from_server),
+                s(R.string.menu_sync_to_server),
             )
             val dlg = showDialog(taskName) { UtSingleSelectionBox.create(s(R.string.app_name), menuItems) }
             if(dlg.status.positive) {
                 when(dlg.selectedIndex) {
-                    0-> AppViewModel.instance.updateOfflineMode(!AppViewModel.instance.offlineMode, filter = AppViewModel.instance.offlineFilter, updateList = false)
-                    1-> setupOfflineMode()
-                    2-> setupOfflineFilter()
+                    0-> syncFromServer()
+                    1-> syncToServer()
                 }
             }
             true
         }
+
     }
+
+//    private fun showMenu() {
+//        val list = OfflineManager.instance.database.dataTable().getAll()
+//        if(list.isEmpty()) {
+//            setupOfflineMode()
+//            return
+//        }
+//
+//        UtImmortalSimpleTask.run("OfflineMenu") {
+//            val context = BooApplication.instance.applicationContext
+//            fun s(@StringRes id:Int):String = context.getString(id)
+//            val menuItems = arrayOf(
+//                s(if(AppViewModel.instance.offlineMode) R.string.menu_item_exit_offline_mode else R.string.menu_item_enter_offline_mode),
+//                s(R.string.menu_item_setup_offline_mode),
+//                s(R.string.menu_item_select_offline_videos),
+//            )
+//            val dlg = showDialog(taskName) { UtSingleSelectionBox.create(s(R.string.app_name), menuItems) }
+//            if(dlg.status.positive) {
+//                when(dlg.selectedIndex) {
+//                    0-> AppViewModel.instance.updateOfflineMode(!AppViewModel.instance.offlineMode, filter = AppViewModel.instance.offlineFilter, updateList = false)
+//                    1-> setupOfflineMode()
+//                    2-> setupOfflineFilter()
+//                }
+//            }
+//            true
+//        }
+//    }
 
     /**
      * オフラインモードの設定

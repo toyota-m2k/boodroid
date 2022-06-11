@@ -2,16 +2,16 @@ package io.github.toyota32k.boodroid.dialog
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
 import android.widget.CheckBox
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.switchmaterial.SwitchMaterial
-import io.github.toyota32k.bindit.*
+import io.github.toyota32k.bindit.Binder
+import io.github.toyota32k.bindit.CheckBinding
+import io.github.toyota32k.bindit.Command
+import io.github.toyota32k.bindit.RecyclerViewBinding
 import io.github.toyota32k.bindit.list.ObservableList
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.R
@@ -25,7 +25,6 @@ import io.github.toyota32k.dialog.task.*
 import io.github.toyota32k.utils.DisposableObserver
 import io.github.toyota32k.utils.asMutableLiveData
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -94,9 +93,6 @@ class VideoSelectDialog : UtDialog() {
                 true
             } else false
         }
-
-        private val <T> StateFlow<T>.mutable: MutableStateFlow<T>
-            get() = this as MutableStateFlow<T>
 
         companion object {
             /**
