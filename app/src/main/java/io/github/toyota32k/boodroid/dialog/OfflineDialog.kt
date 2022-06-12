@@ -208,7 +208,7 @@ class OfflineDialog : UtDialog(isDialog = true) {
             selectedColor = getAttrColorAsDrawable(com.google.android.material.R.attr.colorSecondary, Color.BLUE)
             selectedTextColor = getAttrColor(com.google.android.material.R.attr.colorOnSecondary, Color.WHITE)
         }
-        bodyGuardColor = context.getColor(R.color.guard_color)
+//        bodyGuardColor = context.getColor(R.color.guard_color)
         widthOption = WidthOption.FULL
         heightOption = HeightOption.FULL
         cancellable = false

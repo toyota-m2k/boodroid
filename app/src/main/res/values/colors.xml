@@ -42,6 +42,4 @@
     <color name="alt03_secondaryDarkColor">#75a478</color>
     <color name="alt03_primaryTextColor">#ffffff</color>
     <color name="alt03_secondaryTextColor">#000000</color>
-
-    <color name="guard_color">#DDFFFFFF</color>
 </resources>

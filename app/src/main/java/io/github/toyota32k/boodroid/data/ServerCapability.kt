@@ -23,9 +23,9 @@ data class ServerCapability(
     constructor(j:JSONObject) : this(
         j.optString("serverName", "unknown"),
         j.optInt("version", 0),
-        j.optBoolean("hasCategory", false),
-        j.optBoolean("hasRating", false),
-        j.optBoolean("hasMark", false),
+        j.optBoolean("category", false),
+        j.optBoolean("rating", false),
+        j.optBoolean("mask", false),
         j.optBoolean("acceptRequest", false),
         j.optBoolean("hasView", false),
     )
