@@ -18,9 +18,13 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
+import android.widget.ImageButton
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.bindit.Binder
+import io.github.toyota32k.bindit.BoolConvert
+import io.github.toyota32k.bindit.MultiVisibilityBinding
 import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.boodroid.view.VideoListView
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
@@ -79,12 +83,28 @@ class MainActivity : UtMortalActivity() {
         controlPanel.bindViewModel(controlPanelModel, binder)
         videoListView.bindViewModel(controlPanelModel.playerModel, binder)
 
+        val selectButton = findViewById<ImageButton>(R.id.select_button)
+//        val upButton = findViewById<ImageButton>(R.id.up_button)
+//        val downButton = findViewById<ImageButton>(R.id.down_button)
+        val syncButton = findViewById<ImageButton>(R.id.sync_button)
+        val offlineButton = findViewById<ImageButton>(R.id.offline_button)
+        val onlineButton = findViewById<ImageButton>(R.id.online_button)
+        val refreshButton = findViewById<ImageButton>(R.id.refresh_button)
+        val settingButton = findViewById<ImageButton>(R.id.setting_button)
+
         binder.register(
-            appViewModel.refreshCommand.connectViewEx(findViewById(R.id.refresh_button)),
-            appViewModel.settingCommand.connectViewEx(findViewById(R.id.setting_button)),
-            appViewModel.syncToServerCommand.connectViewEx(findViewById(R.id.up_button)),
-            appViewModel.syncFromServerCommand.connectViewEx(findViewById(R.id.down_button)),
-            controlPanelModel.commandPlayerTapped.bind(this, this::onPlayerTapped)
+            viewModel.selectOfflineVideoCommand.connectViewEx(selectButton),
+//            viewModel.syncToServerCommand.connectViewEx(upButton),
+//            viewModel.syncFromServerCommand.connectViewEx(downButton),
+            viewModel.setupOfflineModeCommand.connectViewEx(onlineButton),
+            viewModel.setupOfflineModeCommand.connectViewEx(offlineButton),
+            viewModel.syncWithServerCommand.connectViewEx(syncButton),
+//            viewModel.menuCommand.connectViewE(findViewById(R.id.boo_title_button)),
+            appViewModel.refreshCommand.connectViewEx(refreshButton),
+            appViewModel.settingCommand.connectViewEx(settingButton),
+            controlPanelModel.commandPlayerTapped.bind(this, this::onPlayerTapped),
+            MultiVisibilityBinding.create(this, onlineButton, syncButton, refreshButton, data = appViewModel.offlineModeFlow.asLiveData(), boolConvert = BoolConvert.Inverse),
+            MultiVisibilityBinding.create(this, selectButton, offlineButton, data = appViewModel.offlineModeFlow.asLiveData(), boolConvert = BoolConvert.Straight),
         )
 
         when(controlPanelModel.windowMode.value) {
@@ -203,7 +223,7 @@ class MainActivity : UtMortalActivity() {
                 intent.getStringExtra(Intent.EXTRA_TEXT)?.let {
                     logger.debug(it)
                     if(isAcceptableUrl(it)) {
-                        AppViewModel.instance.registerYoutubeUrl(it)
+                        viewModel.registerYouTubeUrl(it)
                         return true
                     }
                 }

@@ -106,6 +106,8 @@ class ControlPanel @JvmOverloads constructor(context: Context, attrs: AttributeS
             model.commandPause.connectViewEx(pauseButton),
             model.commandNext.connectViewEx(nextVideoButton),
             model.commandPrev.connectViewEx(prevVideoButton),
+            model.commandNextChapter.connectViewEx(nextChapterButton),
+            model.commandPrevChapter.connectViewEx(prevChapterButton),
             model.commandSeekBackward.connectViewEx(seekBackButton),
             model.commandSeekForward.connectViewEx(seekForwardButton),
             model.commandFullscreen.connectViewEx(fullscreenButton),

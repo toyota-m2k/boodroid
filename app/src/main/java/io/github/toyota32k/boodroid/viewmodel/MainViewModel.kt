@@ -1,13 +1,23 @@
 package io.github.toyota32k.boodroid.viewmodel
 
-import androidx.lifecycle.*
+import androidx.annotation.StringRes
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.bindit.Binder
+import io.github.toyota32k.bindit.Command
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
-import io.github.toyota32k.boodroid.data.LastPlayInfo
-import io.github.toyota32k.boodroid.data.NetClient
-import io.github.toyota32k.boodroid.data.VideoListSource
+import io.github.toyota32k.boodroid.R
+import io.github.toyota32k.boodroid.common.IUtPropertyHost
+import io.github.toyota32k.boodroid.data.*
+import io.github.toyota32k.boodroid.dialog.OfflineDialog
+import io.github.toyota32k.boodroid.dialog.VideoSelectDialog
+import io.github.toyota32k.boodroid.offline.OfflineManager
+import io.github.toyota32k.dialog.UtSingleSelectionBox
+import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
 import io.github.toyota32k.utils.UtLogger
+import io.github.toyota32k.video.common.IAmvSource
 import io.github.toyota32k.video.model.ControlPanelModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,17 +40,34 @@ class MainViewModel : ViewModel() {
     val playerModel get() = controlPanelModel.playerModel
     val appViewModel: AppViewModel by lazy { AppViewModel.instance }
 
-    var prepared = false
-    val binder = Binder()
+    val syncToServerCommand = Command()
+
+    val syncFromServerCommand = Command ()
+
+    val syncWithServerCommand = Command()
+
+//    val menuCommand = Command()
+
+    val setupOfflineModeCommand = Command()
+
+    val selectOfflineVideoCommand = Command()
+
+
+    private var prepared = false
+    private val disposer = Binder()
 
     private fun prepare(@Suppress("UNUSED_PARAMETER") owner:MainActivity):MainViewModel {
         if(!prepared) {
             prepared = true
             controlPanelModel = appViewModel.controlPanelModelSource.fetch()
-            binder.register(
+            disposer.register(
                 appViewModel.refreshCommand.bindForever { refreshVideoList() },
-                appViewModel.syncFromServerCommand.bindForever { syncFromServer() },
-                appViewModel.syncToServerCommand.bindForever { syncToServer() },
+                syncFromServerCommand.bindForever { syncFromServer() },
+                syncToServerCommand.bindForever { syncToServer() },
+//                menuCommand.bindForever { showMenu() },
+                syncWithServerCommand.bindForever { syncWithServer() },
+                setupOfflineModeCommand.bindForever { setupOfflineMode() },
+                selectOfflineVideoCommand.bindForever { setupOfflineFilter() }
             )
             refreshVideoList()
         }
@@ -51,18 +78,38 @@ class MainViewModel : ViewModel() {
         super.onCleared()
         if(prepared) {
             prepared = false
-            binder.reset()
+            disposer.reset()
             AppViewModel.instance.controlPanelModelSource.release(controlPanelModel)
         }
     }
 
-    val loading:MutableStateFlow<Boolean> get() = appViewModel.loading
-    var lastUpdate
-        get() = appViewModel.lastUpdate
-        set(v) { appViewModel.lastUpdate = v }
+    // 通信中フラグ
+    private val loading = MutableStateFlow(false)
+    private var lastUpdate : Long = 0L
 
+    private data class PlayPositionInfo(val index:Int, val position:Long)
 
-    private fun refreshVideoList() {
+    private fun getPlayPositionInfo(list:List<IAmvSource>):PlayPositionInfo {
+        var index = -1
+        var position = 0L
+        // 再生中なら、同じ場所から再開
+        val current = playerModel.currentSource.value
+        if(current!=null) {
+            index = list.indexOfFirst { it.id == current.id }
+            position = playerModel.playerSeekPosition.value
+        }
+        // 再生中でなければ、前回の再生位置から復元
+        if(index<0) {
+            val lpi = LastPlayInfo.get(BooApplication.instance)
+            if (lpi != null) {
+                index = list.indexOfFirst { lpi.id == it.id }
+                position = if (index >= 0) lpi.position else 0L
+            }
+        }
+        return PlayPositionInfo(index, position)
+    }
+
+    private fun refreshVideoListFromServer() {
         AppViewModel.logger.debug()
         viewModelScope.launch {
             if(loading.value == true) {
@@ -71,7 +118,8 @@ class MainViewModel : ViewModel() {
             }
             val src = try {
                 loading.value = true
-                withContext(Dispatchers.Default) {
+                withContext(Dispatchers.IO) {
+                    appViewModel.setCapability(ServerCapability.get())
                     VideoListSource.retrieve()
                 }
             } catch(e:Throwable) {
@@ -84,26 +132,8 @@ class MainViewModel : ViewModel() {
             if(src!=null) {
                 lastUpdate = src.modifiedDate
                 AppViewModel.logger.debug("list.count=${src.list.size}")
-                var index = -1
-                var position = 0L
-                // 再生中なら、同じ場所から再開
-                val current = playerModel.currentSource.value
-                if(current!=null) {
-                    index = src.list.indexOfFirst { it.id == current.id }
-                    position = playerModel.playerSeekPosition.value
-                }
-                // 再生中でなければ、前回の再生位置から復元
-                if(index<0) {
-                    val lpi = LastPlayInfo.get(BooApplication.instance)
-                    if (lpi != null) {
-                        index = src.list.indexOfFirst { lpi.id == it.id }
-                        position = if (index >= 0) lpi.position else 0L
-                    }
-                }
-                playerModel.setSources(src.list, index, position)
-
-
-
+                val pos = getPlayPositionInfo(src.list)
+                playerModel.setSources(src.list, pos.index, pos.position)
 //                if(updateTimerTask==null) {
 //                    updateTimerTask = Timer().run {
 //                        schedule(60000,60000) {
@@ -121,11 +151,31 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    private fun refreshVideoListFromLocal() {
+        AppViewModel.logger.debug()
+        val om = OfflineManager.instance
+        if (om.busy.value) return
+        val list = om.getOfflineVideos().run {
+            if(AppViewModel.instance.offlineFilter) {
+                filter { it.filter>0 }
+            } else this
+        }
+        val pos = getPlayPositionInfo(list)
+        playerModel.setSources(list, pos.index, pos.position)
+    }
+
+    fun refreshVideoList() {
+        if(AppViewModel.instance.offlineMode) {
+            refreshVideoListFromLocal()
+        } else {
+            refreshVideoListFromServer()
+        }
+    }
+
     fun tryPlayAt(id: String) {
         val index = playerModel.videoSources.indexOfFirst { it.id == id }
         playerModel.playAt(index)
     }
-
 
     /**
      * BooRemote で再生中の動画をBooTubeの動画リスト上で選択する
@@ -168,6 +218,90 @@ class MainViewModel : ViewModel() {
                 UtLogger.stackTrace(e)
             }
         }
+    }
+
+    // YouTube url をサーバーに登録
+    fun registerYouTubeUrl(rawUrl:String) {
+        val urlParam = rawUrl.split("\r", "\n", " ", "\t").firstOrNull { it.isNotBlank() } ?: return
+        val url = appViewModel.settings.urlToRegister(urlParam)
+        CoroutineScope(Dispatchers.IO).launch {
+            val req = Request.Builder()
+                .url(url)
+                .get()
+                .build()
+            try {
+                NetClient.executeAsync(req)
+            } catch (e:Throwable) {
+                AppViewModel.logger.stackTrace(e)
+            }
+        }
+    }
+
+    private fun syncWithServer() {
+        UtImmortalSimpleTask.run("OfflineMenu") {
+            val context = BooApplication.instance.applicationContext
+            fun s(@StringRes id:Int):String = context.getString(id)
+            val menuItems = arrayOf(
+                s(R.string.menu_sync_from_server),
+                s(R.string.menu_sync_to_server),
+            )
+            val dlg = showDialog(taskName) { UtSingleSelectionBox.create(s(R.string.app_name), menuItems) }
+            if(dlg.status.positive) {
+                when(dlg.selectedIndex) {
+                    0-> syncFromServer()
+                    1-> syncToServer()
+                }
+            }
+            true
+        }
+
+    }
+
+//    private fun showMenu() {
+//        val list = OfflineManager.instance.database.dataTable().getAll()
+//        if(list.isEmpty()) {
+//            setupOfflineMode()
+//            return
+//        }
+//
+//        UtImmortalSimpleTask.run("OfflineMenu") {
+//            val context = BooApplication.instance.applicationContext
+//            fun s(@StringRes id:Int):String = context.getString(id)
+//            val menuItems = arrayOf(
+//                s(if(AppViewModel.instance.offlineMode) R.string.menu_item_exit_offline_mode else R.string.menu_item_enter_offline_mode),
+//                s(R.string.menu_item_setup_offline_mode),
+//                s(R.string.menu_item_select_offline_videos),
+//            )
+//            val dlg = showDialog(taskName) { UtSingleSelectionBox.create(s(R.string.app_name), menuItems) }
+//            if(dlg.status.positive) {
+//                when(dlg.selectedIndex) {
+//                    0-> AppViewModel.instance.updateOfflineMode(!AppViewModel.instance.offlineMode, filter = AppViewModel.instance.offlineFilter, updateList = false)
+//                    1-> setupOfflineMode()
+//                    2-> setupOfflineFilter()
+//                }
+//            }
+//            true
+//        }
+//    }
+
+    /**
+     * オフラインモードの設定
+     */
+    private fun setupOfflineMode() {
+        playerModel.pause()
+        val list:List<VideoItem>? =if(!AppViewModel.instance.offlineMode) {
+            @Suppress("UNCHECKED_CAST")
+            playerModel.videoSources as List<VideoItem>
+        } else null
+        OfflineDialog.setupOfflineMode(list)
+    }
+
+    /**
+     *
+     */
+    private fun setupOfflineFilter() {
+        playerModel.pause()
+        VideoSelectDialog.setupOfflineVideoFilter()
     }
 
 }

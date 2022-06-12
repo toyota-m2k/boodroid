@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/select_video_label"
+            android:textStyle="bold"
+            android:layout_gravity="start|center_vertical"
+            />
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/enable_filter_checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="150dp"
+            android:text="@string/enable_filter"
+            android:layout_gravity="end"
+            />
+    </LinearLayout>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/video_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/bordered_bg"
+        android:padding="1dp"
+        />
+<!--    <LinearLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:gravity="center"-->
+<!--        android:visibility="gone"-->
+<!--        >-->
+<!--        <Button-->
+<!--            android:id="@+id/select_all"-->
+<!--            android:layout_width="140dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintEnd_toStartOf="@id/unselect_all"-->
+<!--            android:textAllCaps="false"-->
+<!--            android:text="@string/select_all"-->
+<!--            />-->
+<!--        <Space-->
+<!--            android:layout_width="5dp"-->
+<!--            android:layout_height="match_parent"-->
+<!--            />-->
+<!--        <Button-->
+<!--            android:id="@+id/unselect_all"-->
+<!--            android:layout_width="140dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            app:layout_constraintStart_toEndOf="@+id/select_all"-->
+<!--            android:textAllCaps="false"-->
+<!--            android:text="@string/unselect_all"-->
+<!--            />-->
+<!--    </LinearLayout>-->
+
+
+</LinearLayout>
