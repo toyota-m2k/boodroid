@@ -43,7 +43,12 @@ class OfflineManager(context: Context) {
             }
         }
     }
-    val database:OfflineDB = Room.databaseBuilder(context.applicationContext, OfflineDB::class.java, "offline_db").allowMainThreadQueries().fallbackToDestructiveMigration().build()
+    val database:OfflineDB = Room
+            .databaseBuilder(context.applicationContext, OfflineDB::class.java, "offline_db")
+            .allowMainThreadQueries()
+            .fallbackToDestructiveMigration()
+            .build()
+
     private val privateDir:File by lazy {
         File(context.filesDir, DIR_NAME).apply {
             if(!exists()) {
@@ -64,7 +69,7 @@ class OfflineManager(context: Context) {
     }
 
     private fun getOfflineData(keyUrl:String?):OfflineData? {
-        return database.dataTable().getByUrl(keyUrl ?: return null).firstOrNull()
+        return database.dataTable().getByUrl(keyUrl ?: return null)
     }
 
     private fun isRegistered(keyUrl:String) : Boolean {
@@ -119,7 +124,7 @@ class OfflineManager(context: Context) {
             }
 
             if(videoFile!=null) {
-                database.dataTable().insert(OfflineData(url, videoFile.path, videoItem.name, videoItem.trimming.start, videoItem.trimming.end, videoItem.type, 0, 0))
+                database.dataTable().insert(OfflineData(url, videoFile.path, videoItem.name, videoItem.trimming.start, videoItem.trimming.end, videoItem.type, 0, 0, videoItem.size, videoItem.duration))
                 val list = videoItem.getChapterList()
                 if(list!=null) {
                     database.chapters().insert(* list.chapters.map {

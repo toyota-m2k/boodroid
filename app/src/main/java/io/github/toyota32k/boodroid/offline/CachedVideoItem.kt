@@ -3,6 +3,7 @@ package io.github.toyota32k.boodroid.offline
 import androidx.core.net.toUri
 import io.github.toyota32k.boodroid.data.Chapter
 import io.github.toyota32k.boodroid.data.ChapterList
+import io.github.toyota32k.boodroid.data.ISizedItem
 import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.player.model.Range
 import io.github.toyota32k.video.common.IAmvSource
@@ -18,8 +19,10 @@ class CachedVideoItem(
     override val type: String,
     val file: File,
     var filter: Int,
-) : IAmvSource {
-    constructor(offlineData: OfflineData, file:File): this(offlineData.videoUrl, offlineData.name?:"", Range(offlineData.trimmingStart, offlineData.trimmingEnd), offlineData.type?:"mp4", file, offlineData.filter)
+    override val size: Long,
+    override val duration: Long,
+) : IAmvSource, ISizedItem {
+    constructor(offlineData: OfflineData, file:File): this(offlineData.videoUrl, offlineData.name?:"", Range(offlineData.trimmingStart, offlineData.trimmingEnd), offlineData.type?:"mp4", file, offlineData.filter, offlineData.size, offlineData.duration)
     companion object {
         val idRegex:Regex by lazy { Regex("ytplayer/video\\?=(.*)") }
     }

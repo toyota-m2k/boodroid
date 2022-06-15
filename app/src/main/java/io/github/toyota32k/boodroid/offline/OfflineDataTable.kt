@@ -13,6 +13,8 @@ data class OfflineData (
     val type:String?,
     val sortOrder:Int,
     val filter:Int,
+    val size:Long,
+    val duration:Long,
     )
 
 @Dao
@@ -21,7 +23,7 @@ interface OfflineDataTable {
     fun getAll(): List<OfflineData>
 
     @Query("SELECT * from t_offline_data WHERE videoUrl=:url")
-    fun getByUrl(url:String): List<OfflineData>
+    fun getByUrl(url:String): OfflineData?
 
     @Query("DELETE from t_offline_data WHERE videoUrl=:url")
     fun deleteByUrl(url:String)

@@ -56,5 +56,7 @@
     <string name="enable_filter">Enable Filter</string>
     <string name="select_video_label">Select videos to play.</string>
     <string name="enable_offline_mode">Offline Mode</string>
+    <string name="total_size_label">Total Size</string>
+    <string name="total_time_label">Total Time</string>
 
 </resources>

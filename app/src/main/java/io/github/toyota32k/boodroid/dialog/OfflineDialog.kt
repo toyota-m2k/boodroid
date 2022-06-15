@@ -18,9 +18,11 @@ import io.github.toyota32k.bindit.*
 import io.github.toyota32k.bindit.list.ObservableList
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.R
+import io.github.toyota32k.boodroid.common.IUtPropertyHost
 import io.github.toyota32k.boodroid.common.UtImmortalTaskContextSource
 import io.github.toyota32k.boodroid.common.getAttrColor
 import io.github.toyota32k.boodroid.common.getAttrColorAsDrawable
+import io.github.toyota32k.boodroid.data.ISizedItem
 import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.boodroid.data.VideoListSource
 import io.github.toyota32k.boodroid.offline.CachedVideoItem
@@ -29,26 +31,32 @@ import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.task.*
+import io.github.toyota32k.utils.IDisposable
 import io.github.toyota32k.utils.UtObservableFlag
 import io.github.toyota32k.utils.asMutableLiveData
 import io.github.toyota32k.video.common.IAmvSource
+import io.github.toyota32k.video.common.formatSize
+import io.github.toyota32k.video.common.formatTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class OfflineDialog : UtDialog(isDialog = true) {
     data class Selectable<T>(val value:T, var selected:Boolean=false)
 
-    class OfflineDialogViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtImmortalTaskContextSource() {
+    class OfflineDialogViewModel : ViewModel(), IUtPropertyHost, IUtImmortalTaskMutableContextSource by UtImmortalTaskContextSource() {
         val offlineMode = MutableStateFlow(AppViewModel.instance.offlineMode)
         val sourceList = ObservableList<Selectable<VideoItem>>()
-        val targetList = ObservableList<Selectable<IAmvSource>>()
+        val targetList = ObservableList<Selectable<ISizedItem>>()
 
         val isSourceSelected:Flow<Boolean> = MutableStateFlow(false)
         val isTargetSelected:Flow<Boolean> = MutableStateFlow(false)
+        val totalSize:Flow<Long> = MutableStateFlow(0L)
+        val totalTime:Flow<Long> = MutableStateFlow(0L)
         val hasTarget = MutableStateFlow(targetList.isNotEmpty())
 
         val selectedSources:List<VideoItem>
@@ -61,7 +69,7 @@ class OfflineDialog : UtDialog(isDialog = true) {
 //        val busy:Flow<Boolean> = combine(loadingSources,OfflineManager.instance.busy) { s,o->s||o }
 
         val downloadProgress = OfflineManager.DownloadProgress()
-
+        var disposable:IDisposable? = null
         fun prepare(sources:List<VideoItem>?) {
             if(!prepared) {
                 prepared = true
@@ -86,11 +94,25 @@ class OfflineDialog : UtDialog(isDialog = true) {
                         }
                     }
                 }
+
+                disposable = targetList.addListenerForever {
+                    data class TotalInfo(var size:Long=0L, var time:Long=0L)
+                    val total = it.list.fold(TotalInfo()) { acc, selectable ->
+                        acc.size += selectable.value.size
+                        acc.time += selectable.value.duration
+                        acc
+                    }
+                    totalSize.mutable.value = total.size
+                    totalTime.mutable.value = total.time
+                    hasTarget.value = it.list.isNotEmpty()
+                }
             }
         }
 
         override fun onCleared() {
             logger.debug()
+            disposable?.dispose()
+            disposable = null
         }
 
         fun sourceSelectionChanged() {
@@ -98,7 +120,7 @@ class OfflineDialog : UtDialog(isDialog = true) {
         }
 
         fun targetSelectionChanged() {
-            (isTargetSelected as MutableStateFlow).value = targetList.firstOrNull { it.selected } != null
+            isTargetSelected.mutable.value = targetList.firstOrNull { it.selected } != null
         }
 
         private fun clearTarget() {
@@ -122,7 +144,7 @@ class OfflineDialog : UtDialog(isDialog = true) {
         }
         private fun clearTargetSelection() {
             clearSelection(targetList)
-            (isTargetSelected as MutableStateFlow).value = false
+            isTargetSelected.mutable.value = false
         }
 
         private fun clearSelection() {
@@ -149,7 +171,7 @@ class OfflineDialog : UtDialog(isDialog = true) {
 
         fun deleteFromTargets() {
             targetList.removeAll { it.selected }
-            (isTargetSelected as MutableStateFlow).value = false
+            isTargetSelected.mutable.value = false
         }
 
         val commandAdd = Command { addToTargets() }
@@ -252,6 +274,9 @@ class OfflineDialog : UtDialog(isDialog = true) {
             val clearAllButton = dlg.findViewById<Button>(R.id.clear_target_button)
             val sourceView = dlg.findViewById<RecyclerView>(R.id.source_list)
             val targetView = dlg.findViewById<RecyclerView>(R.id.target_list)
+            val totalTime = dlg.findViewById<TextView>(R.id.total_time)
+            val totalSize = dlg.findViewById<TextView>(R.id.total_size)
+
             fun setSelectionColor(textView: TextView, selected: Boolean) {
                 if(selected) {
                     textView.background = selectedColor
@@ -281,7 +306,9 @@ class OfflineDialog : UtDialog(isDialog = true) {
                 EnableBinding.create(this, delButton, viewModel.isTargetSelected.asLiveData()),
                 EnableBinding.create(this, resetSelButton, combine(viewModel.isSourceSelected, viewModel.isTargetSelected) {s,t->s||t}.asLiveData() ),
                 EnableBinding.create(this, clearAllButton, viewModel.hasTarget.asLiveData()),
-                viewModel.targetList.addListener(this) { viewModel.hasTarget.value = it.list.isNotEmpty() },
+
+                TextBinding.create(this, totalSize, viewModel.totalSize.map { formatSize(it) }.asLiveData()),
+                TextBinding.create(this, totalTime, viewModel.totalTime.map { formatTime(it*1000,it*1000) }.asLiveData()),
 
                 viewModel.commandAdd.connectViewEx(addButton),
                 viewModel.commandDelete.connectViewEx(delButton),
