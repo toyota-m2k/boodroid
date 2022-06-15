@@ -183,13 +183,13 @@ class AmvTimeSpan(private val ms : Long) {
         get() = (ms / 1000 / 60 / 60)
 
     fun formatH() : String {
-        return String.format("%02d:%02d:%02d", hours, minutes, seconds)
+        return String.format("%02d:%02d.%02d", hours, minutes, seconds)
     }
     fun formatM() : String {
-        return String.format("%02d:%02d", minutes, seconds)
+        return String.format("%02d'%02d\"", minutes, seconds)
     }
     fun formatS() : String {
-        return String.format("%02d.%02d", seconds, milliseconds/10)
+        return String.format("%02d\".%02d", seconds, milliseconds/10)
     }
 }
 
@@ -226,5 +226,19 @@ fun formatTime(time:Long, duration:Long) : String {
         t.hours>0 -> v.formatH()
         t.minutes>0 -> v.formatM()
         else -> v.formatS()
+    }
+}
+
+fun formatSize(bytes:Long):String {
+    if(bytes>1000*1000*1000) {
+        val m = bytes / (1000*1000)
+        return "${m/1000f} GB"
+    } else if(bytes>1000*1000) {
+        val k = bytes / 1000
+        return "${k/1000f} MB"
+    } else if(bytes>1000) {
+        return "${bytes/1000f} KB"
+    } else {
+        return "${bytes} B"
     }
 }

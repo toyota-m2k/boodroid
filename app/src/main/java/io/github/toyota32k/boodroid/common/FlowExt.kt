@@ -1,5 +1,6 @@
 package io.github.toyota32k.boodroid.common
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -35,7 +36,7 @@ import kotlinx.coroutines.flow.StateFlow
  * }
  */
 interface IUtPropertyHost {
-    val <T> StateFlow<T>.mutable:MutableStateFlow<T>
+    val <T> Flow<T>.mutable:MutableStateFlow<T>
         get() = this as MutableStateFlow<T>
 }
 

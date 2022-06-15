@@ -10,18 +10,27 @@ import io.github.toyota32k.video.common.IAmvSource
 import io.github.toyota32k.video.model.IChapterList
 import org.json.JSONObject
 
+interface ISizedItem : IAmvSource {
+    val size:Long
+    val duration:Long
+}
+
 data class VideoItem(
     override val id:String,
     override val name:String,
     override val trimming: Range,
     override val type:String,             // 拡張子
-    ) :IAmvSource {
+    override val size:Long,
+    override val duration: Long,
+    ) :IAmvSource, ISizedItem {
     internal constructor(j: JSONObject)
     : this(
         j.getString("id"),
-        j.safeGetString("name"),
-        Range(j.safeGetLong("start", 0), j.safeGetLong("end", 0)),
-        j.safeGetString("type", "mp4"),
+        j.optString("name", ""),
+        Range(j.optLong("start", 0), j.optLong("end", 0)),
+        j.optString("type", "mp4"),
+        j.optLong("size", 0L),
+        j.optLong("duration", 0L),
     )
     override val uri:String
         get() = AppViewModel.instance.settings.videoUrl(id)

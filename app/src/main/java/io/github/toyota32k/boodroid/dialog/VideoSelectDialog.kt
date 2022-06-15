@@ -7,11 +7,9 @@ import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
-import io.github.toyota32k.bindit.Binder
-import io.github.toyota32k.bindit.CheckBinding
-import io.github.toyota32k.bindit.Command
-import io.github.toyota32k.bindit.RecyclerViewBinding
+import io.github.toyota32k.bindit.*
 import io.github.toyota32k.bindit.list.ObservableList
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.R
@@ -24,7 +22,9 @@ import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.task.*
 import io.github.toyota32k.utils.DisposableObserver
 import io.github.toyota32k.utils.asMutableLiveData
+import io.github.toyota32k.video.common.formatTime
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -32,12 +32,18 @@ class VideoSelectDialog : UtDialog() {
     class VideoSelectDialogViewModel: ViewModel(), IUtImmortalTaskMutableContextSource by UtImmortalTaskContextSource() {
         val videoList = ObservableList<CachedVideoItem>().apply { addAll(OfflineManager.instance.getOfflineVideos()) }
         val enableFilter = MutableStateFlow(AppViewModel.instance.offlineFilter)
-
+        val totalTime = MutableStateFlow(0L)
         val isSelected:Boolean
             get() = videoList.firstOrNull { it.filter>0 }!=null
 //        val isSelected: StateFlow<Boolean> = MutableStateFlow(false)
 //        val commandSelectAll = Command { selectAll() }
 //        val commandUnselectAll = Command { unselectAll() }
+
+        fun updateTotalTime() {
+            totalTime.value = videoList.fold(0L) { acc, item ->
+                if(item.filter>0) acc+item.duration else acc
+            }
+        }
 
 //        init {
 //            updateSelection()
@@ -72,6 +78,10 @@ class VideoSelectDialog : UtDialog() {
 //        }
 
         val busy = AtomicBoolean(false)
+
+        init {
+            updateTotalTime()
+        }
 
         suspend fun complete():Boolean {
             return if(busy.compareAndSet(false, true)) {
@@ -127,6 +137,7 @@ class VideoSelectDialog : UtDialog() {
 //            val unselectAllButton = dlg.findViewById<Button>(R.id.unselect_all)
             binder.register(
                 CheckBinding.create(this, dlg.findViewById(R.id.enable_filter_checkbox), viewModel.enableFilter.asMutableLiveData(this)),
+                TextBinding.create(this, dlg.findViewById(R.id.total_time), viewModel.totalTime.map { formatTime(it*1000,it*1000) }.asLiveData()),
 //                EnableBinding.create(this, unselectAllButton, viewModel.isSelected.asLiveData()),
 //                viewModel.commandSelectAll.connectViewEx(selectAllButton),
 //                viewModel.commandUnselectAll.connectViewEx(unselectAllButton),
@@ -139,6 +150,7 @@ class VideoSelectDialog : UtDialog() {
                         CheckBinding.create(this, checkbox, check),
                         DisposableObserver(check, this) {
                             item.filter = if(it == true) 1 else 0
+                            viewModel.updateTotalTime()
                         },
                         Command {
                             check.value = check.value == false
