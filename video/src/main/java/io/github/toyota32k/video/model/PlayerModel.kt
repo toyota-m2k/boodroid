@@ -460,7 +460,7 @@ class PlayerModel(
             }
         }
 
-        override fun onLoadingChanged(isLoading: Boolean) {
+        override fun onIsLoadingChanged(isLoading: Boolean) {
 //            logger.debug("loading = $isLoading")
             isDisturbing.mutable.value = false
             if (isLoading && player.playbackState == Player.STATE_BUFFERING) {
@@ -485,7 +485,9 @@ class PlayerModel(
             }
         }
 
-        override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+//        override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+            val playbackState = player.playbackState
             logger.debug {
                 val ppn = {s:Int->
                     when(s) {
