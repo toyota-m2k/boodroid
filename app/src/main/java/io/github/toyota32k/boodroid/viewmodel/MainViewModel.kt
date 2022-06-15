@@ -16,6 +16,8 @@ import io.github.toyota32k.boodroid.dialog.VideoSelectDialog
 import io.github.toyota32k.boodroid.offline.OfflineManager
 import io.github.toyota32k.dialog.UtSingleSelectionBox
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.task.getActivity
+import io.github.toyota32k.dialog.task.showConfirmMessageBox
 import io.github.toyota32k.utils.UtLogger
 import io.github.toyota32k.video.common.IAmvSource
 import io.github.toyota32k.video.model.ControlPanelModel
@@ -153,13 +155,22 @@ class MainViewModel : ViewModel() {
 
     private fun refreshVideoListFromLocal() {
         AppViewModel.logger.debug()
+        val appViewModel = AppViewModel.instance
         val om = OfflineManager.instance
         if (om.busy.value) return
         val list = om.getOfflineVideos().run {
-            if(AppViewModel.instance.offlineFilter) {
+            if(appViewModel.offlineFilter) {
                 filter { it.filter>0 }
             } else this
         }
+        if(list.isEmpty()) {
+            UtImmortalSimpleTask.run("emptyOfflineMode") {
+                val context = BooApplication.instance
+                showConfirmMessageBox(context.getString(R.string.offline_mode), context.getString(R.string.offline_empty_list))
+                true
+            }
+        }
+
         val pos = getPlayPositionInfo(list)
         playerModel.setSources(list, pos.index, pos.position)
     }

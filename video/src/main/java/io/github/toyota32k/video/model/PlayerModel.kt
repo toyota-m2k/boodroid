@@ -461,7 +461,7 @@ class PlayerModel(
         }
 
         override fun onIsLoadingChanged(isLoading: Boolean) {
-//            logger.debug("loading = $isLoading")
+            logger.debug("loading = $isLoading")
             isDisturbing.mutable.value = false
             if (isLoading && player.playbackState == Player.STATE_BUFFERING) {
                 if(state.value== PlayerState.None) {
