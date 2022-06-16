@@ -122,7 +122,7 @@ class PlayerModel(
     val hasPrevious = MutableStateFlow(false)
     val videoSources = ObservableList<IAmvSource>()
 
-    val useExoPlayList = true
+    val useExoPlayList = false
 
     fun next() {
         if(useExoPlayList) {
