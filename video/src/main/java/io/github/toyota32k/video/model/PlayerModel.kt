@@ -122,7 +122,7 @@ class PlayerModel(
     val hasPrevious = MutableStateFlow(false)
     val videoSources = ObservableList<IAmvSource>()
 
-    val useExoPlayList = false
+    val useExoPlayList = true
 
     fun next() {
         if(useExoPlayList) {
@@ -485,9 +485,8 @@ class PlayerModel(
             }
         }
 
-        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-//        override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-            val playbackState = player.playbackState
+        override fun onPlaybackStateChanged(playbackState:Int) {
+            val playWhenReady = player.playWhenReady
             logger.debug {
                 val ppn = {s:Int->
                     when(s) {
