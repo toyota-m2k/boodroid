@@ -116,30 +116,10 @@ class ControlPanel @JvmOverloads constructor(context: Context, attrs: AttributeS
         )
     }
 
-//    private var isPlayingBeforeDragging = false
-//    private var seekingCount = 0
-//    @SuppressLint("RestrictedApi")
-//    override fun onStartTrackingTouch(slider: Slider) {
-//        logger.debug("seek start: $seekingCount")
-//        seekingCount++
-//        isPlayingBeforeDragging = model.playerModel.isPlaying.value
-////        model.playerModel.pause()
-////        model.playerModel.beginFastSeekMode()
-//    }
-//
-//    @SuppressLint("RestrictedApi")
-//    override fun onStopTrackingTouch(slider: Slider) {
-//        seekingCount--
-//        logger.debug("seek end : $seekingCount")
-////        model.playerModel.endFastSeekMode()
-//        if(isPlayingBeforeDragging) {
-//            model.playerModel.play()
-//        }
-//    }
-
     @SuppressLint("RestrictedApi")
     override fun onValueChange(slider: Slider, value: Float, fromUser: Boolean) {
         if(fromUser) {
+//            logger.debug("XX2: ${value.roundToLong()} / ${slider.valueTo.roundToLong()}")
             model.playerModel.seekManager.requestedPositionFromSlider.value = value.roundToLong()
         }
     }

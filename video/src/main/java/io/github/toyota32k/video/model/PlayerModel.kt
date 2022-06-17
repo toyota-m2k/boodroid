@@ -36,9 +36,8 @@ class PlayerModel(
     enum class PlayerState {
         None,       // 初期状態
         Loading,
+        Ready,
         Error,
-        Playing,
-        Paused
     }
 
 
@@ -59,36 +58,12 @@ class PlayerModel(
     }
 
     /**
-     * 動画のソース
-     * collectできるようにpublicにしているけど、直接valueを弄らず、setVideoSource()メソッドで設定すること。
+     * 現在再生中の動画のソース
      */
-//    val source: StateFlow<IAmvSource?> = MutableStateFlow<IAmvSource?>(null)
-
-    /**
-     * ソースのクリッピング指定
-     * setVideoSource()の第２引数で指定すると、内部で、ExoPlayerのClippingMediaSourceを生成する。
-     */
-//    private var sourceClipping: AmvClipping? = null
-
-    /**
-     * 動画再生範囲を無理やりクリッピングする指定
-     * Trimmingで、全体の再生範囲を有効にした状態で、再生範囲を限定するときに使用。
-     */
-//    var pseudoClipping: AmvClipping? = null
-
-//    val playlists:
-
     val currentSource:StateFlow<IAmvSource?> = MutableStateFlow<IAmvSource?>(null)
-//    val chapters:Flow<IChapterList?> = currentSource.map { it?.chapterList }
-//    val disabledRanges:Flow<List<Range>> = currentSource.map {
-//        it?.chapterList?.disabledRanges(it.trimming)?.toList() ?: emptyList()
-//    }
-//    val hasChapters:Flow<Boolean> = chapters.map {!it?.chapters.isNullOrEmpty()}
 
-    // 少し変則的だが、ChapterView で chapterListを取得したタイミングで true/falseをセットする
     val chapterList:StateFlow<IChapterList?> = MutableStateFlow(null)
     val hasChapters:StateFlow<Boolean> = chapterList.map {
-//        it?.chapters?.isNotEmpty() ?: false
         val r = it?.chapters?.isNotEmpty() ?: false
         logger.debug("hasChapters=$r")
         r
@@ -116,7 +91,6 @@ class PlayerModel(
         disabledRanges = src.disabledRanges(list)
         chapterList.mutable.value = list
     }
-
 
     val hasNext = MutableStateFlow(false)
     val hasPrevious = MutableStateFlow(false)
@@ -280,10 +254,10 @@ class PlayerModel(
             .resultSize
     }.stateIn(scope, SharingStarted.Eagerly, Size(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
 
-    val isDisturbing:StateFlow<Boolean> = MutableStateFlow(false)
-    val isLoading = combine(state, isDisturbing) { state,disturbing-> state == PlayerState.Loading || disturbing }.stateIn(scope, SharingStarted.Eagerly, false)
-    val isReady = state.map { it== PlayerState.Playing || it== PlayerState.Paused }.stateIn(scope, SharingStarted.Eagerly, false)
-    val isPlaying = state.map { it== PlayerState.Playing }.stateIn(scope, SharingStarted.Eagerly, false)
+//    val isDisturbing:StateFlow<Boolean> = MutableStateFlow(false)
+    val isLoading = state.map { it == PlayerState.Loading }.stateIn(scope, SharingStarted.Eagerly, false)
+    val isReady = state.map { it== PlayerState.Ready }.stateIn(scope, SharingStarted.Eagerly, false)
+    val isPlaying = MutableStateFlow<Boolean>(false)
     val isError = errorMessage.map { !it.isNullOrBlank() }.stateIn(scope, SharingStarted.Lazily, false)
 
     /**
@@ -385,6 +359,7 @@ class PlayerModel(
      */
     private fun clippingSeekTo(pos:Long, awareTrimming:Boolean) {
         val clippedPos = clipPosition(pos, if(awareTrimming) currentSource.value?.trimming else null )
+//        logger.debug("XX1: $pos / ${naturalDuration.value}")
         player.seekTo(clippedPos)
         playerSeekPosition.mutable.value = clippedPos
     }
@@ -460,55 +435,69 @@ class PlayerModel(
             }
         }
 
-        override fun onIsLoadingChanged(isLoading: Boolean) {
-            logger.debug("loading = $isLoading")
-            isDisturbing.mutable.value = false
-            if (isLoading && player.playbackState == Player.STATE_BUFFERING) {
-                if(state.value== PlayerState.None) {
-                    state.mutable.value = PlayerState.Loading
-                } else {
-                    scope.launch {
-                        for(i in 0..20) {
-                            delay(100)
-                            if (player.playbackState != Player.STATE_BUFFERING) {
-                                break
-                            }
-                        }
-                        if (player.playbackState == Player.STATE_BUFFERING) {
-                            // ２秒以上bufferingならロード中に戻す
-//                            state.mutable.value = PlayerState.Loading
-                            logger.debug("buffering more than 2 sec")
-                            isDisturbing.mutable.value = true
-                        }
-                    }
-                }
-            }
+//        override fun onIsLoadingChanged(isLoading: Boolean) {
+//            logger.debug("loading = $isLoading")
+//            isDisturbing.mutable.value = false
+//            if (isLoading && player.playbackState == Player.STATE_BUFFERING) {
+//                if(state.value== PlayerState.None) {
+//                    state.mutable.value = PlayerState.Loading
+//                } else {
+//                    scope.launch {
+//                        for(i in 0..20) {
+//                            delay(100)
+//                            if (player.playbackState != Player.STATE_BUFFERING) {
+//                                break
+//                            }
+//                        }
+//                        if (player.playbackState == Player.STATE_BUFFERING) {
+//                            // ２秒以上bufferingならロード中に戻す
+////                            state.mutable.value = PlayerState.Loading
+//                            logger.debug("buffering more than 2 sec")
+//                            isDisturbing.mutable.value = true
+//                        }
+//                    }
+//                }
+//            }
+//        }
+
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            isPlaying.value = playWhenReady
         }
 
         override fun onPlaybackStateChanged(playbackState:Int) {
-            val playWhenReady = player.playWhenReady
-            logger.debug {
-                val ppn = {s:Int->
-                    when(s) {
-                        Player.STATE_IDLE -> "Idle"
-                        Player.STATE_BUFFERING -> "Buffering"
-                        Player.STATE_READY -> "Ready"
-                        Player.STATE_ENDED -> "Ended"
-                        else -> "Unknown"
-                    }
-                }
-                "status = ${ppn(playbackState)} / playWhenReady = $playWhenReady"
-            }
+            super.onPlaybackStateChanged(playbackState)
             when(playbackState) {
+                Player.STATE_IDLE -> {
+                    state.mutable.value = PlayerState.None
+                }
+                Player.STATE_BUFFERING -> {
+                    if(state.value == PlayerState.None) {
+                        state.mutable.value = PlayerState.Loading
+                    } else {
+                        scope.launch {
+                            for (i in 0..20) {
+                                delay(100)
+                                if (player.playbackState != Player.STATE_BUFFERING) {
+                                    break
+                                }
+                            }
+                            if (player.playbackState == Player.STATE_BUFFERING) {
+                                // ２秒以上bufferingならロード中に戻す
+                                logger.debug("buffering more than 2 sec")
+                                state.mutable.value = PlayerState.Loading
+                            }
+                        }
+                    }
+
+                }
                 Player.STATE_READY ->  {
                     ended.value = false
-                    state.mutable.value = if(playWhenReady) PlayerState.Playing else PlayerState.Paused
+                    state.mutable.value = PlayerState.Ready
                     naturalDuration.mutable.value = player.duration
                 }
                 Player.STATE_ENDED -> {
 //                    player.playWhenReady = false
                     ended.value = true
-                    state.mutable.value = PlayerState.Paused
                 }
                 else -> {}
             }
@@ -552,7 +541,7 @@ class PlayerModel(
         init {
             requestedPositionFromSlider.onEach {
                 val tick = System.currentTimeMillis()
-                if(0<=it && it<naturalDuration.value) {
+                if(0<=it && it<=naturalDuration.value) {
                     if(tick-lastOperationTick<500) {
                         setFastSeek()
                     } else {
