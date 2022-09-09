@@ -55,9 +55,12 @@ class OfflineDialog : UtDialog(isDialog = true) {
 
         val isSourceSelected:Flow<Boolean> = MutableStateFlow(false)
         val isTargetSelected:Flow<Boolean> = MutableStateFlow(false)
-        val totalSize:Flow<Long> = MutableStateFlow(0L)
-        val totalTime:Flow<Long> = MutableStateFlow(0L)
         val hasTarget = MutableStateFlow(targetList.isNotEmpty())
+
+        val sourceTotalSize:Flow<Long> = MutableStateFlow(0L)
+        val sourceTotalTime:Flow<Long> = MutableStateFlow(0L)
+        val targetTotalSize:Flow<Long> = MutableStateFlow(0L)
+        val targetTotalTime:Flow<Long> = MutableStateFlow(0L)
 
         val selectedSources:List<VideoItem>
             get() = sourceList.mapNotNull { if(it.selected) it.value else null }
@@ -69,7 +72,7 @@ class OfflineDialog : UtDialog(isDialog = true) {
 //        val busy:Flow<Boolean> = combine(loadingSources,OfflineManager.instance.busy) { s,o->s||o }
 
         val downloadProgress = OfflineManager.DownloadProgress()
-        var disposable:IDisposable? = null
+        var disposables = Binder()
         fun prepare(sources:List<VideoItem>?) {
             if(!prepared) {
                 prepared = true
@@ -95,28 +98,39 @@ class OfflineDialog : UtDialog(isDialog = true) {
                     }
                 }
 
-                disposable = targetList.addListenerForever {
-                    data class TotalInfo(var size:Long=0L, var time:Long=0L)
-                    val total = it.list.fold(TotalInfo()) { acc, selectable ->
-                        acc.size += selectable.value.size
-                        acc.time += selectable.value.duration
-                        acc
-                    }
-                    totalSize.mutable.value = total.size
-                    totalTime.mutable.value = total.time
-                    hasTarget.value = it.list.isNotEmpty()
-                }
+                disposables.register(
+                    targetList.addListenerForever {
+                        data class TotalInfo(var size:Long=0L, var time:Long=0L)
+                        val total = it.list.fold(TotalInfo()) { acc, selectable ->
+                            acc.size += selectable.value.size
+                            acc.time += selectable.value.duration
+                            acc
+                        }
+                        targetTotalSize.mutable.value = total.size
+                        targetTotalTime.mutable.value = total.time
+                        hasTarget.value = it.list.isNotEmpty()
+                    },
+                )
             }
         }
 
         override fun onCleared() {
             logger.debug()
-            disposable?.dispose()
-            disposable = null
+            disposables.dispose()
         }
 
         fun sourceSelectionChanged() {
             (isSourceSelected as MutableStateFlow).value = sourceList.firstOrNull { it.selected } != null
+            data class TotalInfo(var size:Long=0L, var time:Long=0L)
+            val total = sourceList.fold(TotalInfo()) { acc, selectable ->
+                if(selectable.selected) {
+                    acc.size += selectable.value.size
+                    acc.time += selectable.value.duration
+                }
+                acc
+            }
+            sourceTotalSize.mutable.value = total.size
+            sourceTotalTime.mutable.value = total.time
         }
 
         fun targetSelectionChanged() {
@@ -274,8 +288,10 @@ class OfflineDialog : UtDialog(isDialog = true) {
             val clearAllButton = dlg.findViewById<Button>(R.id.clear_target_button)
             val sourceView = dlg.findViewById<RecyclerView>(R.id.source_list)
             val targetView = dlg.findViewById<RecyclerView>(R.id.target_list)
-            val totalTime = dlg.findViewById<TextView>(R.id.total_time)
-            val totalSize = dlg.findViewById<TextView>(R.id.total_size)
+            val targetTotalTime = dlg.findViewById<TextView>(R.id.target_total_time)
+            val targetTotalSize = dlg.findViewById<TextView>(R.id.target_total_size)
+            val sourceTotalTime = dlg.findViewById<TextView>(R.id.source_total_time)
+            val sourceTotalSize = dlg.findViewById<TextView>(R.id.source_total_size)
 
             fun setSelectionColor(textView: TextView, selected: Boolean) {
                 if(selected) {
@@ -287,7 +303,19 @@ class OfflineDialog : UtDialog(isDialog = true) {
                 }
             }
 
-            fun <T:IAmvSource> bindItemView(itemBinder:Binder, view:View, item:Selectable<T>) {
+            fun <T:IAmvSource> bindSourceItemView(itemBinder:Binder, view:View, item:Selectable<T>) {
+                val textView = view.findViewById<TextView>(R.id.video_item_text)
+                textView.text = item.value.name
+                setSelectionColor(textView, item.selected)
+                itemBinder.register(
+                    Command().connectAndBind(this, textView) {
+                        item.selected = !item.selected
+                        setSelectionColor(it as TextView, item.selected)
+                        viewModel.sourceSelectionChanged()
+                    },
+                )
+            }
+            fun <T:IAmvSource> bindTargetItemView(itemBinder:Binder, view:View, item:Selectable<T>) {
                     val textView = view.findViewById<TextView>(R.id.video_item_text)
                     textView.text = item.value.name
                     setSelectionColor(textView, item.selected)
@@ -295,7 +323,6 @@ class OfflineDialog : UtDialog(isDialog = true) {
                         Command().connectAndBind(this, textView) {
                             item.selected = !item.selected
                             setSelectionColor(it as TextView, item.selected)
-                            viewModel.sourceSelectionChanged()
                             viewModel.targetSelectionChanged()
                         },
                     )
@@ -307,15 +334,17 @@ class OfflineDialog : UtDialog(isDialog = true) {
                 EnableBinding.create(this, resetSelButton, combine(viewModel.isSourceSelected, viewModel.isTargetSelected) {s,t->s||t}.asLiveData() ),
                 EnableBinding.create(this, clearAllButton, viewModel.hasTarget.asLiveData()),
 
-                TextBinding.create(this, totalSize, viewModel.totalSize.map { formatSize(it) }.asLiveData()),
-                TextBinding.create(this, totalTime, viewModel.totalTime.map { formatTime(it*1000,it*1000) }.asLiveData()),
+                TextBinding.create(this, targetTotalSize, viewModel.targetTotalSize.map { formatSize(it) }.asLiveData()),
+                TextBinding.create(this, targetTotalTime, viewModel.targetTotalTime.map { formatTime(it*1000,it*1000) }.asLiveData()),
+                TextBinding.create(this, sourceTotalSize, viewModel.sourceTotalSize.map { formatSize(it) }.asLiveData()),
+                TextBinding.create(this, sourceTotalTime, viewModel.sourceTotalTime.map { formatTime(it*1000,it*1000) }.asLiveData()),
 
                 viewModel.commandAdd.connectViewEx(addButton),
                 viewModel.commandDelete.connectViewEx(delButton),
                 viewModel.commandClearSelection.connectViewEx(resetSelButton),
                 viewModel.commandDeleteAll.connectViewEx(clearAllButton),
-                RecyclerViewBinding.create(this, sourceView, viewModel.sourceList, R.layout.list_item_video, bindView = ::bindItemView),
-                RecyclerViewBinding.create(this, targetView, viewModel.targetList, R.layout.list_item_video, bindView = ::bindItemView).apply { enableDragAndDrop(true) },
+                RecyclerViewBinding.create(this, sourceView, viewModel.sourceList, R.layout.list_item_video, bindView = ::bindSourceItemView),
+                RecyclerViewBinding.create(this, targetView, viewModel.targetList, R.layout.list_item_video, bindView = ::bindTargetItemView).apply { enableDragAndDrop(true) },
 
                 VisibilityBinding.create(this, bodyGuardView, OfflineManager.instance.busy.asLiveData()),
                 EnableBinding.create(this, rightButton, OfflineManager.instance.busy.asLiveData(), boolConvert = BoolConvert.Inverse),

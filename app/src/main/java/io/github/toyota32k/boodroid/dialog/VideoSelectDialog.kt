@@ -137,7 +137,7 @@ class VideoSelectDialog : UtDialog() {
 //            val unselectAllButton = dlg.findViewById<Button>(R.id.unselect_all)
             binder.register(
                 CheckBinding.create(this, dlg.findViewById(R.id.enable_filter_checkbox), viewModel.enableFilter.asMutableLiveData(this)),
-                TextBinding.create(this, dlg.findViewById(R.id.total_time), viewModel.totalTime.map { formatTime(it*1000,it*1000) }.asLiveData()),
+                TextBinding.create(this, dlg.findViewById(R.id.target_total_time), viewModel.totalTime.map { formatTime(it*1000,it*1000) }.asLiveData()),
 //                EnableBinding.create(this, unselectAllButton, viewModel.isSelected.asLiveData()),
 //                viewModel.commandSelectAll.connectViewEx(selectAllButton),
 //                viewModel.commandUnselectAll.connectViewEx(unselectAllButton),

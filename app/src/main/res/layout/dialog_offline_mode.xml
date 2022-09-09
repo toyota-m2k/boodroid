@@ -14,47 +14,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         />
-    <GridLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:rowCount="2"
-        android:columnCount="2"
-        >
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_column="0"
-            android:layout_row="0"
-            android:layout_marginEnd="5dp"
-            android:text="@string/total_size_label"
-            />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_column="0"
-            android:layout_row="1"
-            android:layout_marginEnd="5dp"
-            android:text="@string/total_time_label"
-            />
-        <TextView
-            android:id="@+id/total_size"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_column="1"
-            android:layout_row="0"
-            tools:text="125 MB"
-            />
-        <TextView
-            android:id="@+id/total_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_column="1"
-            android:layout_row="1"
-            tools:text="1:20:29"
-            />
-    </GridLayout>
     <TextView
         android:id="@+id/source_list_label"
         android:layout_width="wrap_content"
@@ -132,7 +91,7 @@
         android:layout_height="0dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/source_list_label"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/source_info"
         app:layout_constraintEnd_toStartOf="@+id/buttons"
         android:background="@drawable/bordered_bg"
         android:padding="1dp"
@@ -144,8 +103,94 @@
         app:layout_constraintStart_toEndOf="@id/buttons"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/source_list_label"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/target_info"
         android:background="@drawable/bordered_bg"
         android:padding="1dp"
         />
+
+    <GridLayout
+        android:id="@+id/source_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:rowCount="2"
+        android:columnCount="2"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:layout_row="0"
+            android:layout_marginEnd="5dp"
+            android:text="@string/total_size_label"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:layout_row="1"
+            android:layout_marginEnd="5dp"
+            android:text="@string/total_time_label"
+            />
+        <TextView
+            android:id="@+id/source_total_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="1"
+            android:layout_row="0"
+            tools:text="125 MB"
+            />
+        <TextView
+            android:id="@+id/source_total_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="1"
+            android:layout_row="1"
+            tools:text="1:20:29"
+            />
+    </GridLayout>
+    <GridLayout
+        android:id="@+id/target_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:rowCount="2"
+        android:columnCount="2"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:layout_row="0"
+            android:layout_marginEnd="5dp"
+            android:text="@string/total_size_label"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:layout_row="1"
+            android:layout_marginEnd="5dp"
+            android:text="@string/total_time_label"
+            />
+        <TextView
+            android:id="@+id/target_total_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="1"
+            android:layout_row="0"
+            tools:text="125 MB"
+            />
+        <TextView
+            android:id="@+id/target_total_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="1"
+            android:layout_row="1"
+            tools:text="1:20:29"
+            />
+    </GridLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
