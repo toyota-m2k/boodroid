@@ -11,6 +11,7 @@ object PackageUtil {
         return try {
             val name = context.packageName
             val pm = context.packageManager
+            @Suppress("DEPRECATION") // getPackageInfo(String, PackageManager.PackageInfoFlags) を使えと言われるが、使ったら、minSdk>=33じゃないと使えないと言われる。どうせいちゅうんじゃ
             return pm.getPackageInfo(name, PackageManager.GET_META_DATA)
         } catch (e: Throwable) {
             BooApplication.logger.stackTrace(e)

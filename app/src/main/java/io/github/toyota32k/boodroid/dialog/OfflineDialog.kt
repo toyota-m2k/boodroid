@@ -339,10 +339,10 @@ class OfflineDialog : UtDialog(isDialog = true) {
                 TextBinding.create(this, sourceTotalSize, viewModel.sourceTotalSize.map { formatSize(it) }.asLiveData()),
                 TextBinding.create(this, sourceTotalTime, viewModel.sourceTotalTime.map { formatTime(it*1000,it*1000) }.asLiveData()),
 
-                viewModel.commandAdd.connectViewEx(addButton),
-                viewModel.commandDelete.connectViewEx(delButton),
-                viewModel.commandClearSelection.connectViewEx(resetSelButton),
-                viewModel.commandDeleteAll.connectViewEx(clearAllButton),
+                viewModel.commandAdd.attachView(addButton),
+                viewModel.commandDelete.attachView(delButton),
+                viewModel.commandClearSelection.attachView(resetSelButton),
+                viewModel.commandDeleteAll.attachView(clearAllButton),
                 RecyclerViewBinding.create(this, sourceView, viewModel.sourceList, R.layout.list_item_video, bindView = ::bindSourceItemView),
                 RecyclerViewBinding.create(this, targetView, viewModel.targetList, R.layout.list_item_video, bindView = ::bindTargetItemView).apply { enableDragAndDrop(true) },
 

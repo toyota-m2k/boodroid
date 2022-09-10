@@ -114,7 +114,7 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
             VisibilityBinding.create(owner, errorMessageView, playerModel.isError.asLiveData(), BoolConvert.Straight, VisibilityBinding.HiddenMode.HideByInvisible),
             VisibilityBinding.create(owner, findViewById(R.id.service_area), combine(playerModel.isLoading,playerModel.isError) {l,e-> l||e}.asLiveData(), BoolConvert.Straight, VisibilityBinding.HiddenMode.HideByInvisible),
             TextBinding.create(owner,errorMessageView, playerModel.errorMessage.filterNotNull().asLiveData()),
-            controlPanelModel.commandPlayerTapped.connectViewEx(this),
+            controlPanelModel.commandPlayerTapped.attachView(this),
         )
 
         val matchParent = Size(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)

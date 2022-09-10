@@ -93,15 +93,15 @@ class MainActivity : UtMortalActivity() {
         val settingButton = findViewById<ImageButton>(R.id.setting_button)
 
         binder.register(
-            viewModel.selectOfflineVideoCommand.connectViewEx(selectButton),
-//            viewModel.syncToServerCommand.connectViewEx(upButton),
-//            viewModel.syncFromServerCommand.connectViewEx(downButton),
-            viewModel.setupOfflineModeCommand.connectViewEx(onlineButton),
-            viewModel.setupOfflineModeCommand.connectViewEx(offlineButton),
-            viewModel.syncWithServerCommand.connectViewEx(syncButton),
+            viewModel.selectOfflineVideoCommand.attachView(selectButton),
+//            viewModel.syncToServerCommand.attachView(upButton),
+//            viewModel.syncFromServerCommand.attachView(downButton),
+            viewModel.setupOfflineModeCommand.attachView(onlineButton),
+            viewModel.setupOfflineModeCommand.attachView(offlineButton),
+            viewModel.syncWithServerCommand.attachView(syncButton),
 //            viewModel.menuCommand.connectViewE(findViewById(R.id.boo_title_button)),
-            appViewModel.refreshCommand.connectViewEx(refreshButton),
-            appViewModel.settingCommand.connectViewEx(settingButton),
+            appViewModel.refreshCommand.attachView(refreshButton),
+            appViewModel.settingCommand.attachView(settingButton),
             controlPanelModel.commandPlayerTapped.bind(this, this::onPlayerTapped),
             MultiVisibilityBinding.create(this, onlineButton, syncButton, refreshButton, data = appViewModel.offlineModeFlow.asLiveData(), boolConvert = BoolConvert.Inverse),
             MultiVisibilityBinding.create(this, selectButton, offlineButton, data = appViewModel.offlineModeFlow.asLiveData(), boolConvert = BoolConvert.Straight),
@@ -506,7 +506,7 @@ class MainActivity : UtMortalActivity() {
     /**
      * PinPモードが変更されるときの通知
      */
-    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration?) {
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         logger.debug("pinp=$isInPictureInPictureMode")
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         if(!isInPictureInPictureMode) {
