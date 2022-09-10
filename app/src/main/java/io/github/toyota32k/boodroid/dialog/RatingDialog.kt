@@ -51,7 +51,7 @@ class RatingDialog : UtDialog(isDialog=true) {
                 MaterialRadioButtonGroupBinding.create(owner, markSelector, viewModel.mark, Mark.idResolver, BindingMode.TwoWay),
                 TextBinding.create(owner, categoryButton, viewModel.category),
                 VisibilityBinding.create(owner, busyPanel, viewModel.busy),
-                Command(this::selectCategory).connectViewEx(categoryButton),
+                Command(this::selectCategory).attachView(categoryButton),
                 viewModel.hasError.disposableObserve(owner) { error->
                     if(error==true) {
                         UtImmortalSimpleTask.run("rating error") {

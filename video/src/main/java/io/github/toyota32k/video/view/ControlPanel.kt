@@ -102,17 +102,17 @@ class ControlPanel @JvmOverloads constructor(context: Context, attrs: AttributeS
 
             SliderBinding.create(owner, slider, model.playerModel.playerSeekPosition.map { it.toFloat() }.asLiveData(), min=null, max=model.playerModel.naturalDuration.map { max(100f, it.toFloat())}.asLiveData() ),
 
-            model.commandPlay.connectViewEx(playButton),
-            model.commandPause.connectViewEx(pauseButton),
-            model.commandNext.connectViewEx(nextVideoButton),
-            model.commandPrev.connectViewEx(prevVideoButton),
-            model.commandNextChapter.connectViewEx(nextChapterButton),
-            model.commandPrevChapter.connectViewEx(prevChapterButton),
-            model.commandSeekBackward.connectViewEx(seekBackButton),
-            model.commandSeekForward.connectViewEx(seekForwardButton),
-            model.commandFullscreen.connectViewEx(fullscreenButton),
-            model.commandPinP.connectViewEx(pinpButton),
-            model.commandCollapse.connectViewEx(collapseButton),
+            model.commandPlay.attachView(playButton),
+            model.commandPause.attachView(pauseButton),
+            model.commandNext.attachView(nextVideoButton),
+            model.commandPrev.attachView(prevVideoButton),
+            model.commandNextChapter.attachView(nextChapterButton),
+            model.commandPrevChapter.attachView(prevChapterButton),
+            model.commandSeekBackward.attachView(seekBackButton),
+            model.commandSeekForward.attachView(seekForwardButton),
+            model.commandFullscreen.attachView(fullscreenButton),
+            model.commandPinP.attachView(pinpButton),
+            model.commandCollapse.attachView(collapseButton),
         )
     }
 
