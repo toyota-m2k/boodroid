@@ -157,7 +157,7 @@ class MainViewModel : ViewModel() {
         AppViewModel.logger.debug()
         val appViewModel = AppViewModel.instance
         val om = OfflineManager.instance
-        if (om.busy.value) return
+        if (om.busy.flagged) return
         val list = om.getOfflineVideos().run {
             if(appViewModel.offlineFilter) {
                 filter { it.filter>0 }

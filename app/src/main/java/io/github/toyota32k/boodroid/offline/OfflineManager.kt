@@ -289,7 +289,7 @@ class OfflineManager(context: Context) {
 
     suspend fun setOfflineVideos(newList: List<IAmvSource>, progress:DownloadProgress?) : List<CachedVideoItem>? {
         progress?.reset()
-        return busy.closeableSetFlag()?.use {
+        return busy.closeableTrySetIfNot()?.use {
             withContext(Dispatchers.IO) {
                 val updater = ListUpdater(getOfflineVideos(), newList)
                 unregisterVideos(updater.remove, progress)

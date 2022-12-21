@@ -82,7 +82,7 @@ class OfflineDialog : UtDialog(isDialog = true) {
                 if(sources!=null) {
                     sourceList.addAll(sources.map { Selectable(it) })
                 } else {
-                    if(loadingSources.set()) {
+                    if(loadingSources.trySetIfNot()) {
                         viewModelScope.launch {
                             try {
                                 val list = withContext(Dispatchers.IO) {
@@ -196,7 +196,7 @@ class OfflineDialog : UtDialog(isDialog = true) {
         // val completed:Flow<Boolean?> = MutableStateFlow(null)
 
         suspend fun complete():Boolean {
-            if(loadingSources.value) return false
+            if(loadingSources.flagged) return false
 
             val newList = OfflineManager.instance.setOfflineVideos(targetList.map { it.value }, downloadProgress) ?: return false
 //            AppViewModel.instance.settings = Settings(AppViewModel.instance.settings, offlineMode = offlineMode.value)
