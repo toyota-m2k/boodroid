@@ -12,16 +12,15 @@ import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.video.common.AmvSettings
 
 class BooApplication : Application(), ViewModelStoreOwner {
-    private var viewModelStore = UtLazyResetableValue { ViewModelStore() }
+    private val mViewModelStore = UtLazyResetableValue { ViewModelStore() }
 
     val offlineManager: OfflineManager by lazy { OfflineManager(this) }
 
-    override fun getViewModelStore(): ViewModelStore {
-        return viewModelStore.value
-    }
+    override val viewModelStore: ViewModelStore
+        get() = mViewModelStore.value
 
     private fun releaseViewModelStore() {
-        viewModelStore.reset { it.clear() }
+        mViewModelStore.reset { it.clear() }
     }
 
     init {
@@ -34,7 +33,7 @@ class BooApplication : Application(), ViewModelStoreOwner {
         UtStandardString.setContext(applicationContext,null)
         UtDialogConfig.apply {
             solidBackgroundOnPhone = false
-            showDialogImmediately = false
+            showDialogImmediately = UtDialogConfig.ShowDialogMode.Commit
             showInDialogModeAsDefault = true
         }
 
