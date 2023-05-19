@@ -97,7 +97,6 @@ class OfflineManager(context: Context) {
                         createLocalFile(videoItem.type)?.let { file ->
                             try {
                                 val totalLength = response.headersContentLength()
-                                @Suppress("BlockingMethodInNonBlockingContext")
                                 file.outputStream().use { outStream ->
 //                                    inStream.copyTo(outStream)
                                     var bytesCopied: Long = 0
