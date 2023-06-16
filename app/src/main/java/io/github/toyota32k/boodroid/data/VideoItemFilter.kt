@@ -1,8 +1,9 @@
 package io.github.toyota32k.boodroid.data
 
 import androidx.annotation.IdRes
-import io.github.toyota32k.bindit.IIDValueResolver
+import io.github.toyota32k.binder.IIDValueResolver
 import io.github.toyota32k.boodroid.R
+import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 
 enum class Rating(val v:Int, @IdRes val id:Int) {
     DREADFUL(1, R.id.tg_rating_dreadful),
@@ -75,6 +76,10 @@ data class VideoItemFilter(val settings:Settings) {
 
     private fun getQueryString(date:Long):String {
         val qb = QueryBuilder()
+        val authToken = AppViewModel.instance.authentication.authToken
+        if(authToken!=null) {
+            qb.add("auth", authToken)
+        }
         if(settings.sourceType!=SourceType.DB) {
             qb.add("s", settings.sourceType.v)
         } else {

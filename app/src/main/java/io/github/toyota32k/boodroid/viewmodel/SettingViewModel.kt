@@ -1,14 +1,12 @@
 package io.github.toyota32k.boodroid.viewmodel
 
-import android.app.Application
 import android.content.Context
 import androidx.annotation.StringRes
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.toyota32k.bindit.Command
-import io.github.toyota32k.bindit.list.ObservableList
+import io.github.toyota32k.binder.command.Command
+import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.PackageUtil

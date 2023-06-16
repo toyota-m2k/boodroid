@@ -4,9 +4,9 @@ import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
-import io.github.toyota32k.bindit.Binder
-import io.github.toyota32k.bindit.EditTextBinding
-import io.github.toyota32k.bindit.EnableBinding
+import io.github.toyota32k.binder.Binder
+import io.github.toyota32k.binder.EditTextBinding
+import io.github.toyota32k.binder.EnableBinding
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.UtImmortalTaskContextSource
 import io.github.toyota32k.boodroid.data.HostAddressEntity

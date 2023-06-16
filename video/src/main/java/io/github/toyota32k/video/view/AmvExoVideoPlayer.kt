@@ -12,10 +12,10 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
 import com.google.android.exoplayer2.ui.StyledPlayerView
-import io.github.toyota32k.bindit.Binder
-import io.github.toyota32k.bindit.BoolConvert
-import io.github.toyota32k.bindit.TextBinding
-import io.github.toyota32k.bindit.VisibilityBinding
+import io.github.toyota32k.binder.Binder
+import io.github.toyota32k.binder.BoolConvert
+import io.github.toyota32k.binder.TextBinding
+import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.video.common.AmvSettings
 import io.github.toyota32k.video.model.ControlPanelModel
@@ -93,7 +93,7 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
         }
     }
 
-    fun bindViewModel(controlPanelModel: ControlPanelModel, binder:Binder) {
+    fun bindViewModel(controlPanelModel: ControlPanelModel, binder: Binder) {
         val owner = lifecycleOwner()!!
         val scope = owner.lifecycleScope
 

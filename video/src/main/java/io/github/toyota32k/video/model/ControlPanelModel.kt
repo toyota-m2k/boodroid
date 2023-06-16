@@ -1,7 +1,7 @@
 package io.github.toyota32k.video.model
 
 import android.content.Context
-import io.github.toyota32k.bindit.Command
+import io.github.toyota32k.binder.command.Command
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.video.common.AmvSettings
 import io.github.toyota32k.video.common.formatTime

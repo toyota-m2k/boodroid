@@ -10,10 +10,10 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import io.github.toyota32k.bindit.Binder
-import io.github.toyota32k.bindit.Command
-import io.github.toyota32k.bindit.GenericBoolBinding
-import io.github.toyota32k.bindit.RecyclerViewBinding
+import io.github.toyota32k.binder.Binder
+import io.github.toyota32k.binder.GenericBoolBinding
+import io.github.toyota32k.binder.RecyclerViewBinding
+import io.github.toyota32k.binder.command.Command
 import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.getAttrColor
@@ -61,7 +61,7 @@ class VideoListView @JvmOverloads constructor(
                 textView.text = videoItem.name
                 itemBinder.register(
                     Command().connectAndBind(owner, textView) { onItemTapped(videoItem) },
-                    GenericBoolBinding.create(owner, textView, model.currentSource.map { it?.id == videoItem.id }.asLiveData()) {v,hit->
+                    GenericBoolBinding.create(owner, textView, model.currentSource.map { it?.id == videoItem.id }.asLiveData()) { v, hit->
                         val txv = v as TextView
                         if(hit) {
                             txv.background = selectedColor

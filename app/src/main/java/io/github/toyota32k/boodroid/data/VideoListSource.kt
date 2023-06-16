@@ -28,6 +28,7 @@ data class VideoListSource(val list:List<IAmvSource>, val modifiedDate:Long) {
     companion object {
         suspend fun retrieve(date:Long=0L): VideoListSource? {
             if(!AppViewModel.instance.settings.isValid) return null
+            if(!AppViewModel.instance.authentication.authentication()) return null
             val url = AppViewModel.instance.settings.listUrl(date)
             val req = Request.Builder()
                 .url(url)

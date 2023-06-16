@@ -1,9 +1,6 @@
 package io.github.toyota32k.video.common
 
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
-import io.github.toyota32k.player.cache.AmvCacheManager
+import io.github.toyota32k.video.cache.AmvCacheManager
 import io.github.toyota32k.utils.UtLog
 import okhttp3.OkHttpClient
 import java.io.File

@@ -22,9 +22,9 @@ import android.widget.ImageButton
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
-import io.github.toyota32k.bindit.Binder
-import io.github.toyota32k.bindit.BoolConvert
-import io.github.toyota32k.bindit.MultiVisibilityBinding
+import io.github.toyota32k.binder.Binder
+import io.github.toyota32k.binder.BoolConvert
+import io.github.toyota32k.binder.MultiVisibilityBinding
 import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.boodroid.view.VideoListView
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel

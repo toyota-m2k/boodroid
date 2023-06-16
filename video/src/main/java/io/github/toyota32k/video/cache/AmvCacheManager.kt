@@ -6,12 +6,13 @@
  */
 @file:Suppress("unused")
 
-package io.github.toyota32k.player.cache
+package io.github.toyota32k.video.cache
 
 import android.annotation.SuppressLint
 import android.net.Uri
-import io.github.toyota32k.bindit.BuildConfig
+import io.github.toyota32k.player.cache.IAmvCache
 import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.video.BuildConfig
 import io.github.toyota32k.video.common.AmvError
 import io.github.toyota32k.video.common.AmvSettings
 import kotlinx.coroutines.CoroutineScope
@@ -317,7 +318,8 @@ object AmvCacheManager {
 /**
  * キャッシュファイルの内部表現
  */
-private class AmvCache(override val key:String, override val uri:Uri?, private var mFile:File?) : IAmvCache {
+private class AmvCache(override val key:String, override val uri:Uri?, private var mFile:File?) :
+    IAmvCache {
     private var mInvalidated = false
     private var mRefCount: Int = 0
     private var mLock = Object()

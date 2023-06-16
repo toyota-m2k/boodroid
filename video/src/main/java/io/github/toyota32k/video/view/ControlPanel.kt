@@ -14,7 +14,13 @@ import android.widget.TextView
 import androidx.core.view.children
 import androidx.lifecycle.asLiveData
 import com.google.android.material.slider.Slider
-import io.github.toyota32k.bindit.*
+import io.github.toyota32k.binder.Binder
+import io.github.toyota32k.binder.BoolConvert
+import io.github.toyota32k.binder.EnableBinding
+import io.github.toyota32k.binder.MultiEnableBinding
+import io.github.toyota32k.binder.SliderBinding
+import io.github.toyota32k.binder.TextBinding
+import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.boodroid.common.getColorAsDrawable
 import io.github.toyota32k.boodroid.common.getColorAwareOfTheme
 import io.github.toyota32k.utils.UtLog
@@ -97,7 +103,7 @@ class ControlPanel @JvmOverloads constructor(context: Context, attrs: AttributeS
             EnableBinding.create(owner, prevVideoButton, model.playerModel.hasPrevious.asLiveData()),
             EnableBinding.create(owner, nextVideoButton, model.playerModel.hasNext.asLiveData()),
 
-            TextBinding.create(owner, findViewById(R.id.counter_label), combine(model.playerModel.playerSeekPosition, model.playerModel.naturalDuration) { pos,dur->formatTime(pos, dur) }.asLiveData()),
+            TextBinding.create(owner, findViewById(R.id.counter_label), combine(model.playerModel.playerSeekPosition, model.playerModel.naturalDuration) { pos, dur->formatTime(pos, dur) }.asLiveData()),
             TextBinding.create(owner, findViewById(R.id.duration_label), model.playerModel.naturalDuration.map { formatTime(it,it) }.asLiveData()),
 
             SliderBinding.create(owner, slider, model.playerModel.playerSeekPosition.map { it.toFloat() }.asLiveData(), min=null, max=model.playerModel.naturalDuration.map { max(100f, it.toFloat())}.asLiveData() ),

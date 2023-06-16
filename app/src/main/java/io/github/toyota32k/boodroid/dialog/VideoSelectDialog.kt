@@ -9,8 +9,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
-import io.github.toyota32k.bindit.*
-import io.github.toyota32k.bindit.list.ObservableList
+import io.github.toyota32k.binder.Binder
+import io.github.toyota32k.binder.CheckBinding
+import io.github.toyota32k.binder.RecyclerViewBinding
+import io.github.toyota32k.binder.TextBinding
+import io.github.toyota32k.binder.command.Command
+import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.UtImmortalTaskContextSource
@@ -141,7 +145,7 @@ class VideoSelectDialog : UtDialog() {
 //                EnableBinding.create(this, unselectAllButton, viewModel.isSelected.asLiveData()),
 //                viewModel.commandSelectAll.connectViewEx(selectAllButton),
 //                viewModel.commandUnselectAll.connectViewEx(unselectAllButton),
-                RecyclerViewBinding.create(this,dlg.findViewById(R.id.video_list), viewModel.videoList, R.layout.list_item_video_check) {itemBinder, view, item ->
+                RecyclerViewBinding.create(this,dlg.findViewById(R.id.video_list), viewModel.videoList, R.layout.list_item_video_check) { itemBinder, view, item ->
                     val textView = view.findViewById<TextView>(R.id.video_item_text)
                     val checkbox = view.findViewById<CheckBox>(R.id.video_item_checkbox)
                     val check = MutableLiveData<Boolean>(item.filter>0)

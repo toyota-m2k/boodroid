@@ -14,8 +14,16 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.RecyclerView
-import io.github.toyota32k.bindit.*
-import io.github.toyota32k.bindit.list.ObservableList
+import io.github.toyota32k.binder.Binder
+import io.github.toyota32k.binder.BoolConvert
+import io.github.toyota32k.binder.CheckBinding
+import io.github.toyota32k.binder.EnableBinding
+import io.github.toyota32k.binder.ProgressBarBinding
+import io.github.toyota32k.binder.RecyclerViewBinding
+import io.github.toyota32k.binder.TextBinding
+import io.github.toyota32k.binder.VisibilityBinding
+import io.github.toyota32k.binder.command.Command
+import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.IUtPropertyHost
@@ -31,7 +39,6 @@ import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.task.*
-import io.github.toyota32k.utils.IDisposable
 import io.github.toyota32k.utils.UtObservableFlag
 import io.github.toyota32k.utils.asMutableLiveData
 import io.github.toyota32k.video.common.IAmvSource
