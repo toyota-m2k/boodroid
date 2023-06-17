@@ -10,7 +10,7 @@ import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.video.VideoSize
-import io.github.toyota32k.bindit.list.ObservableList
+import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.player.model.Range
 import io.github.toyota32k.utils.SuspendableEvent
 import io.github.toyota32k.utils.UtLog

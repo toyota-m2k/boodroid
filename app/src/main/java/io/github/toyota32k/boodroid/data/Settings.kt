@@ -6,7 +6,7 @@ import androidx.annotation.StyleRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
-import io.github.toyota32k.bindit.IIDValueResolver
+import io.github.toyota32k.binder.IIDValueResolver
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.safeGetString
@@ -102,13 +102,21 @@ class Settings(
                 "${host}:3500"
             }
         }
-    @Suppress("SpellCheckingInspection")
-    val baseUrl : String get() = "http://${hostAddress}/ytplayer/"
+    val restCommandBase:String get() = AppViewModel.instance.capability.value.root
+    val baseUrl : String get() = "http://${hostAddress}${restCommandBase}"
 
 
     fun urlCapability(): String {
-        return baseUrl + "capability"
+        return "http://${hostAddress}/capability"
     }
+
+    fun authUrl():String {
+        return baseUrl + "auth"
+    }
+    fun authUrl(token:String):String {
+        return baseUrl + "auth/" + token
+    }
+
     fun listUrl(date:Long):String {
         return VideoItemFilter(this).urlWithQueryString(date)
     }
@@ -118,11 +126,17 @@ class Settings(
     }
 
     fun videoUrl(id:String):String {
-        return baseUrl + "video?id=${id}"
+        val qb = QueryBuilder()
+        val authToken = AppViewModel.instance.authentication.authToken
+        if(authToken!=null) {
+            qb.add("auth", authToken)
+        }
+        qb.add("id", id)
+        return baseUrl + "video?" + qb.queryString
     }
 
     fun urlToRegister(url:String):String {
-        return baseUrl + "register?url=${url}"
+        return baseUrl + "bootube/register?url=${url}"
     }
 
     fun urlToListCategories(): String {

@@ -1,29 +1,29 @@
 package io.github.toyota32k.boodroid.dialog
 
-import android.graphics.Color
-import android.media.Rating
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.widget.ListPopupWindow
-import androidx.lifecycle.map
 import com.google.android.material.button.MaterialButtonToggleGroup
-import io.github.toyota32k.bindit.*
+import io.github.toyota32k.binder.Binder
+import io.github.toyota32k.binder.BindingMode
+import io.github.toyota32k.binder.MaterialRadioButtonGroupBinding
+import io.github.toyota32k.binder.TextBinding
+import io.github.toyota32k.binder.VisibilityBinding
+import io.github.toyota32k.binder.command.Command
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.data.Mark
 import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.boodroid.viewmodel.RatingViewModel
-import io.github.toyota32k.boodroid.viewmodel.SettingViewModel
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
 import io.github.toyota32k.dialog.task.showConfirmMessageBox
 import io.github.toyota32k.utils.disposableObserve
 
 class RatingDialog : UtDialog(isDialog=true) {
-    lateinit var viewModel: RatingViewModel
-        private set
+    private lateinit var viewModel: RatingViewModel
     private val binder = Binder()
 
     override fun preCreateBodyView() {

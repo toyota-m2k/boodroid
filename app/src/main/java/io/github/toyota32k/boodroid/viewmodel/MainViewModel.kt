@@ -4,19 +4,17 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import io.github.toyota32k.bindit.Binder
-import io.github.toyota32k.bindit.Command
+import io.github.toyota32k.binder.Binder
+import io.github.toyota32k.binder.command.Command
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.R
-import io.github.toyota32k.boodroid.common.IUtPropertyHost
 import io.github.toyota32k.boodroid.data.*
 import io.github.toyota32k.boodroid.dialog.OfflineDialog
 import io.github.toyota32k.boodroid.dialog.VideoSelectDialog
 import io.github.toyota32k.boodroid.offline.OfflineManager
 import io.github.toyota32k.dialog.UtSingleSelectionBox
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
-import io.github.toyota32k.dialog.task.getActivity
 import io.github.toyota32k.dialog.task.showConfirmMessageBox
 import io.github.toyota32k.utils.UtLogger
 import io.github.toyota32k.video.common.IAmvSource
@@ -187,6 +185,7 @@ class MainViewModel : ViewModel() {
         val index = playerModel.videoSources.indexOfFirst { it.id == id }
         playerModel.playAt(index)
     }
+
 
     /**
      * BooRemote で再生中の動画をBooTubeの動画リスト上で選択する

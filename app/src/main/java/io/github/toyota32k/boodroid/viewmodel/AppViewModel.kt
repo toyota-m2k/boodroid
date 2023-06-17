@@ -3,11 +3,11 @@ package io.github.toyota32k.boodroid.viewmodel
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import io.github.toyota32k.bindit.Command
+import io.github.toyota32k.binder.command.Command
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
+import io.github.toyota32k.boodroid.auth.Authentication
 import io.github.toyota32k.boodroid.common.IUtPropertyHost
-import io.github.toyota32k.boodroid.data.NetClient
 import io.github.toyota32k.boodroid.data.ServerCapability
 import io.github.toyota32k.boodroid.data.Settings
 import io.github.toyota32k.boodroid.dialog.SettingsDialog
@@ -15,12 +15,8 @@ import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.utils.UtResetableValue
 import io.github.toyota32k.video.model.ControlPanelModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import okhttp3.Request
 
 class AppViewModel: ViewModel(), IUtPropertyHost {
     companion object {
@@ -31,6 +27,8 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
     // region Initialization / Termination
 
     val capability: StateFlow<ServerCapability> = MutableStateFlow(ServerCapability.empty)
+    val needAuth:Boolean get() = capability.value.needAuth
+    val authentication = Authentication()
 
     fun setCapability(cap:ServerCapability) {
         capability.mutable.value = cap

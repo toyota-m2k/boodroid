@@ -31,7 +31,7 @@ data class CategoryInfo(val label:String, val color:Color,val sort:Int) {
 }
 
 class CategoryList() {
-    val list = MutableLiveData<List<CategoryInfo>>(listOf())
+    val list = MutableLiveData<List<CategoryInfo>>(emptyList())
     val hasData:Boolean
         get() = list.value?.isNotEmpty() ?: false
     private val busy = AtomicBoolean(false)
@@ -49,8 +49,15 @@ class CategoryList() {
         get() = currentLabel.value ?: "All"
         set(v) { currentLabel.value = (v ?: "All") }
 
+    fun reset() {
+        list.value = emptyList()
+        currentLabel.value = "All"
+    }
 
     fun update() {
+        if(!AppViewModel.instance.capability.value.hasCategory) {
+            reset()
+        }
         if(hasData) return
         if(busy.getAndSet(true)) return
         if(!AppViewModel.instance.settings.isValid) return
@@ -72,6 +79,11 @@ class CategoryList() {
             withContext(Dispatchers.Main) {
                 if(list!=null) {
                     this@CategoryList.list.value = list
+                    if(!list.any { it.label == currentLabel.value }) {
+                        currentLabel.value = "All"
+                    }
+                } else {
+                    reset()
                 }
                 busy.set(false)
             }

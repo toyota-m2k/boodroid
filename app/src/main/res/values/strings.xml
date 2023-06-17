@@ -59,5 +59,7 @@
     <string name="total_size_label">Total Size</string>
     <string name="total_time_label">Total Time</string>
     <string name="offline_empty_list">Play list is empty in offline mode.</string>
+    <string name="password">Password</string>
+    <string name="password_hint">Input your password.</string>
 
 </resources>

@@ -14,24 +14,32 @@ import org.json.JSONObject
 data class ServerCapability(
     val serverName:String,
     val version:Int,                // protocol version
+    val root:String,
     val hasCategory:Boolean,
     val hasRating:Boolean,
     val hasMark:Boolean,
+    val hasChapter:Boolean,
+    val canSync:Boolean,
     val acceptRequest:Boolean,
     val hasView:Boolean,
+    val needAuth:Boolean,
 ) {
     constructor(j:JSONObject) : this(
         j.optString("serverName", "unknown"),
         j.optInt("version", 0),
+        j.optString("root", "/ytplayer/"),
         j.optBoolean("category", false),
         j.optBoolean("rating", false),
         j.optBoolean("mask", false),
+        j.optBoolean("chapter", false),
+        j.optBoolean("sync", false),
         j.optBoolean("acceptRequest", false),
         j.optBoolean("hasView", false),
+        j.optBoolean("authentication", false),
     )
 
     companion object {
-        val empty = ServerCapability("unknown", 0, false, false, false, false, false)
+        val empty = ServerCapability("unknown", 0, "/", false, false, false, false, false,false,false,false)
         suspend fun get():ServerCapability {
             if (!AppViewModel.instance.settings.isValid) return empty
             return withContext(Dispatchers.IO) {
