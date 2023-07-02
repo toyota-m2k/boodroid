@@ -10,6 +10,7 @@ import com.google.android.material.button.MaterialButtonToggleGroup
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.BindingMode
 import io.github.toyota32k.binder.MaterialRadioButtonGroupBinding
+import io.github.toyota32k.binder.MaterialRadioButtonUnSelectableGroupBinding
 import io.github.toyota32k.binder.TextBinding
 import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.binder.command.Command
@@ -48,7 +49,7 @@ class RatingDialog : UtDialog(isDialog=true) {
             binder.register(
                 TextBinding.create(owner, nameText, viewModel.name),
                 MaterialRadioButtonGroupBinding.create(owner, ratingSelector, viewModel.rating, io.github.toyota32k.boodroid.data.Rating.idResolver, BindingMode.TwoWay),
-                MaterialRadioButtonGroupBinding.create(owner, markSelector, viewModel.mark, Mark.idResolver, BindingMode.TwoWay),
+                MaterialRadioButtonUnSelectableGroupBinding.create(owner, markSelector, viewModel.mark, Mark.idResolver, BindingMode.TwoWay),
                 TextBinding.create(owner, categoryButton, viewModel.category),
                 VisibilityBinding.create(owner, busyPanel, viewModel.busy),
                 Command(this::selectCategory).attachView(categoryButton),

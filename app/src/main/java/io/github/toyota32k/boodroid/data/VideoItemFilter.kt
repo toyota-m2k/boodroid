@@ -1,5 +1,6 @@
 package io.github.toyota32k.boodroid.data
 
+import android.view.View
 import androidx.annotation.IdRes
 import io.github.toyota32k.binder.IIDValueResolver
 import io.github.toyota32k.boodroid.R
@@ -29,7 +30,7 @@ enum class Rating(val v:Int, @IdRes val id:Int) {
 }
 
 enum class Mark(val v:Int, @IdRes val id:Int) {
-    NONE(0, 0),
+    NONE(0, View.NO_ID),
     STAR(1, R.id.tg_mark_star),
     FLAG(2, R.id.tg_mark_flag),
     HEART(3, R.id.tg_mark_heart);
