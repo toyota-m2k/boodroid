@@ -3,13 +3,20 @@ package io.github.toyota32k.video.model
 import android.content.Context
 import android.util.Size
 import android.view.ViewGroup
-import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.PlaybackException
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.SeekParameters
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.exoplayer2.upstream.DefaultDataSource
+import com.google.android.exoplayer2.upstream.HttpDataSource
 import com.google.android.exoplayer2.video.VideoSize
+import io.github.toyota32k.binder.command.ICommand
+import io.github.toyota32k.binder.command.ReliableCommand
 import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.player.model.Range
 import io.github.toyota32k.utils.SuspendableEvent
@@ -18,8 +25,21 @@ import io.github.toyota32k.video.R
 import io.github.toyota32k.video.common.AmvSettings
 import io.github.toyota32k.video.common.AmvStringPool
 import io.github.toyota32k.video.common.IAmvSource
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.io.Closeable
 import kotlin.math.max
 import kotlin.math.min
@@ -222,6 +242,12 @@ class PlayerModel(
      * エラーメッセージ
      */
     val errorMessage: StateFlow<String?> = MutableStateFlow<String?>(null)
+
+    /**
+     * 認証要求
+     */
+    data class Retry(val source:IAmvSource, val position: Long)
+    val requestAuthentication: ICommand<Retry> = ReliableCommand<Retry>()
 
     /**
      * （外部から）エラーメッセージを設定する
@@ -427,7 +453,19 @@ class PlayerModel(
 
         override fun onPlayerError(error: PlaybackException) {
             logger.stackTrace(error)
-            if(!isReady.value) {
+            val cause = error.cause as HttpDataSource.InvalidResponseCodeException
+            if(cause.responseCode == 401) {
+                // 認証が必要（Secure Archive Server)
+                val current = currentSource.value
+                if (current != null) {
+                    val retry = Retry(current, player.currentPosition)
+                    currentSource.mutable.value = null
+                    CoroutineScope(Dispatchers.Main).launch {
+                        requestAuthentication.invoke(retry)
+                    }
+                }
+            }
+            else if(!isReady.value) {
                 state.mutable.value = PlayerState.Error
                 errorMessage.mutable.value = AmvStringPool[R.string.error] ?: context.getString(R.string.error)
             } else {

@@ -25,12 +25,14 @@ import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.MultiVisibilityBinding
+import io.github.toyota32k.boodroid.auth.Authentication
 import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.boodroid.view.VideoListView
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.boodroid.viewmodel.MainViewModel
 import io.github.toyota32k.dialog.UtMessageBox
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.dialog.task.UtMortalActivity
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.video.model.ControlPanelModel
@@ -111,6 +113,14 @@ class MainActivity : UtMortalActivity() {
             ControlPanelModel.WindowMode.FULLSCREEN -> layoutForFullscreen()
             ControlPanelModel.WindowMode.NORMAL -> layoutForNormal()
             else -> { logger.error("unexpected state on windowMode.") }
+        }
+
+        viewModel.playerModel.requestAuthentication.bind(this) { current->
+            UtImmortalSimpleTask.run {
+                appViewModel.authentication.authentication(true)
+                viewModel.playerModel.playAt(current.source, current.position)
+                true
+            }
         }
 
 //        if(!isPinP && controlPanelModel.windowMode.value == ControlPanelModel.WindowMode.PINP) {
