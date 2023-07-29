@@ -61,7 +61,7 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout:$constraint_layout_version"
     implementation "com.google.android.material:material:$material_version"
     implementation "androidx.preference:preference:$preference_version"
-    implementation 'androidx.recyclerview:recyclerview:1.3.0'
+    implementation "androidx.recyclerview:recyclerview:$recycle_view_version"
 
     implementation "androidx.room:room-runtime:$room_version"
 //    annotationProcessor "androidx.room:room-compiler:$room_version"
