@@ -8,8 +8,8 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.ui.PlayerNotificationManager
+import androidx.media3.common.Player
+import androidx.media3.ui.PlayerNotificationManager
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.video.model.ControlPanelModel
@@ -48,6 +48,7 @@ class PlayerNotificationService : Service() {
 //        }
     }
 
+    @androidx.media3.common.util.UnstableApi
     override fun onCreate() {
         super.onCreate()
         logger.debug()
@@ -148,6 +149,7 @@ class PlayerNotificationService : Service() {
     }
 
     // detach player
+    @androidx.media3.common.util.UnstableApi
     override fun onDestroy() {
         logger.debug()
         if(controlPanelModel!=null) {

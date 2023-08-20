@@ -3,20 +3,17 @@ package io.github.toyota32k.video.model
 import android.content.Context
 import android.util.Size
 import android.view.ViewGroup
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.PlaybackException
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.SeekParameters
-import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.ui.PlayerNotificationManager
-import com.google.android.exoplayer2.ui.StyledPlayerView
-import com.google.android.exoplayer2.upstream.DefaultDataSource
-import com.google.android.exoplayer2.upstream.HttpDataSource
-import com.google.android.exoplayer2.video.VideoSize
-import io.github.toyota32k.binder.command.ICommand
-import io.github.toyota32k.binder.command.ReliableCommand
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.SeekParameters
+import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.ui.PlayerNotificationManager
+import androidx.media3.ui.PlayerView
 import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.player.model.Range
 import io.github.toyota32k.utils.SuspendableEvent
@@ -50,6 +47,8 @@ import kotlin.math.min
  * しかも、ダイアログのような一時的な画面で使うのでなく、PinPや全画面表示などを有効にするなら、このビューモデルはApplicationスコープのようなライフサイクルオブジェクトに持たせるのがよい。
  * @param context   Application Context
  */
+
+@androidx.media3.common.util.UnstableApi
 class PlayerModel(
     context: Context,                   // application context が必要
 ) : Closeable {
@@ -69,7 +68,7 @@ class PlayerModel(
         addListener(listener)
     }
 
-    fun associatePlayerView(view: StyledPlayerView) {
+    fun associatePlayerView(view: PlayerView) {
         view.player = player
     }
 
