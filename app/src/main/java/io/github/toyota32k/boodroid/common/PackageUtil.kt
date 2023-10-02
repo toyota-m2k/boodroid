@@ -6,8 +6,7 @@ import android.content.pm.PackageManager
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.R
 
-object PackageUtil {
-    fun getPackageInfo(context:Context):PackageInfo? {
+object PackageUtil { fun getPackageInfo(context:Context):PackageInfo? {
         return try {
             val name = context.packageName
             val pm = context.packageManager
