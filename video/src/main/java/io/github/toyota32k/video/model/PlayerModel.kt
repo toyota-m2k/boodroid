@@ -51,7 +51,6 @@ import kotlin.math.min
  * @param context   Application Context
  */
 
-@androidx.media3.common.util.UnstableApi
 class PlayerModel(
     context: Context,                   // application context が必要
 ) : Closeable {

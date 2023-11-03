@@ -10,6 +10,7 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import io.github.toyota32k.binder.Binder
@@ -29,12 +30,12 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
+@androidx.annotation.OptIn(UnstableApi::class)
 class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
     : FrameLayout(context, attrs, defStyleAttr) {
     companion object {
         val logger by lazy { UtLog("EXO", AmvSettings.logger) }
 
-        @androidx.media3.common.util.UnstableApi
         fun createViewModel(context:Context) : PlayerModel {
             return PlayerModel(context)
         }
@@ -48,8 +49,8 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
     var useExoController:Boolean
         get() = playerView.useController
         set(v) { playerView.useController = v }
-    val fitParent:Boolean
-    var playOnTouch:Boolean = false
+    private val fitParent:Boolean
+    private var playOnTouch:Boolean = false
 
 
     init {
@@ -79,14 +80,13 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
         } finally {
             sa.recycle()
         }
-        playerView = findViewById<PlayerView>(R.id.exp_playerView)
+        playerView = findViewById(R.id.exp_playerView)
         if(showControlBar) {
             playerView.useController = true
         }
         rootView = findViewById(R.id.exp_player_root)
     }
 
-    @androidx.media3.common.util.UnstableApi
     fun associatePlayer(flag:Boolean) {
         if(flag) {
             model.playerModel.associatePlayerView(playerView)
@@ -95,7 +95,6 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
         }
     }
 
-    @androidx.media3.common.util.UnstableApi
     fun bindViewModel(controlPanelModel: ControlPanelModel, binder: Binder) {
         val owner = lifecycleOwner()!!
         val scope = owner.lifecycleScope
@@ -148,7 +147,6 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
         playerView.setLayoutSize(videoSize.width, videoSize.height)
     }
 
-    @androidx.media3.common.util.UnstableApi
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         if(!this::model.isInitialized) return

@@ -38,11 +38,11 @@ class MainViewModel : ViewModel() {
 
     lateinit var controlPanelModel:ControlPanelModel
     val playerModel get() = controlPanelModel.playerModel
-    val appViewModel: AppViewModel by lazy { AppViewModel.instance }
+    private val appViewModel: AppViewModel by lazy { AppViewModel.instance }
 
-    val syncToServerCommand = Command()
+    private val syncToServerCommand = Command()
 
-    val syncFromServerCommand = Command ()
+    private val syncFromServerCommand = Command ()
 
     val syncWithServerCommand = Command()
 
@@ -112,7 +112,7 @@ class MainViewModel : ViewModel() {
     private fun refreshVideoListFromServer() {
         AppViewModel.logger.debug()
         viewModelScope.launch {
-            if(loading.value == true) {
+            if(loading.value) {
                 AppViewModel.logger.error("busy.")
                 return@launch
             }

@@ -1,6 +1,6 @@
 package io.github.toyota32k.boodroid
 
-import android.annotation.TargetApi
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
@@ -25,14 +25,12 @@ import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.MultiVisibilityBinding
-import io.github.toyota32k.boodroid.auth.Authentication
 import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.boodroid.view.VideoListView
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.boodroid.viewmodel.MainViewModel
 import io.github.toyota32k.dialog.UtMessageBox
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
-import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.dialog.task.UtMortalActivity
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.video.model.ControlPanelModel
@@ -123,10 +121,6 @@ class MainActivity : UtMortalActivity() {
             }
         }
 
-//        if(!isPinP && controlPanelModel.windowMode.value == ControlPanelModel.WindowMode.PINP) {
-//            controlPanelModel.setWindowMode(ControlPanelModel.WindowMode.NORMAL)
-//        }
-
     }
 
     private var updatingTheme:Boolean = false
@@ -204,11 +198,7 @@ class MainActivity : UtMortalActivity() {
         try {
             logger.info("startForegroundService calling.")
             val intent = Intent(this, PlayerNotificationService::class.java)
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                startForegroundService(intent)
-            } else {
-                startService(intent)
-            }
+            startForegroundService(intent)
         } catch(e:Throwable) {
             logger.stackTrace(e, "cannot start service.")
         }
@@ -220,6 +210,7 @@ class MainActivity : UtMortalActivity() {
     }
 
 
+    @Suppress("SpellCheckingInspection")
     private fun isAcceptableUrl(url:String?):Boolean {
         if(url==null) return false
         if(!url.startsWith("https://")) return false
@@ -266,6 +257,7 @@ class MainActivity : UtMortalActivity() {
     override fun onResume() {
         super.onResume()
         logger.debug()
+        keepScreenOn(true)
     }
 
     override fun onRestart() {
@@ -276,6 +268,7 @@ class MainActivity : UtMortalActivity() {
     override fun onPause() {
         super.onPause()
         logger.debug()
+        keepScreenOn(false)
     }
 
     override fun onStop() {
@@ -292,6 +285,14 @@ class MainActivity : UtMortalActivity() {
                 controlPanelModel.commandTogglePlay.invoke()
             }
             else -> {}
+        }
+    }
+
+    private fun keepScreenOn(sw:Boolean) {
+        if(sw) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
     }
 
@@ -398,7 +399,6 @@ class MainActivity : UtMortalActivity() {
      * PinPに遷移する
      * （PinPから通常モードへの遷移はシステムに任せる。というより、そのようなAPIは存在しない。）
      */
-    @TargetApi(Build.VERSION_CODES.O)
     private fun enterPinP() {
         if(isPinP) return
 
@@ -466,6 +466,7 @@ class MainActivity : UtMortalActivity() {
     /**
      * PinPモードが開始される
      */
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private fun onEnterPinP() {
         logger.debug()
         isPinP = true
@@ -498,7 +499,11 @@ class MainActivity : UtMortalActivity() {
                 }
             }
         }
-        registerReceiver(receiver, IntentFilter(INTENT_NAME))
+        if (Build.VERSION.SDK_INT >= 33) {
+            registerReceiver(receiver, IntentFilter(INTENT_NAME), Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(receiver, IntentFilter(INTENT_NAME))
+        }
     }
 
     /**

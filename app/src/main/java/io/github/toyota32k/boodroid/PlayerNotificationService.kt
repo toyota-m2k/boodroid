@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerNotificationManager
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.utils.UtLog
@@ -24,6 +25,7 @@ import io.github.toyota32k.video.model.PlayerModel
  * を参考にしたが、要するに、（通知エリアに状態を表示する）フォアグラウンドサービスを作って、ここにExoPlayerをアタッチしておけば、
  * アプリがバックグラウンドに回っても、このサービスがフォアグラウンドに居座るので、再生が続けられる、という動作。
  */
+@androidx.annotation.OptIn(UnstableApi::class)
 class PlayerNotificationService : Service() {
     private lateinit var playerNotificationManager: PlayerNotificationManager
 
@@ -48,7 +50,6 @@ class PlayerNotificationService : Service() {
 //        }
     }
 
-    @androidx.media3.common.util.UnstableApi
     override fun onCreate() {
         super.onCreate()
         logger.debug()
@@ -149,7 +150,6 @@ class PlayerNotificationService : Service() {
     }
 
     // detach player
-    @androidx.media3.common.util.UnstableApi
     override fun onDestroy() {
         logger.debug()
         if(controlPanelModel!=null) {
