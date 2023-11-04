@@ -71,6 +71,7 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
     val theme = MutableLiveData(ThemeSetting.SYSTEM)
     val colorVariation = MutableLiveData(ColorVariation.PINK)
     val markList = MutableLiveData<List<Mark>>(emptyList())
+    val showTitleOnScreen = MutableLiveData<Boolean>(false)
     val commandAddToList = Command()
     val commandCategory = Command()
     val categoryList = CategoryList().apply { update() }
@@ -201,6 +202,7 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
             colorVariation = colorVariation.value ?: ColorVariation.PINK,
             marks = markList.value ?: emptyList(),
             category = categoryList.category,
+            showTitleOnScreen = showTitleOnScreen.value ?: false,
         )
 
     fun load() {
@@ -213,6 +215,7 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
         colorVariation.value = s.colorVariation
         markList.value = s.marks
         categoryList.category = s.category
+        showTitleOnScreen.value = s.showTitleOnScreen
     }
 
     fun save(): Boolean {

@@ -28,13 +28,30 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <io.github.toyota32k.video.view.AmvExoVideoPlayer
-            android:id="@+id/player"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            app:playOnTouch="false"
-            />
+            >
+            <io.github.toyota32k.video.view.AmvExoVideoPlayer
+                android:id="@+id/player"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:playOnTouch="false"
+                />
+            <TextView
+                android:id="@+id/title_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="4dp"
+                android:layout_gravity="start|top"
+                android:background="@color/black"
+                android:textColor="@color/white"
+                android:alpha="0.6"
+                android:visibility="gone"
+                tools:text="あいうえお"
+                />
+        </FrameLayout>
 
         <io.github.toyota32k.video.view.ControlPanel
             android:id="@+id/controller"

@@ -19,12 +19,15 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
 import android.widget.ImageButton
+import android.widget.TextView
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.MultiVisibilityBinding
+import io.github.toyota32k.binder.TextBinding
+import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.boodroid.view.VideoListView
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
@@ -91,6 +94,7 @@ class MainActivity : UtMortalActivity() {
         val onlineButton = findViewById<ImageButton>(R.id.online_button)
         val refreshButton = findViewById<ImageButton>(R.id.refresh_button)
         val settingButton = findViewById<ImageButton>(R.id.setting_button)
+        val titleText = findViewById<TextView>(R.id.title_text)
 
         binder.register(
             viewModel.selectOfflineVideoCommand.attachView(selectButton),
@@ -105,6 +109,8 @@ class MainActivity : UtMortalActivity() {
             controlPanelModel.commandPlayerTapped.bind(this, this::onPlayerTapped),
             MultiVisibilityBinding.create(this, onlineButton, syncButton, refreshButton, data = appViewModel.offlineModeFlow.asLiveData(), boolConvert = BoolConvert.Inverse),
             MultiVisibilityBinding.create(this, selectButton, offlineButton, data = appViewModel.offlineModeFlow.asLiveData(), boolConvert = BoolConvert.Straight),
+            TextBinding.create(this, titleText, viewModel.playerModel.currentSource.map { it?.name ?: ""}),
+            VisibilityBinding.create(this, titleText, combine(controlPanelModel.windowMode, viewModel.playerModel.currentSource) {mode,src-> AppViewModel.instance.settings.showTitleOnScreen && mode== ControlPanelModel.WindowMode.FULLSCREEN && src!=null }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
         )
 
         when(controlPanelModel.windowMode.value) {
