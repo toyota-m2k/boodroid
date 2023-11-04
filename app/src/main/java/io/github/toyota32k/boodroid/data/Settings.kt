@@ -74,6 +74,7 @@ class Settings(
     val category:String?,
     val offlineMode:Boolean,
     val offlineFilter:Boolean,
+    val showTitleOnScreen:Boolean,
     ) {
     // コピーコンストラクタ
     constructor(
@@ -88,7 +89,8 @@ class Settings(
         category:String? = src.category,
         offlineMode:Boolean = src.offlineMode,
         offlineFilter:Boolean = src.offlineFilter,
-    ) : this(activeHostIndex, hostList, sourceType, rating, theme, colorVariation, marks, category, offlineMode, offlineFilter)
+        showTitleOnScreen: Boolean = src.showTitleOnScreen,
+    ) : this(activeHostIndex, hostList, sourceType, rating, theme, colorVariation, marks, category, offlineMode, offlineFilter, showTitleOnScreen)
 
     val activeHost:HostAddressEntity?
         get() = if(0<=activeHostIndex&&activeHostIndex<hostList.size) hostList.get(activeHostIndex) else null
@@ -169,6 +171,7 @@ class Settings(
             if(!category.isNullOrBlank()) putString(KEY_CATEGORY, category) else remove(KEY_CATEGORY)
             putBoolean(KEY_OFFLINE, offlineMode)
             putBoolean(KEY_OFFLINE_FILTER, offlineFilter)
+            putBoolean(KEY_SHOW_TITLE_ON_SCREEN, showTitleOnScreen)
         }
         AppViewModel.instance.settings = this
     }
@@ -186,6 +189,7 @@ class Settings(
         const val KEY_CATEGORY = "category"
         const val KEY_OFFLINE = "offline"
         const val KEY_OFFLINE_FILTER = "offlineFilter"
+        const val KEY_SHOW_TITLE_ON_SCREEN = "showTitleOnScreen"
 
         fun load(context: Context): Settings {
             val pref = PreferenceManager.getDefaultSharedPreferences(context)
@@ -200,6 +204,7 @@ class Settings(
                 category = pref.getString(KEY_CATEGORY, null),
                 offlineMode = pref.getBoolean(KEY_OFFLINE, false),
                 offlineFilter = pref.getBoolean(KEY_OFFLINE_FILTER,false),
+                showTitleOnScreen = pref.getBoolean(KEY_SHOW_TITLE_ON_SCREEN, false)
             )
 //                .apply {logger.debug("Settings:Loaded $this")}
         }
@@ -231,6 +236,6 @@ class Settings(
             }
         }
 
-        val empty:Settings = Settings( activeHostIndex = -1, hostList = listOf(), sourceType = SourceType.DB, rating = Rating.NORMAL, theme = ThemeSetting.SYSTEM, colorVariation =  ColorVariation.PINK, marks = listOf(), category = null, offlineMode = false, offlineFilter = false)
+        val empty:Settings = Settings( activeHostIndex = -1, hostList = listOf(), sourceType = SourceType.DB, rating = Rating.NORMAL, theme = ThemeSetting.SYSTEM, colorVariation =  ColorVariation.PINK, marks = listOf(), category = null, offlineMode = false, offlineFilter = false, showTitleOnScreen = false)
     }
 }

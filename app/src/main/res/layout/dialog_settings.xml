@@ -241,6 +241,14 @@
         tools:text="All"
         />
 
+    <CheckBox
+        android:id="@+id/show_title_checkbox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/show_title_on_screen"
+        />
+
+
 
     <TextView
         android:id="@+id/theme_type_label"

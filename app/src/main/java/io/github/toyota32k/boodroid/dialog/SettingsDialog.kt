@@ -13,6 +13,7 @@ import com.google.android.material.button.MaterialButtonToggleGroup
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.BindingMode
 import io.github.toyota32k.binder.BoolConvert
+import io.github.toyota32k.binder.CheckBinding
 import io.github.toyota32k.binder.MaterialRadioButtonGroupBinding
 import io.github.toyota32k.binder.MaterialToggleButtonGroupBinding
 import io.github.toyota32k.binder.MultiEnableBinding
@@ -69,6 +70,7 @@ class SettingsDialog : UtDialog(isDialog=true) {
             val hostList: RecyclerView = root.findViewById(R.id.host_list)
             val categoryButton: Button = root.findViewById(R.id.category_button)
             val emptyListMessage: TextView = root.findViewById(R.id.empty_list_message)
+            val showTitleCheckBox: CheckBox = root.findViewById(R.id.show_title_checkbox)
 //            hostList.layoutManager = LinearLayoutManager(context)
 
 //            logger.debug("DLG: sourceType=${viewModel.sourceType.value}")
@@ -83,6 +85,7 @@ class SettingsDialog : UtDialog(isDialog=true) {
                 TextBinding.create(owner, categoryButton, viewModel.categoryList.currentLabel.map { it ?: "All" }),
                 VisibilityBinding.create(owner, emptyListMessage, viewModel.hostCount.map { it==0 }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone),
                 MultiEnableBinding.create(owner, views = (ratingSelector.listChildren<MaterialButton>() + markSelector.listChildren<MaterialButton>() + categoryButton).toList().toTypedArray(), data=viewModel.sourceType.map { it==SourceType.DB }, alphaOnDisabled = 0.5f),
+                CheckBinding.create(owner, showTitleCheckBox, viewModel.showTitleOnScreen),
                 viewModel.commandAddToList.connectAndBind(owner, addToListButton) { viewModel.addHost() },
 //                viewModel.commandAddToList.connectViewEx(hostAddrEdit),
                 viewModel.commandCategory.connectAndBind(owner, categoryButton, this::selectCategory),

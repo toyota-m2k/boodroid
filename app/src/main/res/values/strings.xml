@@ -61,5 +61,7 @@
     <string name="offline_empty_list">Play list is empty in offline mode.</string>
     <string name="password">Password</string>
     <string name="password_hint">Input your password.</string>
+    <string name="showTitleOnScreen">Show movie title on the screen</string>
+    <string name="show_title_on_screen">Show movie title on the screen</string>
 
 </resources>
