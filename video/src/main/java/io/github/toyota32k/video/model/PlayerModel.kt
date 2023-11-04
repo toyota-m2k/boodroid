@@ -7,6 +7,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
@@ -51,6 +52,7 @@ import kotlin.math.min
  * @param context   Application Context
  */
 
+@androidx.annotation.OptIn(UnstableApi::class)
 class PlayerModel(
     context: Context,                   // application context が必要
 ) : Closeable {
@@ -105,10 +107,9 @@ class PlayerModel(
         seekTo(c.position)
     }
 
-    suspend fun onUpdateCurrentSource(src:IAmvSource?) {
+    private suspend fun onUpdateCurrentSource(src:IAmvSource?) {
         chapterList.mutable.value = null
-        val list = src?.getChapterList()
-        if(list==null) return
+        val list = src?.getChapterList() ?: return
         disabledRanges = src.disabledRanges(list)
         chapterList.mutable.value = list
     }
@@ -248,14 +249,14 @@ class PlayerModel(
      * 認証要求
      */
     data class Retry(val source:IAmvSource, val position: Long)
-    val requestAuthentication: ICommand<Retry> = ReliableCommand<Retry>()
+    val requestAuthentication: ICommand<Retry> = ReliableCommand()
 
     /**
      * （外部から）エラーメッセージを設定する
      */
-    fun setErrorMessage(msg:String?) {
-        errorMessage.mutable.value = msg
-    }
+//    fun setErrorMessage(msg:String?) {
+//        errorMessage.mutable.value = msg
+//    }
 
     /**
      * 動画の全再生時間
@@ -284,7 +285,7 @@ class PlayerModel(
 //    val isDisturbing:StateFlow<Boolean> = MutableStateFlow(false)
     val isLoading = state.map { it == PlayerState.Loading }.stateIn(scope, SharingStarted.Eagerly, false)
     val isReady = state.map { it== PlayerState.Ready }.stateIn(scope, SharingStarted.Eagerly, false)
-    val isPlaying = MutableStateFlow<Boolean>(false)
+    val isPlaying = MutableStateFlow(false)
     val isError = errorMessage.map { !it.isNullOrBlank() }.stateIn(scope, SharingStarted.Lazily, false)
 
     /**
@@ -296,8 +297,7 @@ class PlayerModel(
 
     private val watchPositionEvent = SuspendableEvent(signal = false, autoReset = false)    // スライダー位置監視を止めたり、再開したりするためのイベント
     private val ended = MutableStateFlow(false)                   // 次回再生開始時に先頭に戻すため、最後まで再生したことを覚えておくフラグ
-    var isDisposed:Boolean = false      // close済みフラグ
-        private set
+    private var isDisposed:Boolean = false      // close済みフラグ
 
     init {
         isPlaying.onEach {
@@ -367,7 +367,7 @@ class PlayerModel(
     /**
      * 0-durationで　引数 pos をクリップして返す。
      */
-    fun clipPosition(pos:Long, trimming:Range?):Long {
+    private fun clipPosition(pos:Long, trimming:Range?):Long {
         val duration = naturalDuration.value
         val s:Long
         val e:Long
@@ -454,8 +454,8 @@ class PlayerModel(
 
         override fun onPlayerError(error: PlaybackException) {
             logger.stackTrace(error)
-            val cause = error.cause as HttpDataSource.InvalidResponseCodeException
-            if(cause.responseCode == 401) {
+            val cause = error.cause as? HttpDataSource.InvalidResponseCodeException
+            if(cause?.responseCode == 401) {
                 // 認証が必要（Secure Archive Server)
                 val current = currentSource.value
                 if (current != null) {
@@ -574,9 +574,9 @@ class PlayerModel(
 //
 
     inner class SeekManagerEx {
-        val requestedPositionFromSlider = MutableStateFlow<Long>(-1L)
-        var lastOperationTick:Long = 0L
-        var fastSync = false
+        val requestedPositionFromSlider = MutableStateFlow(-1L)
+        private var lastOperationTick:Long = 0L
+        private var fastSync = false
         init {
             requestedPositionFromSlider.onEach {
                 val tick = System.currentTimeMillis()
@@ -592,13 +592,13 @@ class PlayerModel(
             }.launchIn(scope)
         }
 
-        fun setFastSeek() {
+        private fun setFastSeek() {
             if(!fastSync) {
                 player.setSeekParameters(SeekParameters.CLOSEST_SYNC)
                 fastSync = true
             }
         }
-        fun setExactSync() {
+        private fun setExactSync() {
             if(fastSync) {
                 player.setSeekParameters(SeekParameters.EXACT)
                 fastSync = false

@@ -18,13 +18,12 @@ import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.TextBinding
 import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.utils.UtLog
-import io.github.toyota32k.video.common.AmvSettings
-import io.github.toyota32k.video.model.ControlPanelModel
-import io.github.toyota32k.video.model.PlayerModel
 import io.github.toyota32k.utils.lifecycleOwner
 import io.github.toyota32k.utils.px2dp
 import io.github.toyota32k.utils.setLayoutSize
 import io.github.toyota32k.video.R
+import io.github.toyota32k.video.common.AmvSettings
+import io.github.toyota32k.video.model.ControlPanelModel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
@@ -36,9 +35,9 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
     companion object {
         val logger by lazy { UtLog("EXO", AmvSettings.logger) }
 
-        fun createViewModel(context:Context) : PlayerModel {
-            return PlayerModel(context)
-        }
+//        fun createViewModel(context:Context) : PlayerModel {
+//            return PlayerModel(context)
+//        }
     }
 
     private val playerView: PlayerView
@@ -46,9 +45,9 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
 
     // 使う人（ActivityやFragment）がセットすること
     private lateinit var model: ControlPanelModel
-    var useExoController:Boolean
-        get() = playerView.useController
-        set(v) { playerView.useController = v }
+//    var useExoController:Boolean
+//        get() = playerView.useController
+//        set(v) { playerView.useController = v }
     private val fitParent:Boolean
     private var playOnTouch:Boolean = false
 
@@ -87,6 +86,7 @@ class AmvExoVideoPlayer @JvmOverloads constructor(context: Context, attrs: Attri
         rootView = findViewById(R.id.exp_player_root)
     }
 
+    @Suppress("unused")
     fun associatePlayer(flag:Boolean) {
         if(flag) {
             model.playerModel.associatePlayerView(playerView)

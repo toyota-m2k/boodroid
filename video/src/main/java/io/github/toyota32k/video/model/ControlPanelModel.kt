@@ -31,7 +31,7 @@ open class ControlPanelModel(
      * コントローラーのCoroutineScope
      * playerModel.scope を継承するが、ライフサイクルが異なるので、新しいインスタンスにしておく。
      */
-    val scope:CoroutineScope = CoroutineScope(playerModel.scope.coroutineContext)
+    private val scope:CoroutineScope = CoroutineScope(playerModel.scope.coroutineContext)
 
     /**
      * ApplicationContext参照用
@@ -100,9 +100,9 @@ open class ControlPanelModel(
     /**
      * スライダーのカウンター表示文字列
      */
-    val counterText:Flow<String> = combine(playerModel.playerSeekPosition, playerModel.naturalDuration) { pos, duration->
-        "${formatTime(pos,duration)} / ${formatTime(duration,duration)}"
-    }
+//    val counterText:Flow<String> = combine(playerModel.playerSeekPosition, playerModel.naturalDuration) { pos, duration->
+//        "${formatTime(pos,duration)} / ${formatTime(duration,duration)}"
+//    }
 
     // endregion
 
