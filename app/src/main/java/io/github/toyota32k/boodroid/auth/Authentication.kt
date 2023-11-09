@@ -6,16 +6,13 @@ import io.github.toyota32k.boodroid.data.NetClient
 import io.github.toyota32k.boodroid.dialog.PasswordDialog
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
-import io.github.toyota32k.utils.UtLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.json.JSONObject
-import java.util.IllegalFormatException
 
 class Authentication {
     companion object {
@@ -50,7 +47,7 @@ class Authentication {
     }
 
     private suspend fun getChallenge():String {
-        val url = AppViewModel.instance.settings.authUrl("")
+        val url = AppViewModel.url.auth("")
         val req = Request.Builder()
             .url(url)
             .get()
@@ -67,7 +64,7 @@ class Authentication {
         return withContext(Dispatchers.IO) {
             val challenge = challenge ?: getChallenge()
             val passPhrase = getPassPhrase(password, challenge)
-            val url = AppViewModel.instance.settings.authUrl()
+            val url = AppViewModel.url.auth
             val req = Request.Builder()
                 .url(url)
                 .put(passPhrase.toRequestBody("text/plain".toMediaType()))
@@ -91,7 +88,7 @@ class Authentication {
     private suspend fun checkAuthToken():Boolean {
         val token = authToken ?: return false
         return withContext(Dispatchers.IO) {
-            val url = AppViewModel.instance.settings.authUrl(token)
+            val url = AppViewModel.url.auth(token)
             val req = Request.Builder()
                 .url(url)
                 .get()

@@ -119,7 +119,7 @@ class MainViewModel : ViewModel() {
             val src = try {
                 loading.value = true
                 withContext(Dispatchers.IO) {
-                    appViewModel.setCapability(ServerCapability.get())
+                    appViewModel.setCapability(ServerCapability.get(appViewModel.settings.hostAddress)?:ServerCapability.empty)
                     VideoListSource.retrieve()
                 }
             } catch(e:Throwable) {
@@ -192,7 +192,7 @@ class MainViewModel : ViewModel() {
      */
     fun syncToServer() {
         val current = controlPanelModel.playerModel.currentSource.value ?: return
-        val url = appViewModel.settings.urlCurrentItem()
+        val url = AppViewModel.url.current
         val json = JSONObject()
             .put("id", current.id)
             .toString()
@@ -213,7 +213,7 @@ class MainViewModel : ViewModel() {
      * BooTube上で選択（フォーカス）されている動画をBooRemote上で再生する。
      */
     fun syncFromServer() {
-        val url = appViewModel.settings.urlCurrentItem()
+        val url = AppViewModel.url.current
         val req = Request.Builder()
             .url(url)
             .get()
@@ -233,7 +233,7 @@ class MainViewModel : ViewModel() {
     // YouTube url をサーバーに登録
     fun registerYouTubeUrl(rawUrl:String) {
         val urlParam = rawUrl.split("\r", "\n", " ", "\t").firstOrNull { it.isNotBlank() } ?: return
-        val url = appViewModel.settings.urlToRegister(urlParam)
+        val url = AppViewModel.url.register(urlParam)
         CoroutineScope(Dispatchers.IO).launch {
             val req = Request.Builder()
                 .url(url)
@@ -248,7 +248,7 @@ class MainViewModel : ViewModel() {
     }
 
     private fun syncWithServer() {
-        UtImmortalSimpleTask.run("OfflineMenu") {
+        UtImmortalSimpleTask.run("SyncWithServer") {
             val context = BooApplication.instance.applicationContext
             fun s(@StringRes id:Int):String = context.getString(id)
             val menuItems = arrayOf(

@@ -1,60 +1,92 @@
 package io.github.toyota32k.boodroid.data
 
-import io.github.toyota32k.boodroid.common.toIterable
-import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.utils.UtLogger
-import io.github.toyota32k.ytremote.data.CategoryInfo
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.json.JSONObject
 
-data class ServerCapability(
-    val serverName:String,
-    val version:Int,                // protocol version
-    val root:String,
-    val hasCategory:Boolean,
-    val hasRating:Boolean,
-    val hasMark:Boolean,
-    val hasChapter:Boolean,
-    val canSync:Boolean,
-    val acceptRequest:Boolean,
-    val hasView:Boolean,
-    val needAuth:Boolean,
-) {
-    constructor(j:JSONObject) : this(
-        j.optString("serverName", "unknown"),
-        j.optInt("version", 0),
-        j.optString("root", "/ytplayer/"),
-        j.optBoolean("category", false),
-        j.optBoolean("rating", false),
-        j.optBoolean("mask", false),
-        j.optBoolean("chapter", false),
-        j.optBoolean("sync", false),
-        j.optBoolean("acceptRequest", false),
-        j.optBoolean("hasView", false),
-        j.optBoolean("authentication", false),
+interface ICapability {
+    val hostAddress:String
+    val baseUrl : String
+
+    val serverName:String
+    val version:Int                // protocol version
+    val root:String
+    val hasCategory:Boolean
+    val hasRating:Boolean
+    val hasMark:Boolean
+    val hasChapter:Boolean
+    val canSync:Boolean
+    val acceptRequest:Boolean
+    val hasView:Boolean
+    val needAuth:Boolean
+}
+data class Capability(
+    override val hostAddress: String,
+    override val serverName:String,
+    override val version:Int,                // protocol version
+    override val root:String,
+    override val hasCategory:Boolean,
+    override val hasRating:Boolean,
+    override val hasMark:Boolean,
+    override val hasChapter:Boolean,
+    override val canSync:Boolean,
+    override val acceptRequest:Boolean,
+    override val hasView:Boolean,
+    override val needAuth:Boolean,
+) : ICapability {
+    constructor(hostAddress:String, j:JSONObject) : this(
+        hostAddress,
+        serverName = j.optString("serverName", "unknown"),
+        version = j.optInt("version", 0),
+        root = j.optString("root", "/ytplayer/"),
+        hasCategory = j.optBoolean("category", false),
+        hasRating = j.optBoolean("rating", false),
+        hasMark = j.optBoolean("mark", false),
+        hasChapter = j.optBoolean("chapter", false),
+        canSync = j.optBoolean("sync", false),
+        acceptRequest = j.optBoolean("acceptRequest", false),
+        hasView = j.optBoolean("hasView", false),
+        needAuth = j.optBoolean("authentication", false),
     )
 
+    override val baseUrl : String get() = "http://${hostAddress}${root}"
+
     companion object {
-        val empty = ServerCapability("unknown", 0, "/", false, false, false, false, false,false,false,false)
-        suspend fun get():ServerCapability {
-            if (!AppViewModel.instance.settings.isValid) return empty
+        val empty = Capability("", "unknown", 0, "/", false, false, false, false, false,false,false,false)
+        suspend fun get(hostAddress: String):Capability? {
+//            if (!AppViewModel.instance.settings.isValid) return empty
             return withContext(Dispatchers.IO) {
-                val url = AppViewModel.instance.settings.urlCapability()
+                val url = "http://${hostAddress}/capability"
                 val req = Request.Builder()
                     .url(url)
                     .get()
                     .build()
                 try {
-                    ServerCapability(NetClient.executeAndGetJsonAsync(req))
+                    Capability(hostAddress, NetClient.executeAndGetJsonAsync(req))
                 } catch (e: Throwable) {
                     UtLogger.stackTrace(e)
-                    empty
+                    null
                 }
             }
         }
     }
+}
+
+data class ServerCapability(private val capability: Capability, val categoryList: CategoryList, val markList:MarkList, val ratingList:RatingList) : ICapability by capability {
+    companion object {
+        val empty:ServerCapability = ServerCapability(Capability.empty, CategoryList.emptyList, MarkList.emptyList, RatingList.emptyList)
+        suspend fun get(hostAddress:String?): ServerCapability? {
+            if(hostAddress==null) return null
+            val capability = Capability.get(hostAddress) ?: return null
+            return ServerCapability(
+                capability,
+                CategoryList.getCategoryList(capability),
+                MarkList.getMarkList(capability),
+                RatingList.getRatingList(capability)
+                )
+        }
+    }
+
 }

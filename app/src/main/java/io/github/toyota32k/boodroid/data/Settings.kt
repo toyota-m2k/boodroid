@@ -16,6 +16,7 @@ import io.github.toyota32k.utils.UtLog
 import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.IllegalStateException
+import java.net.URL
 
 enum class ThemeSetting(val v:Int, @IdRes val id:Int, val mode:Int) {
     SYSTEM(0, R.id.chk_theme_system, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM),
@@ -62,19 +63,25 @@ enum class ColorVariation(val v:Int, @IdRes val id:Int, @StyleRes val themeId:In
 
 data class HostAddressEntity(val name:String, val address:String)
 
+data class SettingsOnServer(val minRating:Int, val marks:List<Int>, val category:String) {
+    companion object {
+        val clean:SettingsOnServer = SettingsOnServer(0, emptyList(), "All")
+    }
+}
+
 class Settings(
 //    val activeHost: HostAddressEntity?,
     val activeHostIndex:Int,
     val hostList: List<HostAddressEntity>,
     val sourceType: SourceType,
-    val rating:Rating,
     val theme:ThemeSetting,
     val colorVariation: ColorVariation,
-    val marks:List<Mark>,
-    val category:String?,
+
     val offlineMode:Boolean,
     val offlineFilter:Boolean,
+
     val showTitleOnScreen:Boolean,
+    val settingsOnServer: Map<String,SettingsOnServer>,
     ) {
     // コピーコンストラクタ
     constructor(
@@ -82,20 +89,17 @@ class Settings(
         activeHostIndex:Int = src.activeHostIndex,
         hostList: List<HostAddressEntity> = src.hostList,
         sourceType: SourceType = src.sourceType,
-        rating:Rating = src.rating,
         theme:ThemeSetting = src.theme,
         colorVariation: ColorVariation = src.colorVariation,
-        marks:List<Mark> = src.marks,
-        category:String? = src.category,
         offlineMode:Boolean = src.offlineMode,
         offlineFilter:Boolean = src.offlineFilter,
         showTitleOnScreen: Boolean = src.showTitleOnScreen,
-    ) : this(activeHostIndex, hostList, sourceType, rating, theme, colorVariation, marks, category, offlineMode, offlineFilter, showTitleOnScreen)
+        settingsOnServer: Map<String,SettingsOnServer> = src.settingsOnServer
+    ) : this(activeHostIndex, hostList, sourceType, theme, colorVariation, offlineMode, offlineFilter, showTitleOnScreen, settingsOnServer)
 
-    val activeHost:HostAddressEntity?
+    private val activeHost:HostAddressEntity?
         get() = if(0<=activeHostIndex&&activeHostIndex<hostList.size) hostList.get(activeHostIndex) else null
     val isValid get() = !activeHost?.address.isNullOrBlank()
-
     val hostAddress:String?
         get() = activeHost?.address?.let { host ->
             return if(host.contains(":")) {
@@ -104,56 +108,11 @@ class Settings(
                 "${host}:3500"
             }
         }
-    val restCommandBase:String get() = AppViewModel.instance.capability.value.root
+    val settingsOnActiveHost : SettingsOnServer
+        get() = settingsOnServer[hostAddress ?: ""] ?: SettingsOnServer.clean
+
+    private val restCommandBase:String get() = AppViewModel.instance.capability.value.root
     val baseUrl : String get() = "http://${hostAddress}${restCommandBase}"
-
-
-    fun urlCapability(): String {
-        return "http://${hostAddress}/capability"
-    }
-
-    fun authUrl():String {
-        return baseUrl + "auth"
-    }
-    fun authUrl(token:String):String {
-        return baseUrl + "auth/" + token
-    }
-
-    fun listUrl(date:Long):String {
-        return VideoItemFilter(this).urlWithQueryString(date)
-    }
-
-    fun checkUrl(date:Long):String {
-        return baseUrl + "check?date=${date}"
-    }
-
-    fun videoUrl(id:String):String {
-        val qb = QueryBuilder()
-        val authToken = AppViewModel.instance.authentication.authToken
-        if(authToken!=null) {
-            qb.add("auth", authToken)
-        }
-        qb.add("id", id)
-        return baseUrl + "video?" + qb.queryString
-    }
-
-    fun urlToRegister(url:String):String {
-        return baseUrl + "bootube/register?url=${url}"
-    }
-
-    fun urlToListCategories(): String {
-        return baseUrl + "category"
-    }
-    fun urlCurrentItem():String {
-        return baseUrl + "current"
-    }
-    fun urlChapters(id:String):String {
-        return baseUrl + "chapter?id=$id"
-    }
-
-    fun urlReputation():String {
-        return baseUrl + "reputation"
-    }
 
     fun save(context: Context) {
 //        UtLogger.assert(isValid, "invalid settings")
@@ -164,14 +123,12 @@ class Settings(
             putInt(KEY_ACTIVE_HOST_INDEX, activeHostIndex)
             putString(KEY_HOST_ENTITY_LIST, serializeHosts(hostList))
             putInt(KEY_SOURCE_TYPE, sourceType.v)
-            putInt(KEY_RATING, rating.v)
             putInt(KEY_THEME, theme.v)
             putInt(KEY_COLOR_VARIATION, colorVariation.v)
-            putStringSet(KEY_MARKS, marks.map {it.toString()}.toSet())
-            if(!category.isNullOrBlank()) putString(KEY_CATEGORY, category) else remove(KEY_CATEGORY)
             putBoolean(KEY_OFFLINE, offlineMode)
             putBoolean(KEY_OFFLINE_FILTER, offlineFilter)
             putBoolean(KEY_SHOW_TITLE_ON_SCREEN, showTitleOnScreen)
+            putStringSet(KEY_SETTINGS_ON_SERVER, serializeSettingsOnServer(settingsOnServer))
         }
         AppViewModel.instance.settings = this
     }
@@ -182,14 +139,15 @@ class Settings(
         const val KEY_ACTIVE_HOST_INDEX = "activeHostIndex"
         const val KEY_HOST_ENTITY_LIST = "hostEntityList"
         const val KEY_SOURCE_TYPE = "sourceType"
-        const val KEY_RATING = "rating"
         const val KEY_THEME = "theme"
         const val KEY_COLOR_VARIATION = "colorVariation"
-        const val KEY_MARKS = "marks"
-        const val KEY_CATEGORY = "category"
+//        const val KEY_RATING = "rating"
+//        const val KEY_MARKS = "marks"
+//        const val KEY_CATEGORY = "category"
         const val KEY_OFFLINE = "offline"
         const val KEY_OFFLINE_FILTER = "offlineFilter"
         const val KEY_SHOW_TITLE_ON_SCREEN = "showTitleOnScreen"
+        const val KEY_SETTINGS_ON_SERVER = "settingsOnServer"
 
         fun load(context: Context): Settings {
             val pref = PreferenceManager.getDefaultSharedPreferences(context)
@@ -197,19 +155,45 @@ class Settings(
                 activeHostIndex = pref.getInt(KEY_ACTIVE_HOST_INDEX, -1),
                 hostList =  deserializeHosts(pref.getString(KEY_HOST_ENTITY_LIST, null)),
                 sourceType = SourceType.valueOf(pref.getInt(KEY_SOURCE_TYPE, -1)),
-                rating = Rating.valueOf(pref.getInt(KEY_RATING, -1)),
                 theme = ThemeSetting.valueOf(pref.getInt(KEY_THEME, -1)),
                 colorVariation = ColorVariation.valueOf(pref.getInt(KEY_COLOR_VARIATION,-1)),
-                marks = pref.getStringSet(KEY_MARKS, null)?.map { Mark.valueOf(it) } ?: listOf(),
-                category = pref.getString(KEY_CATEGORY, null),
                 offlineMode = pref.getBoolean(KEY_OFFLINE, false),
                 offlineFilter = pref.getBoolean(KEY_OFFLINE_FILTER,false),
-                showTitleOnScreen = pref.getBoolean(KEY_SHOW_TITLE_ON_SCREEN, false)
+                showTitleOnScreen = pref.getBoolean(KEY_SHOW_TITLE_ON_SCREEN, false),
+                settingsOnServer = deserializeSettingsOnServer(pref.getStringSet(KEY_SETTINGS_ON_SERVER, null))
             )
 //                .apply {logger.debug("Settings:Loaded $this")}
         }
 
-        fun serializeHosts(list:List<HostAddressEntity>):String {
+        private fun serializeSettingsOnServer(settings:Map<String,SettingsOnServer>):Set<String> {
+            return settings.map {
+                JSONObject().apply {
+                    put("k",it.key)
+                    put("r",it.value.minRating)
+                    put("m",it.value.marks.fold(JSONArray()) {ja, m->ja.put(m)})
+                    put("c", it.value.category)
+                }.toString()
+            }.toSet()
+        }
+        private fun deserializeSettingsOnServer(jsonStrings: Set<String>?):Map<String,SettingsOnServer> {
+            return try {
+                if(null == jsonStrings) return emptyMap()
+                return jsonStrings.fold(mutableMapOf<String,SettingsOnServer>()) { map, j ->
+                    val json = JSONObject(j)
+                    val k = json.getString("k")
+                    val r = json.getInt("r")
+                    val c = json.getString("c")
+                    val m = json.getJSONArray("m").toIterable().map {it as Int }
+                    map.apply { put(k, SettingsOnServer(r,m,c)) }
+                }
+            } catch(e:Throwable) {
+                logger.stackTrace(e)
+                emptyMap()
+            }
+
+        }
+
+        private fun serializeHosts(list:List<HostAddressEntity>):String {
             return list.fold(JSONArray()) {json, v->
                 json.put(JSONObject().apply  {
                     put("n", v.name)
@@ -219,7 +203,7 @@ class Settings(
             }.toString().apply { logger.debug(this) }
         }
 
-        fun deserializeHosts(jsonString:String?):List<HostAddressEntity> {
+        private fun deserializeHosts(jsonString:String?):List<HostAddressEntity> {
             return try {
                 val json = JSONArray(jsonString ?: return emptyList())
                 json.toIterable().mapNotNull {
@@ -236,6 +220,16 @@ class Settings(
             }
         }
 
-        val empty:Settings = Settings( activeHostIndex = -1, hostList = listOf(), sourceType = SourceType.DB, rating = Rating.NORMAL, theme = ThemeSetting.SYSTEM, colorVariation =  ColorVariation.PINK, marks = listOf(), category = null, offlineMode = false, offlineFilter = false, showTitleOnScreen = false)
+        val empty:Settings = Settings(
+            activeHostIndex = -1,
+            hostList = listOf(),
+            sourceType = SourceType.DB,
+            theme = ThemeSetting.SYSTEM,
+            colorVariation =  ColorVariation.PINK,
+            offlineMode = false,
+            offlineFilter = false,
+            showTitleOnScreen = false,
+            settingsOnServer = emptyMap()
+            )
     }
 }

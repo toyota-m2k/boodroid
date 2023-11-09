@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.ListPopupWindow
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.map
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
@@ -21,14 +22,29 @@ import io.github.toyota32k.binder.RadioGroupBinding
 import io.github.toyota32k.binder.RecyclerViewBinding
 import io.github.toyota32k.binder.TextBinding
 import io.github.toyota32k.binder.VisibilityBinding
+import io.github.toyota32k.binder.checkBinding
 import io.github.toyota32k.binder.command.Command
+import io.github.toyota32k.binder.command.LiteCommand
+import io.github.toyota32k.binder.command.LiteUnitCommand
+import io.github.toyota32k.binder.command.bindCommand
+import io.github.toyota32k.binder.enableBinding
+import io.github.toyota32k.binder.materialRadioButtonGroupBinding
+import io.github.toyota32k.binder.multiVisibilityBinding
+import io.github.toyota32k.binder.radioGroupBinding
+import io.github.toyota32k.binder.recyclerViewBinding
+import io.github.toyota32k.binder.textBinding
+import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.data.*
+import io.github.toyota32k.boodroid.databinding.DialogSettingsBinding
 import io.github.toyota32k.boodroid.viewmodel.SettingViewModel
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.utils.disposableObserve
 import io.github.toyota32k.utils.listChildren
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 
 class SettingsDialog : UtDialog(isDialog=true) {
     lateinit var viewModel: SettingViewModel
@@ -57,62 +73,62 @@ class SettingsDialog : UtDialog(isDialog=true) {
         setRightButton(BuiltInButtonType.DONE)
     }
 
+    private lateinit var binderWithCapability:Binder
+    private lateinit var controls: DialogSettingsBinding
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
+        binderWithCapability = Binder() // binder.dispose()で disposeされるので、毎回作成
         val owner = requireActivity()
-        return inflater.inflate(R.layout.dialog_settings).also { root->
-            val sourceTypeSelector: RadioGroup = root.findViewById(R.id.source_type_selector)
-            val ratingSelector: MaterialButtonToggleGroup = root.findViewById(R.id.rating_selector)
-            val themeSelector: RadioGroup = root.findViewById(R.id.theme_selector)
-            val colorVariationSelector:RadioGroup = root.findViewById(R.id.color_variation_selector)
-            val markSelector: MaterialButtonToggleGroup = root.findViewById(R.id.mark_selector)
-//            val hostAddrEdit: EditText = root.findViewById(R.id.host_addr_edit)
-            val addToListButton: View = root.findViewById(R.id.add_to_list_button)
-            val hostList: RecyclerView = root.findViewById(R.id.host_list)
-            val categoryButton: Button = root.findViewById(R.id.category_button)
-            val emptyListMessage: TextView = root.findViewById(R.id.empty_list_message)
-            val showTitleCheckBox: CheckBox = root.findViewById(R.id.show_title_checkbox)
-//            hostList.layoutManager = LinearLayoutManager(context)
+        binder.owner(owner)
+        binderWithCapability.owner(owner)
 
-//            logger.debug("DLG: sourceType=${viewModel.sourceType.value}")
-
-            binder.register(
-                RadioGroupBinding.create(owner, sourceTypeSelector, viewModel.sourceType, SourceType.idResolver, BindingMode.TwoWay),
-                MaterialRadioButtonGroupBinding.create(owner, ratingSelector, viewModel.rating, Rating.idResolver, BindingMode.TwoWay),
-                RadioGroupBinding.create(owner, themeSelector, viewModel.theme, ThemeSetting.idResolver, BindingMode.TwoWay),
-                RadioGroupBinding.create(owner, colorVariationSelector, viewModel.colorVariation, ColorVariation.idResolver, BindingMode.TwoWay),
-                MaterialToggleButtonGroupBinding.create(owner, markSelector, viewModel.markList, Mark.idResolver, BindingMode.TwoWay),
-//                EditTextBinding.create(owner, hostAddrEdit, viewModel.editingHost),
-                TextBinding.create(owner, categoryButton, viewModel.categoryList.currentLabel.map { it ?: "All" }),
-                VisibilityBinding.create(owner, emptyListMessage, viewModel.hostCount.map { it==0 }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone),
-                MultiEnableBinding.create(owner, views = (ratingSelector.listChildren<MaterialButton>() + markSelector.listChildren<MaterialButton>() + categoryButton).toList().toTypedArray(), data=viewModel.sourceType.map { it==SourceType.DB }, alphaOnDisabled = 0.5f),
-                CheckBinding.create(owner, showTitleCheckBox, viewModel.showTitleOnScreen),
-                viewModel.commandAddToList.connectAndBind(owner, addToListButton) { viewModel.addHost() },
-//                viewModel.commandAddToList.connectViewEx(hostAddrEdit),
-                viewModel.commandCategory.connectAndBind(owner, categoryButton, this::selectCategory),
-
-                RecyclerViewBinding.create(owner, hostList, viewModel.hostList, R.layout.list_item_host) { binder, view, host ->
+        controls = DialogSettingsBinding.inflate(inflater.layoutInflater).apply {
+            viewModel.capability.onEach {cap->
+                binderWithCapability.reset()
+                if(cap!=null) {
+                    binderWithCapability
+                        .bindRatingList(ratingSelector, viewModel.rating, cap.ratingList)
+                        .bindMarkList(markSelector, viewModel.marks, cap.markList)
+                }
+            }
+            binder
+                .add(binderWithCapability)
+                .radioGroupBinding(sourceTypeSelector, viewModel.sourceType, SourceType.idResolver)
+                .radioGroupBinding(themeSelector, viewModel.theme, ThemeSetting.idResolver)
+                .radioGroupBinding(colorVariationSelector, viewModel.colorVariation, ColorVariation.idResolver)
+                .textBinding(categoryButton, viewModel.category)
+                .visibilityBinding(emptyListMessage, viewModel.hostCount.map { it==0 }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+                .multiVisibilityBinding(arrayOf(ratingSelector,ratingLabel), combine(viewModel.sourceType,viewModel.capability) { st,cap-> st == SourceType.DB && cap?.hasRating == true }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+                .multiVisibilityBinding(arrayOf(markSelector,markLabel), combine(viewModel.sourceType, viewModel.capability) { st,cap->st == SourceType.DB && cap?.hasMark == true }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+                .multiVisibilityBinding(arrayOf(categoryButton,categoryLabel), combine(viewModel.sourceType, viewModel.capability) {st,cap-> st == SourceType.DB && cap?.hasCategory == true}, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+                .checkBinding(showTitleCheckbox, viewModel.showTitleOnScreen)
+                .bindCommand(viewModel.commandAddToList, addToListButton)
+                .bindCommand(viewModel.commandCategory, categoryButton, callback=this@SettingsDialog::selectCategory)
+                .enableBinding(rightButton, viewModel.capability.map { it!=null })
+                .recyclerViewBinding(hostList, viewModel.hostList, R.layout.list_item_host) { binder, view, host ->
                     view.findViewById<TextView>(R.id.name_text).text = if(host.name.isBlank()) "no name" else host.name
                     view.findViewById<TextView>(R.id.address_text).text = host.address
-                    binder.register(
-                        Command().connectAndBind(owner, view.findViewById(R.id.item_container)) {  viewModel.activeHost.value = host },
-                        Command().connectAndBind(owner, view.findViewById(R.id.edit_button)) {  viewModel.editHost(host) },
-                        Command().connectAndBind(owner, view.findViewById(R.id.del_button)) {  viewModel.removeHost(host) },
-                        VisibilityBinding.create(owner, view.findViewById(R.id.check_mark), viewModel.activeHost.map { it==host }, BoolConvert.Straight, VisibilityBinding.HiddenMode.HideByInvisible),
-                    )
-                },
-
-                viewModel.theme.disposableObserve(owner) { theme->
-                    val mode = theme?.mode ?: return@disposableObserve
-                    if(AppCompatDelegate.getDefaultNightMode()!=mode) {
-                        AppCompatDelegate.setDefaultNightMode(mode)
-                    }
-                },
-                viewModel.commandComplete.bind(owner) {
-                    complete(if(viewModel.result) IUtDialog.Status.POSITIVE else IUtDialog.Status.NEGATIVE)
+                    binder.reset()
+                    binder
+                        .owner(owner)
+                        .bindCommand(LiteUnitCommand { viewModel.activeHost.value = host }, view.findViewById<View>(R.id.item_container))
+                        .bindCommand(LiteCommand(viewModel::editHost), view.findViewById(R.id.edit_button), host)
+                        .bindCommand(LiteCommand(viewModel::removeHost), view.findViewById(R.id.del_button), host)
+                        .visibilityBinding(view.findViewById(R.id.check_mark), viewModel.activeHost.map { it==host }, hiddenMode = VisibilityBinding.HiddenMode.HideByInvisible)
                 }
-            )
-//            logger.debug("DLG: sourceType=${viewModel.sourceType.value}, ${SourceType.idResolver.id2value(sourceTypeSelector.checkedRadioButtonId) }")
+                .add(
+                    viewModel.theme.disposableObserve(owner) { theme->
+                        val mode = theme.mode
+                        if(AppCompatDelegate.getDefaultNightMode()!=mode) {
+                            AppCompatDelegate.setDefaultNightMode(mode)
+                        }
+                    },
+                    viewModel.commandComplete.bind(owner) {
+                        complete(if(viewModel.result) IUtDialog.Status.POSITIVE else IUtDialog.Status.NEGATIVE)
+                    }
+                )
+
         }
+        return controls.root
     }
 
 //    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -122,16 +138,18 @@ class SettingsDialog : UtDialog(isDialog=true) {
 //    }
 
     private var listPopup: ListPopupWindow? = null
-    private fun selectCategory(view: View?) {
-        val adapter = ArrayAdapter(context, R.layout.list_item_category,viewModel.categoryList.list.value?.map {it.label}?.toTypedArray() ?: arrayOf("All"))
+    private fun selectCategory() {
+        val cap = viewModel.capability.value ?: return
+        if(!cap.hasCategory || cap.categoryList.size<=1) return
+        val adapter = ArrayAdapter(context, R.layout.list_item_category, cap.categoryList.map {it.label})
         listPopup = ListPopupWindow(context)
             .apply {
                 setAdapter(adapter)
-                anchorView = view
+                anchorView = controls.categoryButton
                 setOnItemClickListener { _, _, position, _ ->
                     val cat = adapter.getItem(position)
                     if(null!=cat) {
-                        viewModel.categoryList.category = cat
+                        viewModel.category.value = cat
                     }
                     listPopup?.dismiss()
                     listPopup = null

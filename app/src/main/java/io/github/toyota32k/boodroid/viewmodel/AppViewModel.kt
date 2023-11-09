@@ -8,8 +8,10 @@ import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.auth.Authentication
 import io.github.toyota32k.boodroid.common.IUtPropertyHost
+import io.github.toyota32k.boodroid.data.QueryBuilder
 import io.github.toyota32k.boodroid.data.ServerCapability
 import io.github.toyota32k.boodroid.data.Settings
+import io.github.toyota32k.boodroid.data.VideoItemFilter
 import io.github.toyota32k.boodroid.dialog.SettingsDialog
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
 import io.github.toyota32k.utils.UtLog
@@ -18,11 +20,29 @@ import io.github.toyota32k.video.model.ControlPanelModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
+interface IURLResolver {
+    val auth:String
+    fun auth(token:String):String
+    val list:String
+    fun list(date:Long):String
+    fun check(date:Long):String
+    fun video(id:String):String
+    fun chapter(id:String):String
+
+    fun register(param:String):String
+    val current:String
+    val reputation:String
+    fun reputation(id:String):String
+}
+
 class AppViewModel: ViewModel(), IUtPropertyHost {
     companion object {
         val logger = UtLog("AVP", BooApplication.logger)
         val instance: AppViewModel
             get() = ViewModelProvider(BooApplication.instance, ViewModelProvider.NewInstanceFactory())[AppViewModel::class.java].prepare()
+        val url: IURLResolver
+            get() = instance.urlResolver
+
     }
     // region Initialization / Termination
 
@@ -114,8 +134,9 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
             if(v!=field) {
                 val o = field
                 field = v
-                if(v.listUrl(0)!=o.listUrl(0) || v.offlineMode || v.offlineMode!=o.offlineMode) {
-                    offlineMode = v.offlineMode
+                val urlChanged =VideoItemFilter.urlWithQueryString(o, 0, null)!=VideoItemFilter.urlWithQueryString(v, 0, null)
+                if(urlChanged||o.offlineMode!=v.offlineMode) {
+                    offlineMode = if(urlChanged) false else v.offlineMode
                     refreshCommand.invoke()
                 }
                 if(v.colorVariation!=o.colorVariation) {
@@ -153,6 +174,47 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
             refreshCommand.invoke()
         }
     }
+
+    inner class URLResolver : IURLResolver {
+        private val baseUrl get() = settings.baseUrl
+        private val authToken get() = authentication.authToken
+        override val auth:String get() = "${baseUrl}auth"
+        override fun auth(token:String):String {
+            return "${baseUrl}auth/$token"
+        }
+        override val list:String get() = VideoItemFilter.urlWithQueryString(settings, 0, authToken)
+        override fun list(date:Long):String {
+            return VideoItemFilter.urlWithQueryString(settings, date, authToken)
+        }
+        override fun check(date:Long):String {
+            return "${baseUrl}/check?date=${date}"
+        }
+        override fun video(id:String):String {
+            val qb = QueryBuilder()
+            authToken?.also { token->
+                qb.add("auth", token)
+            }
+            qb.add("id", id)
+            return "${baseUrl}video?${qb.queryString}"
+        }
+        override fun chapter(id:String):String {
+            return "${baseUrl}chapter?id=$id"
+        }
+
+        override fun register(param: String): String {
+            return "${baseUrl}bootube/register?url=$param"
+        }
+
+        override val current: String
+            get() = "${baseUrl}current"
+        override val reputation: String
+            get() = "${baseUrl}reputation"
+
+        override fun reputation(id: String):String {
+            return "$reputation?id=$id"
+        }
+    }
+    val urlResolver = URLResolver()
 
     // endregion
 }
