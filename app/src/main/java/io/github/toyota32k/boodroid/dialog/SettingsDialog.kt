@@ -7,6 +7,7 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.ListPopupWindow
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.map
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
@@ -43,6 +44,7 @@ import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.utils.disposableObserve
 import io.github.toyota32k.utils.listChildren
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
@@ -89,7 +91,7 @@ class SettingsDialog : UtDialog(isDialog=true) {
                         .bindRatingList(ratingSelector, viewModel.rating, cap.ratingList)
                         .bindMarkList(markSelector, viewModel.marks, cap.markList)
                 }
-            }
+            }.launchIn(lifecycleScope)
             binder
                 .add(binderWithCapability)
                 .radioGroupBinding(sourceTypeSelector, viewModel.sourceType, SourceType.idResolver)

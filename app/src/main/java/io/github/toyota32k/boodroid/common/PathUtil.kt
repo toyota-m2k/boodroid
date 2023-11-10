@@ -1,17 +1,52 @@
 package io.github.toyota32k.boodroid.common
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Path
-import android.graphics.drawable.Drawable
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ShapeDrawable
+import android.graphics.drawable.VectorDrawable
 import android.graphics.drawable.shapes.PathShape
+import androidx.annotation.ColorInt
 import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.utils.dp2px
 
 object PathUtil {
     val logger = UtLog("PathUtil")
 
-    fun drawableFromPath(pathString:String, width:Float, height:Float): Drawable? {
+    /**
+     * Path文字列からDrawableを作る。
+     * ShapeDrawable(PathShape(Path)) みたいな便利なDrawableがあったから、それを使ってみた。
+     * ところが、MaterialButton にセットすると描画位置が、右下にズレてしまって、どうやったら真ん中に表示されるのかわからない。
+     * 描画先によっては使えるのかもしれないが。。。
+     */
+    fun shapeDrawableFromPath(pathString:String, width:Float = 24f, height:Float = 24f): ShapeDrawable? {
         val path = createPathFromPathData(pathString) ?: return null
         return ShapeDrawable(PathShape(path, width, height))
+    }
+
+    /**
+     * Path文字列からDrawableを作る。
+     * 上で作成したShapeDrawableからビットマップを作り、それを持ったBitmapDrawableを返すようにした。
+     * これで、MaterialButton上に、うまい具合に表示された。ちょっと重そうなので、キャッシュするなど工夫はしたほうがよいかも。
+     */
+    fun bitmapDrawableFromPath(
+        context:Context,
+        pathString:String,
+        width:Float = 12f,
+        height:Float = 12f,
+        @ColorInt color:Int =Color.BLACK): BitmapDrawable? {
+        val sd = shapeDrawableFromPath(pathString,width,height) ?: return null
+        val px = context.dp2px(width)
+        val py = context.dp2px(height)
+        sd.shape.resize(px,py)
+        val bitmap = Bitmap.createBitmap(px.toInt(), py.toInt(), Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        sd.paint.color = color
+        sd.draw(canvas)
+        return BitmapDrawable(context.resources, bitmap)
     }
 
     /**
@@ -25,12 +60,13 @@ object PathUtil {
         if (nodes != null) {
             try {
                 PathDataNode.nodesToPath(nodes, path)
-            } catch (e: RuntimeException) {
-                throw IllegalStateException("Error in parsing $pathData", e)
+                return  path
+            } catch (e: Throwable) {
+                logger.error(e)
+                //throw IllegalStateException("Error in parsing $pathData", e)
             }
-            return path
         }
-        throw IllegalStateException("No nodes $pathData")
+        return null
     }
 
     // Copy from Arrays.copyOfRange() which is only available from API level 9.
@@ -68,7 +104,7 @@ object PathUtil {
      * @return an array of the PathDataNode.
      */
     private fun createNodesFromPathData(pathData: String?): Array<PathDataNode>? {
-        if (pathData == null) {
+        if (pathData.isNullOrBlank()) {
             return null
         }
         var start = 0

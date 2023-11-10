@@ -1,18 +1,29 @@
 package io.github.toyota32k.boodroid.data
 
+import android.app.Application
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.ShapeDrawable
 import android.view.View
 import androidx.lifecycle.LifecycleOwner
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.IBinding
 import io.github.toyota32k.binder.IIDValueResolver
-import io.github.toyota32k.binder.MaterialRadioButtonGroupBinding
 import io.github.toyota32k.binder.MaterialRadioButtonUnSelectableGroupBinding
+import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.R
+import io.github.toyota32k.boodroid.common.PathUtil
 import io.github.toyota32k.boodroid.common.safeGetInt
 import io.github.toyota32k.boodroid.common.toIterable
 import io.github.toyota32k.utils.UtLogger
 import io.github.toyota32k.utils.asMutableLiveData
+import io.github.toyota32k.utils.dp2px
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
@@ -25,7 +36,10 @@ data class RatingInfo(val rating:Int, val label:String, val svgPath:String) {
         j.getString("label"),
         j.optString("svg"),
     )
-
+    val drawable: Drawable?
+    init {
+        drawable = PathUtil.bitmapDrawableFromPath(BooApplication.instance.applicationContext, svgPath)
+    }
 }
 class RatingList(private val list: List<RatingInfo>, val default:Int) : List<RatingInfo> by list {
     fun isValidRating(v:Int):Boolean {
@@ -48,6 +62,18 @@ class RatingList(private val list: List<RatingInfo>, val default:Int) : List<Rat
 
     val idResolver: IIDValueResolver<Int> get() = IDResolver()
 
+    fun bind(owner:LifecycleOwner, view: MaterialButtonToggleGroup, data:MutableStateFlow<Int>):IBinding {
+        for(i in 0.until(viewIds.size)) {
+            val btn = view.findViewById<MaterialButton>(viewIds[i])
+            if(i>=this.size) {
+                btn.visibility = View.GONE
+            } else {
+                btn.visibility = View.VISIBLE
+                btn.icon = this[i].drawable ?: btn.icon
+            }
+        }
+        return MaterialRadioButtonUnSelectableGroupBinding.create(owner, view, data.asMutableLiveData(owner), idResolver)
+    }
 
     companion object {
         val emptyList:RatingList = RatingList(emptyList(), 0)
@@ -84,12 +110,10 @@ class RatingList(private val list: List<RatingInfo>, val default:Int) : List<Rat
                     emptyList
                 }
             }
-
         }
     }
 }
 
 fun Binder.bindRatingList(view: MaterialButtonToggleGroup, data:MutableStateFlow<Int>, ratingList: RatingList):Binder {
-    val owner = requireOwner
-    return add(MaterialRadioButtonUnSelectableGroupBinding.create(owner, view, data.asMutableLiveData(owner), ratingList.idResolver))
+    return add(ratingList.bind(requireOwner, view, data))
 }
