@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.command.Command
+import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.R
@@ -22,6 +23,7 @@ import io.github.toyota32k.video.model.ControlPanelModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -44,13 +46,16 @@ class MainViewModel : ViewModel() {
 
     private val syncFromServerCommand = Command ()
 
-    val syncWithServerCommand = Command()
+    val syncWithServerCommand = LiteUnitCommand()
 
 //    val menuCommand = Command()
 
-    val setupOfflineModeCommand = Command()
+    val setupOfflineModeCommand = LiteUnitCommand()
 
-    val selectOfflineVideoCommand = Command()
+    val selectOfflineVideoCommand = LiteUnitCommand()
+
+    val syncCommandAvailable = appViewModel.capability.map { it.hasView }       // ヘッドレスサーバーに対しては、このコマンドは無意味
+    val offlineModeAvailable = appViewModel.capability.map { !it.needAuth }     // 認証を要求するサーバーではオフラインモードは使えない
 
 
     private var prepared = false
@@ -109,6 +114,8 @@ class MainViewModel : ViewModel() {
         return PlayPositionInfo(index, position)
     }
 
+    var serverAvailable: Boolean = false
+        private set
     private fun refreshVideoListFromServer() {
         AppViewModel.logger.debug()
         viewModelScope.launch {
@@ -119,7 +126,9 @@ class MainViewModel : ViewModel() {
             val src = try {
                 loading.value = true
                 withContext(Dispatchers.IO) {
-                    appViewModel.setCapability(ServerCapability.get())
+                    val cap = ServerCapability.get(appViewModel.settings.hostAddress)
+                    serverAvailable = cap!=null
+                    appViewModel.setCapability(cap ?: ServerCapability.empty)
                     VideoListSource.retrieve()
                 }
             } catch(e:Throwable) {
@@ -192,7 +201,7 @@ class MainViewModel : ViewModel() {
      */
     fun syncToServer() {
         val current = controlPanelModel.playerModel.currentSource.value ?: return
-        val url = appViewModel.settings.urlCurrentItem()
+        val url = AppViewModel.url.current ?: return
         val json = JSONObject()
             .put("id", current.id)
             .toString()
@@ -213,7 +222,7 @@ class MainViewModel : ViewModel() {
      * BooTube上で選択（フォーカス）されている動画をBooRemote上で再生する。
      */
     fun syncFromServer() {
-        val url = appViewModel.settings.urlCurrentItem()
+        val url = AppViewModel.url.current ?: return
         val req = Request.Builder()
             .url(url)
             .get()
@@ -233,7 +242,7 @@ class MainViewModel : ViewModel() {
     // YouTube url をサーバーに登録
     fun registerYouTubeUrl(rawUrl:String) {
         val urlParam = rawUrl.split("\r", "\n", " ", "\t").firstOrNull { it.isNotBlank() } ?: return
-        val url = appViewModel.settings.urlToRegister(urlParam)
+        val url = AppViewModel.url.register(urlParam) ?: return
         CoroutineScope(Dispatchers.IO).launch {
             val req = Request.Builder()
                 .url(url)
@@ -248,7 +257,7 @@ class MainViewModel : ViewModel() {
     }
 
     private fun syncWithServer() {
-        UtImmortalSimpleTask.run("OfflineMenu") {
+        UtImmortalSimpleTask.run("SyncWithServer") {
             val context = BooApplication.instance.applicationContext
             fun s(@StringRes id:Int):String = context.getString(id)
             val menuItems = arrayOf(

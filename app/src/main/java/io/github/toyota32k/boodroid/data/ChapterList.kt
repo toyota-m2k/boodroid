@@ -6,8 +6,6 @@ import io.github.toyota32k.player.model.Range
 import io.github.toyota32k.utils.UtLogger
 import io.github.toyota32k.video.model.IChapter
 import io.github.toyota32k.video.model.IChapterList
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.json.JSONObject
 
@@ -96,8 +94,7 @@ class ChapterList(val ownerId:String) : SortedList<IChapter, Long>(10, false,
     companion object {
         suspend fun get(ownerId:String): ChapterList? {
             return try {
-                val vm = AppViewModel.instance
-                val url = vm.settings.urlChapters(ownerId)
+                val url = AppViewModel.url.chapter(ownerId) ?: return null
                 val req = Request.Builder()
                     .url(url)
                     .get()

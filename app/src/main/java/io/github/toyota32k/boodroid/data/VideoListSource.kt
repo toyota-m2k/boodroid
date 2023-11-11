@@ -4,14 +4,12 @@ import io.github.toyota32k.boodroid.common.toIterable
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.utils.UtLogger
 import io.github.toyota32k.video.common.IAmvSource
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.json.JSONObject
 
 data class VideoListSource(val list:List<IAmvSource>, val modifiedDate:Long) {
     suspend fun checkUpdate(date:Long) : Boolean {
-        val url = AppViewModel.instance.settings.checkUrl(date)
+        val url = AppViewModel.url.check(date) ?: return false
         val req = Request.Builder()
             .url(url)
             .get()
@@ -29,7 +27,7 @@ data class VideoListSource(val list:List<IAmvSource>, val modifiedDate:Long) {
         suspend fun retrieve(date:Long=0L): VideoListSource? {
             if(!AppViewModel.instance.settings.isValid) return null
             if(!AppViewModel.instance.authentication.authentication()) return null
-            val url = AppViewModel.instance.settings.listUrl(date)
+            val url = AppViewModel.url.list(date)
             val req = Request.Builder()
                 .url(url)
                 .get()

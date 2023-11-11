@@ -2,6 +2,7 @@ package io.github.toyota32k.video.model
 
 import android.content.Context
 import io.github.toyota32k.binder.command.Command
+import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.video.common.AmvSettings
 import io.github.toyota32k.video.common.formatTime
@@ -59,7 +60,7 @@ open class ControlPanelModel(
     val commandFullscreen = Command { setWindowMode(WindowMode.FULLSCREEN) }
     val commandPinP = Command { setWindowMode(WindowMode.PINP) }
     val commandCollapse = Command { setWindowMode(WindowMode.NORMAL) }
-    val commandPlayerTapped = Command()
+    val commandPlayerTapped = LiteUnitCommand()
 
     // endregion
 

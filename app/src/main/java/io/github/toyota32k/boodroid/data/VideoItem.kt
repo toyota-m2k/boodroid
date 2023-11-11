@@ -1,9 +1,5 @@
 package io.github.toyota32k.boodroid.data
 
-import io.github.toyota32k.boodroid.common.safeGetInt
-import io.github.toyota32k.boodroid.common.safeGetLong
-import io.github.toyota32k.boodroid.common.safeGetNullableString
-import io.github.toyota32k.boodroid.common.safeGetString
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.player.model.Range
 import io.github.toyota32k.video.common.IAmvSource
@@ -33,7 +29,7 @@ data class VideoItem(
         j.optLong("duration", 0L),
     )
     override val uri:String
-        get() = AppViewModel.instance.settings.videoUrl(id)
+        get() = AppViewModel.url.video(id)
 
     override suspend fun getChapterList(): IChapterList? {
         return ChapterList.get(id)

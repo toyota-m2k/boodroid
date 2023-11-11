@@ -1,25 +1,20 @@
 package io.github.toyota32k.boodroid.viewmodel
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.common.UtImmortalTaskContextSource
 import io.github.toyota32k.boodroid.common.safeGetInt
 import io.github.toyota32k.boodroid.common.safeGetNullableString
-import io.github.toyota32k.boodroid.data.Mark
 import io.github.toyota32k.boodroid.data.NetClient
-import io.github.toyota32k.boodroid.data.Rating
 import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.task.IUtImmortalTask
-import io.github.toyota32k.dialog.task.IUtImmortalTaskContext
 import io.github.toyota32k.dialog.task.IUtImmortalTaskMutableContextSource
 import io.github.toyota32k.dialog.task.UtImmortalViewModelHelper
 import io.github.toyota32k.utils.UtLog
-import io.github.toyota32k.ytremote.data.CategoryList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -30,34 +25,34 @@ import org.json.JSONObject
 class RatingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtImmortalTaskContextSource() {
     private lateinit var current:VideoItem
     private val id:String get() = current.id
-    val name = MutableLiveData("")
-    val rating = MutableLiveData(Rating.NORMAL)
-    val mark = MutableLiveData<Mark>(Mark.NONE)
-    val category = MutableLiveData<String>("")
-    val busy = MutableLiveData<Boolean>(true)
-    val hasError = MutableLiveData(false)
-    val categoryList = CategoryList().apply { update() }
+    val name = MutableStateFlow("")
+    val rating = MutableStateFlow(0)
+    val mark = MutableStateFlow(0)
+    val category = MutableStateFlow("")
+    val busy = MutableStateFlow(true)
+    val hasError = MutableStateFlow(false)
 
     private lateinit var categoryOrg:String
-    private lateinit var ratingOrg:Rating
-    private lateinit var markOrg:Mark
+    private var ratingOrg:Int = 0
+    private var markOrg:Int = 0
+
 
     fun prepare(item: VideoItem, scope: CoroutineScope) {
         current = item
         name.value = item.name
         busy.value = true
         hasError.value = false
-        val vm = AppViewModel.instance
 
         scope.launch {
             try {
                 val json = withContext(Dispatchers.IO) {
-                    val url = vm.settings.urlReputation() + "?id=${item.id}"
+                    val url = AppViewModel.url.reputation(item.id) ?: return@withContext JSONObject()
                     val req = Request.Builder().url(url).get().build()
                     NetClient.executeAndGetJsonAsync(req)
                 }
-                ratingOrg = Rating.valueOf(json.safeGetInt("rating", Rating.NORMAL.v))
-                markOrg = Mark.valueOf(json.safeGetInt("mark", Mark.NONE.v))
+                val cap = AppViewModel.instance.capability.value
+                ratingOrg = json.safeGetInt("rating", cap.ratingList.default)
+                markOrg = json.safeGetInt("mark", 0)
                 categoryOrg = json.safeGetNullableString("category") ?: "unchecked"
                 rating.value = ratingOrg
                 mark.value = markOrg
@@ -72,20 +67,24 @@ class RatingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtIm
     }
 
     fun putToServer() {
-        if(hasError.value==true) return
-        val vm = AppViewModel.instance
-        val url = vm.settings.urlReputation()
+        if(hasError.value) return
+        val url = AppViewModel.url.reputation ?: return
         val json = JSONObject()
             .put("id", id)
-        if(rating.value!=null && rating.value!=ratingOrg) {
-            json.put("rating", rating.value!!.v)
+        var modified = false
+        if(rating.value!=ratingOrg) {
+            modified = true
+            json.put("rating", rating.value)
         }
-        if(mark.value!=null && mark.value!=markOrg) {
-            json.put("mark", mark.value!!.v)
+        if(mark.value!=markOrg) {
+            modified = true
+            json.put("mark", mark.value)
         }
-        if(category.value!=null && category.value!=categoryOrg) {
+        if(category.value!=categoryOrg) {
+            modified = true
             json.put("category", category.value)
         }
+        if(!modified) return
         val req = Request.Builder()
             .url(url)
             .put(json.toString().toRequestBody("application/json".toMediaType()))
