@@ -21,6 +21,7 @@ import io.github.toyota32k.boodroid.common.getAttrColorAsDrawable
 import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.boodroid.dialog.RatingDialog
+import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.boodroid.viewmodel.MainViewModel
 import io.github.toyota32k.utils.lifecycleOwner
 import io.github.toyota32k.video.common.IAmvSource
@@ -89,7 +90,9 @@ class VideoListView @JvmOverloads constructor(
 
     private fun onItemTapped(videoItem:IAmvSource) {
         if(model.currentSource.value == videoItem && videoItem is VideoItem) {
-            RatingDialog.show(videoItem)
+            if(AppViewModel.instance.capability.value.canPutReputation) {
+                RatingDialog.show(videoItem)
+            }
         } else {
             model.playAt(videoItem)
         }

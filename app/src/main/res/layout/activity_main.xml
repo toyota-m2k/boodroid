@@ -12,10 +12,11 @@
         android:id="@+id/video_list_panel"
         android:layout_width="300dp"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        >
+        android:orientation="vertical">
+
         <include layout="@layout/panel_video_list" />
     </LinearLayout>
+
     <View
         android:id="@+id/splitter"
         android:layout_width="1dp"

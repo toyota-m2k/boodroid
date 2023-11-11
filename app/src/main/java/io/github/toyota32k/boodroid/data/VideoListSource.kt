@@ -9,7 +9,7 @@ import org.json.JSONObject
 
 data class VideoListSource(val list:List<IAmvSource>, val modifiedDate:Long) {
     suspend fun checkUpdate(date:Long) : Boolean {
-        val url = AppViewModel.url.check(date)
+        val url = AppViewModel.url.check(date) ?: return false
         val req = Request.Builder()
             .url(url)
             .get()

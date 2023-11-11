@@ -28,6 +28,9 @@ import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.MultiVisibilityBinding
 import io.github.toyota32k.binder.TextBinding
 import io.github.toyota32k.binder.VisibilityBinding
+import io.github.toyota32k.binder.command.bindCommand
+import io.github.toyota32k.binder.multiVisibilityBinding
+import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.boodroid.view.VideoListView
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
@@ -96,22 +99,39 @@ class MainActivity : UtMortalActivity() {
         val settingButton = findViewById<ImageButton>(R.id.setting_button)
         val titleText = findViewById<TextView>(R.id.title_text)
 
-        binder.register(
-            viewModel.selectOfflineVideoCommand.attachView(selectButton),
-//            viewModel.syncToServerCommand.attachView(upButton),
-//            viewModel.syncFromServerCommand.attachView(downButton),
-            viewModel.setupOfflineModeCommand.attachView(onlineButton),
-            viewModel.setupOfflineModeCommand.attachView(offlineButton),
-            viewModel.syncWithServerCommand.attachView(syncButton),
-//            viewModel.menuCommand.connectViewE(findViewById(R.id.boo_title_button)),
-            appViewModel.refreshCommand.attachView(refreshButton),
-            appViewModel.settingCommand.attachView(settingButton),
-            controlPanelModel.commandPlayerTapped.bind(this, this::onPlayerTapped),
-            MultiVisibilityBinding.create(this, onlineButton, syncButton, refreshButton, data = appViewModel.offlineModeFlow.asLiveData(), boolConvert = BoolConvert.Inverse),
-            MultiVisibilityBinding.create(this, selectButton, offlineButton, data = appViewModel.offlineModeFlow.asLiveData(), boolConvert = BoolConvert.Straight),
-            TextBinding.create(this, titleText, viewModel.playerModel.currentSource.map { it?.name ?: ""}),
-            VisibilityBinding.create(this, titleText, combine(controlPanelModel.windowMode, viewModel.playerModel.currentSource) {mode,src-> AppViewModel.instance.settings.showTitleOnScreen && mode== ControlPanelModel.WindowMode.FULLSCREEN && src!=null }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
-        )
+        binder
+            .owner(this)
+            .bindCommand(viewModel.selectOfflineVideoCommand, selectButton)
+            .bindCommand(viewModel.setupOfflineModeCommand, onlineButton,offlineButton)
+            .bindCommand(viewModel.syncWithServerCommand, syncButton)
+            .bindCommand(appViewModel.refreshCommand, refreshButton)
+            .bindCommand(appViewModel.settingCommand, settingButton)
+            .bindCommand(controlPanelModel.commandPlayerTapped, this::onPlayerTapped)
+            // リロードボタンは オンラインモードのときだけ表示する
+            .visibilityBinding(refreshButton, appViewModel.offlineModeFlow, BoolConvert.Inverse)
+            // オフラインボタンは、オンラインモードで、オフラインモード対応サーバーの場合だけ表示する。
+            .visibilityBinding(offlineButton, combine(appViewModel.offlineModeFlow,viewModel.offlineModeAvailable) {off,av-> !off && av })
+            // 選択アイテム同期ボタンは、オンラインモードで、サーバーがアイテム選択に対応している場合だけ表示する。
+            .visibilityBinding(syncButton, combine(appViewModel.offlineModeFlow,viewModel.syncCommandAvailable) {off,av-> !off && av })
+            // オンラインボタン、再生アイテム選択ボタンは、オフラインモードの場合のみ表示する。
+            .multiVisibilityBinding(arrayOf(onlineButton,selectButton), appViewModel.offlineModeFlow)
+//
+//        binder.register(
+//            viewModel.selectOfflineVideoCommand.attachView(selectButton),
+////            viewModel.syncToServerCommand.attachView(upButton),
+////            viewModel.syncFromServerCommand.attachView(downButton),
+//            viewModel.setupOfflineModeCommand.attachView(onlineButton),
+//            viewModel.setupOfflineModeCommand.attachView(offlineButton),
+//            viewModel.syncWithServerCommand.attachView(syncButton),
+////            viewModel.menuCommand.connectViewE(findViewById(R.id.boo_title_button)),
+//            appViewModel.refreshCommand.attachView(refreshButton),
+//            appViewModel.settingCommand.attachView(settingButton),
+//            controlPanelModel.commandPlayerTapped.bind(this, this::onPlayerTapped),
+//            MultiVisibilityBinding.create(this, onlineButton, syncButton, refreshButton, data = appViewModel.offlineModeFlow.asLiveData(), boolConvert = BoolConvert.Inverse),
+//            MultiVisibilityBinding.create(this, selectButton, offlineButton, data = appViewModel.offlineModeFlow.asLiveData(), boolConvert = BoolConvert.Straight),
+//            TextBinding.create(this, titleText, viewModel.playerModel.currentSource.map { it?.name ?: ""}),
+//            VisibilityBinding.create(this, titleText, combine(controlPanelModel.windowMode, viewModel.playerModel.currentSource) {mode,src-> AppViewModel.instance.settings.showTitleOnScreen && mode== ControlPanelModel.WindowMode.FULLSCREEN && src!=null }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+//        )
 
         when(controlPanelModel.windowMode.value) {
             ControlPanelModel.WindowMode.FULLSCREEN -> layoutForFullscreen()
@@ -127,6 +147,9 @@ class MainActivity : UtMortalActivity() {
             }
         }
 
+        if(!viewModel.serverAvailable) {
+            appViewModel.settingCommand.invoke()
+        }
     }
 
     private var updatingTheme:Boolean = false
@@ -282,7 +305,7 @@ class MainActivity : UtMortalActivity() {
         logger.debug()
     }
 
-    private fun onPlayerTapped(@Suppress("UNUSED_PARAMETER") v:View?) {
+    private fun onPlayerTapped() {
         when(controlPanelModel.windowMode.value) {
             ControlPanelModel.WindowMode.FULLSCREEN-> {
                 controlPanel.visibility = if(controlPanel.visibility == View.VISIBLE) View.GONE else View.VISIBLE

@@ -17,10 +17,14 @@ interface ICapability {
     val hasRating:Boolean
     val hasMark:Boolean
     val hasChapter:Boolean
-    val canSync:Boolean
+    val reputation:Int          // 0:なし, 1:RO, 2:RW
+    val diff:Boolean
+    val sync:Boolean
     val acceptRequest:Boolean
     val hasView:Boolean
     val needAuth:Boolean
+    val canGetReputation:Boolean get() = reputation>0
+    val canPutReputation:Boolean get() = reputation>1
 }
 data class Capability(
     override val hostAddress: String,
@@ -31,7 +35,9 @@ data class Capability(
     override val hasRating:Boolean,
     override val hasMark:Boolean,
     override val hasChapter:Boolean,
-    override val canSync:Boolean,
+    override val reputation:Int,
+    override val diff:Boolean,
+    override val sync:Boolean,
     override val acceptRequest:Boolean,
     override val hasView:Boolean,
     override val needAuth:Boolean,
@@ -45,7 +51,9 @@ data class Capability(
         hasRating = j.optBoolean("rating", false),
         hasMark = j.optBoolean("mark", false),
         hasChapter = j.optBoolean("chapter", false),
-        canSync = j.optBoolean("sync", false),
+        reputation = j.optInt("reputation", 0),
+        diff = j.optBoolean("diff", false),
+        sync = j.optBoolean("sync", false),
         acceptRequest = j.optBoolean("acceptRequest", false),
         hasView = j.optBoolean("hasView", false),
         needAuth = j.optBoolean("authentication", false),
@@ -54,7 +62,22 @@ data class Capability(
     override val baseUrl : String get() = "http://${hostAddress}${root}"
 
     companion object {
-        val empty = Capability("", "unknown", 0, "/", false, false, false, false, false,false,false,false)
+        val empty = Capability(
+            hostAddress = "",
+            serverName = "unknown",
+            version = 0,
+            root = "/",
+            hasCategory = false,
+            hasRating = false,
+            hasMark = false,
+            hasChapter = false,
+            reputation = 0,
+            diff = false,
+            sync = false,
+            acceptRequest = false,
+            hasView = false,
+            needAuth = false
+        )
         suspend fun get(hostAddress: String):Capability? {
 //            if (!AppViewModel.instance.settings.isValid) return empty
             return withContext(Dispatchers.IO) {

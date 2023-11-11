@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import io.github.toyota32k.binder.command.Command
+import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.auth.Authentication
@@ -25,14 +26,14 @@ interface IURLResolver {
     fun auth(token:String):String
     val list:String
     fun list(date:Long):String
-    fun check(date:Long):String
+    fun check(date:Long):String?
     fun video(id:String):String
-    fun chapter(id:String):String
+    fun chapter(id:String):String?
 
-    fun register(param:String):String
-    val current:String
-    val reputation:String
-    fun reputation(id:String):String
+    fun register(param:String):String?
+    val current:String?
+    val reputation:String?
+    fun reputation(id:String):String?
 }
 
 class AppViewModel: ViewModel(), IUtPropertyHost {
@@ -114,7 +115,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
     /**
      * 設定ダイアログを開く
      */
-    val settingCommand = Command {
+    val settingCommand = LiteUnitCommand {
         UtImmortalSimpleTask.run("settings") {
             SettingViewModel.createBy(this) { it.prepare() }
             this.showDialog(taskName) { SettingsDialog() }.status.ok
@@ -124,7 +125,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
     /**
      * サーバーの設定などが変更され、動画リストの更新が必要になったことを知らせるイベント
      */
-    val refreshCommand = Command()
+    val refreshCommand = LiteUnitCommand()
 
     /**
      * 環境設定
@@ -186,8 +187,8 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         override fun list(date:Long):String {
             return VideoItemFilter.urlWithQueryString(settings, date, authToken)
         }
-        override fun check(date:Long):String {
-            return "${baseUrl}/check?date=${date}"
+        override fun check(date:Long):String? {
+            return if(capability.value.diff) "${baseUrl}/check?date=${date}" else null
         }
         override fun video(id:String):String {
             val qb = QueryBuilder()
@@ -197,21 +198,21 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
             qb.add("id", id)
             return "${baseUrl}video?${qb.queryString}"
         }
-        override fun chapter(id:String):String {
-            return "${baseUrl}chapter?id=$id"
+        override fun chapter(id:String):String? {
+            return if(capability.value.hasChapter) "${baseUrl}chapter?id=$id" else null
         }
 
-        override fun register(param: String): String {
-            return "${baseUrl}bootube/register?url=$param"
+        override fun register(param: String): String? {
+            return if(capability.value.acceptRequest) "${baseUrl}register?url=$param" else null
         }
 
-        override val current: String
-            get() = "${baseUrl}current"
-        override val reputation: String
-            get() = "${baseUrl}reputation"
+        override val current: String?
+            get() = if(capability.value.hasView) "${baseUrl}current" else null
+        override val reputation: String?
+            get() = if(capability.value.reputation>0) "${baseUrl}reputation" else null
 
-        override fun reputation(id: String):String {
-            return "$reputation?id=$id"
+        override fun reputation(id: String):String? {
+            return if(capability.value.reputation==2) "${baseUrl}reputation?id=$id" else null
         }
     }
     val urlResolver = URLResolver()

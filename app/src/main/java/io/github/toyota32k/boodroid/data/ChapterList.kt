@@ -94,7 +94,7 @@ class ChapterList(val ownerId:String) : SortedList<IChapter, Long>(10, false,
     companion object {
         suspend fun get(ownerId:String): ChapterList? {
             return try {
-                val url = AppViewModel.url.chapter(ownerId)
+                val url = AppViewModel.url.chapter(ownerId) ?: return null
                 val req = Request.Builder()
                     .url(url)
                     .get()

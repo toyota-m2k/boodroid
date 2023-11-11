@@ -46,7 +46,7 @@ class RatingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtIm
         scope.launch {
             try {
                 val json = withContext(Dispatchers.IO) {
-                    val url = AppViewModel.url.reputation(item.id)
+                    val url = AppViewModel.url.reputation(item.id) ?: return@withContext JSONObject()
                     val req = Request.Builder().url(url).get().build()
                     NetClient.executeAndGetJsonAsync(req)
                 }
@@ -68,7 +68,7 @@ class RatingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtIm
 
     fun putToServer() {
         if(hasError.value) return
-        val url = AppViewModel.url.reputation
+        val url = AppViewModel.url.reputation ?: return
         val json = JSONObject()
             .put("id", id)
         var modified = false
