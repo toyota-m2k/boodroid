@@ -19,7 +19,7 @@ data class MarkInfo(val mark:Int, val label:String, val svgPath:String) {
     constructor(j: JSONObject) :this(
         j.getInt("mark"),
         j.getString("label"),
-        j.optString("svg"),
+        j.optString("svg", ""),
     )
 }
 class MarkList(private val list:List<MarkInfo>) : List<MarkInfo> by list {
@@ -52,6 +52,11 @@ class MarkList(private val list:List<MarkInfo>) : List<MarkInfo> by list {
             R.id.tg_mark_star,
             R.id.tg_mark_flag,
             R.id.tg_mark_heart,
+        )
+        val defaultIcons: Array<Int> = arrayOf(
+            R.drawable.ic_star,
+            R.drawable.ic_flag,
+            R.drawable.ic_heart,
         )
 
         suspend fun getMarkList(capability: Capability): MarkList {

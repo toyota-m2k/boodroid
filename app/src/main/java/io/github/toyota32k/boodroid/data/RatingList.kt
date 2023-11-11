@@ -9,6 +9,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.ShapeDrawable
 import android.view.View
+import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
@@ -34,7 +35,7 @@ data class RatingInfo(val rating:Int, val label:String, val svgPath:String) {
     constructor(j: JSONObject) :this(
         j.getInt("rating"),
         j.getString("label"),
-        j.optString("svg"),
+        j.optString("svg", ""),
     )
     val drawable: Drawable?
     init {
@@ -69,7 +70,7 @@ class RatingList(private val list: List<RatingInfo>, val default:Int) : List<Rat
                 btn.visibility = View.GONE
             } else {
                 btn.visibility = View.VISIBLE
-                btn.icon = this[i].drawable ?: btn.icon
+                btn.icon = this[i].drawable ?: ResourcesCompat.getDrawable(view.resources, defaultIcons[i], null)
             }
         }
         return MaterialRadioButtonUnSelectableGroupBinding.create(owner, view, data.asMutableLiveData(owner), idResolver)
@@ -84,6 +85,13 @@ class RatingList(private val list: List<RatingInfo>, val default:Int) : List<Rat
             R.id.tg_rating_normal,
             R.id.tg_rating_good,
             R.id.tg_rating_excellent,
+        )
+        val defaultIcons: Array<Int> = arrayOf(
+            R.drawable.ic_dreadful,
+            R.drawable.ic_bad,
+            R.drawable.ic_normal,
+            R.drawable.ic_good,
+            R.drawable.ic_excellent,
         )
         suspend fun getRatingList(capability: Capability):RatingList {
             if (!capability.hasRating) {

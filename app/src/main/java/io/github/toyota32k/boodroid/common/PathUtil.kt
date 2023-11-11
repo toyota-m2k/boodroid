@@ -38,6 +38,7 @@ object PathUtil {
         width:Float = 12f,
         height:Float = 12f,
         @ColorInt color:Int =Color.BLACK): BitmapDrawable? {
+        if(pathString.isBlank()) return null
         val sd = shapeDrawableFromPath(pathString,width,height) ?: return null
         val px = context.dp2px(width)
         val py = context.dp2px(height)
