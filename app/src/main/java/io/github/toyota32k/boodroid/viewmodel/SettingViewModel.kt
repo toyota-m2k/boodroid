@@ -264,7 +264,9 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
         if(address==null) {
             return
         }
-
+        loadServerCapability(address)
+    }
+    private fun loadServerCapability(address:String) {
         viewModelScope.launch {
             val cap = ServerCapability.get(address) ?: return@launch
             val sos = settingsOnServer[address] ?: SettingsOnServer.clean
@@ -282,6 +284,16 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
             capability.value = cap
         }
     }
+    fun onActiveHostSelected(host:HostAddressEntity) {
+        if(activeHost.value != host) {
+            // host changed
+            activeHost.value = host
+        } else if(capability.value == null) {
+            // capability not loaded
+            loadServerCapability(host.address)
+        }
+    }
+
 
     private fun save(): Boolean {
         val s = settings

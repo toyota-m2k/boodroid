@@ -4,7 +4,9 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import io.github.toyota32k.binder.command.Command
+import io.github.toyota32k.binder.command.LiteCommand
 import io.github.toyota32k.binder.command.LiteUnitCommand
+import io.github.toyota32k.binder.command.UnitCommand
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.auth.Authentication
@@ -124,8 +126,12 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
 
     /**
      * サーバーの設定などが変更され、動画リストの更新が必要になったことを知らせるイベント
+     * arg:
+     * false: 無条件にリストの再取得を行う
+     * true: サーバーエラーが起きていたら設定画面を開く。エラーが起きていなければリストの再取得を行う
+     *      *
      */
-    val refreshCommand = LiteUnitCommand()
+    val refreshCommand = LiteCommand<Boolean>()
 
     /**
      * 環境設定
@@ -138,8 +144,8 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                 val urlChanged =VideoItemFilter.urlWithQueryString(o, 0, null)!=VideoItemFilter.urlWithQueryString(v, 0, null)
                 if(urlChanged||o.offlineMode!=v.offlineMode) {
                     offlineMode = if(urlChanged) false else v.offlineMode
-                    refreshCommand.invoke()
                 }
+                refreshCommand.invoke(false)
                 if(v.colorVariation!=o.colorVariation) {
                     UtImmortalSimpleTask.run {
                         withOwner {
@@ -172,7 +178,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
             Settings(settings, offlineMode = mode, offlineFilter = filter).save(BooApplication.instance.applicationContext)
         } else if(mode && updateList) {
             // オフラインモードのまま変わらない場合、リストが更新された時は、明示的にrefreshする
-            refreshCommand.invoke()
+            refreshCommand.invoke(false)
         }
     }
 

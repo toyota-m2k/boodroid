@@ -66,7 +66,7 @@ class MainViewModel : ViewModel() {
             prepared = true
             controlPanelModel = appViewModel.controlPanelModelSource.fetch()
             disposer.register(
-                appViewModel.refreshCommand.bindForever { refreshVideoList() },
+                appViewModel.refreshCommand.bindForever { refreshVideoList(it) },
                 syncFromServerCommand.bindForever { syncFromServer() },
                 syncToServerCommand.bindForever { syncToServer() },
 //                menuCommand.bindForever { showMenu() },
@@ -74,7 +74,7 @@ class MainViewModel : ViewModel() {
                 setupOfflineModeCommand.bindForever { setupOfflineMode() },
                 selectOfflineVideoCommand.bindForever { setupOfflineFilter() }
             )
-            refreshVideoList()
+            refreshVideoList(false)
         }
         return this
     }
@@ -182,11 +182,15 @@ class MainViewModel : ViewModel() {
         playerModel.setSources(list, pos.index, pos.position)
     }
 
-    fun refreshVideoList() {
+    fun refreshVideoList(settingIfNotServerAvailable:Boolean) {
         if(AppViewModel.instance.offlineMode) {
             refreshVideoListFromLocal()
         } else {
-            refreshVideoListFromServer()
+            if(!serverAvailable && settingIfNotServerAvailable) {
+                AppViewModel.instance.settingCommand.invoke()
+            } else {
+                refreshVideoListFromServer()
+            }
         }
     }
 

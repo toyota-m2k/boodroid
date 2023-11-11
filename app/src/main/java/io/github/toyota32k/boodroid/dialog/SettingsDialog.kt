@@ -112,7 +112,7 @@ class SettingsDialog : UtDialog(isDialog=true) {
                     binder.reset()
                     binder
                         .owner(owner)
-                        .bindCommand(LiteUnitCommand { viewModel.activeHost.value = host }, view.findViewById<View>(R.id.item_container))
+                        .bindCommand(LiteUnitCommand { viewModel.onActiveHostSelected(host) }, view.findViewById<View>(R.id.item_container))
                         .bindCommand(LiteCommand(viewModel::editHost), view.findViewById(R.id.edit_button), host)
                         .bindCommand(LiteCommand(viewModel::removeHost), view.findViewById(R.id.del_button), host)
                         .visibilityBinding(view.findViewById(R.id.check_mark), viewModel.activeHost.map { it==host }, hiddenMode = VisibilityBinding.HiddenMode.HideByInvisible)
@@ -132,6 +132,7 @@ class SettingsDialog : UtDialog(isDialog=true) {
         }
         return controls.root
     }
+
 
 //    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 //        super.onViewCreated(view, savedInstanceState)

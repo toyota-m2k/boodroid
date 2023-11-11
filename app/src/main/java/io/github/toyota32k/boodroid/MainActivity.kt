@@ -104,7 +104,7 @@ class MainActivity : UtMortalActivity() {
             .bindCommand(viewModel.selectOfflineVideoCommand, selectButton)
             .bindCommand(viewModel.setupOfflineModeCommand, onlineButton,offlineButton)
             .bindCommand(viewModel.syncWithServerCommand, syncButton)
-            .bindCommand(appViewModel.refreshCommand, refreshButton)
+            .bindCommand(appViewModel.refreshCommand, refreshButton, true)
             .bindCommand(appViewModel.settingCommand, settingButton)
             .bindCommand(controlPanelModel.commandPlayerTapped, this::onPlayerTapped)
             // リロードボタンは オンラインモードのときだけ表示する
