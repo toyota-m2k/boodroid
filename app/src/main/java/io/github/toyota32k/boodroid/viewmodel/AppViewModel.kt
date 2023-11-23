@@ -138,23 +138,20 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
      */
     var settings: Settings = Settings.load(BooApplication.instance)
         set(v) {
-            if(v!=field) {
-                val o = field
-                field = v
-                val urlChanged =VideoItemFilter.urlWithQueryString(o, 0, null)!=VideoItemFilter.urlWithQueryString(v, 0, null)
-                if(urlChanged||o.offlineMode!=v.offlineMode) {
-                    offlineMode = if(urlChanged) false else v.offlineMode
-                }
-                refreshCommand.invoke(false)
-                if(v.colorVariation!=o.colorVariation) {
-                    UtImmortalSimpleTask.run {
-                        withOwner {
-                            val activity = it.asActivity() as? MainActivity ?: return@withOwner
-                            activity.restartActivityToUpdateTheme()
-
-                        }
-                        true
+            val o = field
+            field = v
+            val urlChanged = VideoItemFilter.urlWithQueryString(o,0,null) != VideoItemFilter.urlWithQueryString(v, 0, null)
+            if (urlChanged || o.offlineMode != v.offlineMode) {
+                offlineMode = if (urlChanged) false else v.offlineMode
+            }
+            refreshCommand.invoke(false)
+            if (v.colorVariation != o.colorVariation) {
+                UtImmortalSimpleTask.run {
+                    withOwner {
+                        val activity = it.asActivity() as? MainActivity ?: return@withOwner
+                        activity.restartActivityToUpdateTheme()
                     }
+                    true
                 }
             }
         }
