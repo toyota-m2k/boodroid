@@ -28,6 +28,9 @@ android {
         jvmTarget = '17'
     }
     namespace 'io.github.toyota32k.video'
+    buildFeatures {
+        buildConfig true
+    }
 }
 
 dependencies {
