@@ -20,6 +20,9 @@ import android.view.WindowInsets
 import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
@@ -162,8 +165,17 @@ class MainActivity : UtMortalActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(AppViewModel.instance.settings.colorVariation.themeId)
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()  // 最近(2024/3/28現在)のAndroid Studioのテンプレートが書き出すコード（１）。。。タブレットでステータスバーなどによってクライアント領域が不正になる現象が回避できるっぽい。、
+
         landscape = resources.configuration.isLandscape
         initViews()
+
+        // 最近(2024/3/28現在)のAndroid Studioのテンプレートが書き出すコード（２）
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
 
 //        lifecycleScope.launch {
 //            repeatOnLifecycle(Lifecycle.State.STARTED) {

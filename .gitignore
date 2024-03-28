@@ -19,3 +19,4 @@ local.properties
 .idea/compiler.xml
 .idea/deploymentTargetDropDown.xml
 .idea/kotlinc.xml
+.idea/copilot
