@@ -23,6 +23,7 @@ interface ICapability {
     val acceptRequest:Boolean
     val hasView:Boolean
     val needAuth:Boolean
+    val supportedTypes: String     // v/a/p
     val canGetReputation:Boolean get() = reputation>0
     val canPutReputation:Boolean get() = reputation>1
 }
@@ -41,6 +42,7 @@ data class Capability(
     override val acceptRequest:Boolean,
     override val hasView:Boolean,
     override val needAuth:Boolean,
+    override val supportedTypes: String
 ) : ICapability {
     constructor(hostAddress:String, j:JSONObject) : this(
         hostAddress,
@@ -57,6 +59,7 @@ data class Capability(
         acceptRequest = j.optBoolean("acceptRequest", false),
         hasView = j.optBoolean("hasView", false),
         needAuth = j.optBoolean("authentication", false),
+        supportedTypes  = j.optString("types", "")
     )
 
     override val baseUrl : String get() = "http://${hostAddress}${root}"
@@ -76,7 +79,8 @@ data class Capability(
             sync = false,
             acceptRequest = false,
             hasView = false,
-            needAuth = false
+            needAuth = false,
+            supportedTypes = "va"
         )
         suspend fun get(hostAddress: String):Capability? {
 //            if (!AppViewModel.instance.settings.isValid) return empty

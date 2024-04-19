@@ -29,7 +29,7 @@ data class VideoItem(
         j.optLong("duration", 0L),
     )
     override val uri:String
-        get() = AppViewModel.url.video(id)
+        get() = AppViewModel.url.item(id)
 
     override suspend fun getChapterList(): IChapterList? {
         return ChapterList.get(id)

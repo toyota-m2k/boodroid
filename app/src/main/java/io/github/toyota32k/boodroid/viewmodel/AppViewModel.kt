@@ -29,7 +29,7 @@ interface IURLResolver {
     val list:String
     fun list(date:Long):String
     fun check(date:Long):String?
-    fun video(id:String):String
+    fun item(id:String):String
     fun chapter(id:String):String?
 
     fun register(param:String):String?
@@ -193,13 +193,14 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         override fun check(date:Long):String? {
             return if(capability.value.diff) "${baseUrl}/check?date=${date}" else null
         }
-        override fun video(id:String):String {
+        override fun item(id:String):String {
             val qb = QueryBuilder()
             authToken?.also { token->
                 qb.add("auth", token)
             }
             qb.add("id", id)
-            return "${baseUrl}video?${qb.queryString}"
+            val cmd = if( capability.value.version >= 2) "item" else "video"   // 新バージョンなら item / 旧バージョン互換: video
+            return "${baseUrl}${cmd}?${qb.queryString}"
         }
         override fun chapter(id:String):String? {
             return if(capability.value.hasChapter) "${baseUrl}chapter?id=$id" else null
