@@ -1,15 +1,17 @@
 package io.github.toyota32k.boodroid
 
-import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.drawable.Icon
+import android.media.AudioManager
+import android.media.session.MediaSession
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -23,17 +25,15 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.BoolConvert
-import io.github.toyota32k.binder.MultiVisibilityBinding
-import io.github.toyota32k.binder.TextBinding
-import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.multiVisibilityBinding
 import io.github.toyota32k.binder.visibilityBinding
+import io.github.toyota32k.boodroid.common.compatGetParcelableExtra
+import io.github.toyota32k.boodroid.common.compatRegisterReceiver
 import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.boodroid.view.VideoListView
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
@@ -45,8 +45,13 @@ import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.video.model.ControlPanelModel
 import io.github.toyota32k.video.view.AmvExoVideoPlayer
 import io.github.toyota32k.video.view.ControlPanel
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 
 class MainActivity : UtMortalActivity() {
     override val logger = UtLog("Main", BooApplication.logger)
@@ -162,6 +167,8 @@ class MainActivity : UtMortalActivity() {
         startActivity(Intent(this, MainActivity::class.java))
     }
 
+    private val mediaSession by lazy { MediaSession(this, "Boo") }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(AppViewModel.instance.settings.colorVariation.themeId)
         super.onCreate(savedInstanceState)
@@ -228,6 +235,29 @@ class MainActivity : UtMortalActivity() {
         handleUriInIntent(intent)
 
         startPlayerService()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // ヘッドセットからのボタンイベント監視を開始
+            mediaSession.isActive = true
+            mediaSession.setCallback(object: MediaSession.Callback() {
+                override fun onMediaButtonEvent(mediaButtonIntent: Intent): Boolean {
+                    val action = mediaButtonIntent.action
+                    if (Intent.ACTION_MEDIA_BUTTON == action) {
+                        val event = mediaButtonIntent.compatGetParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT, KeyEvent::class.java)
+                        if (event?.action == KeyEvent.ACTION_DOWN) {
+                            when (event.keyCode) {
+                                KeyEvent.KEYCODE_MEDIA_PLAY -> viewModel.controlPanelModel.commandTogglePlay.invoke()
+                                KeyEvent.KEYCODE_MEDIA_PAUSE, KeyEvent.KEYCODE_MEDIA_STOP -> viewModel.controlPanelModel.commandPause.invoke()
+                                KeyEvent.KEYCODE_MEDIA_NEXT -> viewModel.controlPanelModel.commandNext.invoke()
+                                KeyEvent.KEYCODE_MEDIA_PREVIOUS -> viewModel.controlPanelModel.commandPrev.invoke()
+                                // 他のキーコードに対する処理を追加
+                            }
+                        }
+                    }
+                    return super.onMediaButtonEvent(mediaButtonIntent)
+                }
+            })
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -407,6 +437,11 @@ class MainActivity : UtMortalActivity() {
                 stopPlayerService()
             }
         }
+
+        // ヘッドセットからのボタンイベント監視を終了
+        mediaSession.isActive = false
+        mediaSession.setCallback(null)
+
         super.onDestroy()
         binder.reset()
     }
@@ -468,7 +503,27 @@ class MainActivity : UtMortalActivity() {
         SEEK_TOP(3),
     }
 
-    private lateinit var receiver: BroadcastReceiver        // PinP中のコマンド（ブロードキャスト）を受け取るレシーバー
+    private lateinit var pinpBroadcastReceiver: BroadcastReceiver        // PinP中のコマンド（ブロードキャスト）を受け取るレシーバー
+
+//    private val headsetBroadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+//        override fun onReceive(context: Context, intent: Intent) {
+//            val action = intent.action
+//            if (Intent.ACTION_MEDIA_BUTTON == action) {
+//                val event = intent.compatGetParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT, KeyEvent::class.java)
+//                if (event?.action == KeyEvent.ACTION_DOWN) {
+//                    when (event.keyCode) {
+//                        KeyEvent.KEYCODE_MEDIA_PLAY -> viewModel.controlPanelModel.commandPlay.invoke()
+//                        KeyEvent.KEYCODE_MEDIA_PAUSE, KeyEvent.KEYCODE_MEDIA_STOP -> viewModel.controlPanelModel.commandPause.invoke()
+//                        KeyEvent.KEYCODE_MEDIA_NEXT -> viewModel.controlPanelModel.commandNext.invoke()
+//                        KeyEvent.KEYCODE_MEDIA_PREVIOUS -> viewModel.controlPanelModel.commandPrev.invoke()
+//                        // 他のキーコードに対する処理を追加
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+
 
     /**
      * PinP内のPlayボタン
@@ -507,7 +562,6 @@ class MainActivity : UtMortalActivity() {
     /**
      * PinPモードが開始される
      */
-    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private fun onEnterPinP() {
         logger.debug()
         isPinP = true
@@ -526,7 +580,7 @@ class MainActivity : UtMortalActivity() {
             }
         }.launchIn(pinpScope!!)
 
-        receiver = object: BroadcastReceiver() {
+        pinpBroadcastReceiver = object: BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 if (intent == null||intent.action!=INTENT_NAME) {
                     return
@@ -540,11 +594,7 @@ class MainActivity : UtMortalActivity() {
                 }
             }
         }
-        if (Build.VERSION.SDK_INT >= 33) {
-            registerReceiver(receiver, IntentFilter(INTENT_NAME), Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(receiver, IntentFilter(INTENT_NAME))
-        }
+        compatRegisterReceiver(pinpBroadcastReceiver, IntentFilter(INTENT_NAME), exported = false)
     }
 
     /**
@@ -555,7 +605,7 @@ class MainActivity : UtMortalActivity() {
         isPinP = false
         landscape = null
         pinpScope?.cancel()
-        unregisterReceiver(receiver)
+        unregisterReceiver(pinpBroadcastReceiver)
         controlPanelModel.setWindowMode(ControlPanelModel.WindowMode.NORMAL)
     }
 
