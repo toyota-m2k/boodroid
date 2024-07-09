@@ -106,6 +106,15 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                 }
             }
         }
+
+        inline fun <T> withModel(fn:(ControlPanelModel)->T):T {
+            val v = fetch()
+            return try {
+                fn(v)
+            } finally {
+                release(v)
+            }
+        }
     }
 
     val controlPanelModelSource = RefCounteredControlPanelModel()
