@@ -63,40 +63,40 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("com.google.android.material:material:1.12.0")
-    implementation("androidx.preference:preference-ktx:1.2.1")
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation(libs.core.ktx)
+    implementation(libs.appcompat)
+    implementation(libs.constraintlayout)
+    implementation(libs.material)
+    implementation(libs.androidx.preference.ktx)
+    implementation(libs.androidx.recyclerview)
 
-    implementation("androidx.room:room-runtime:2.6.1")
+    implementation(libs.androidx.room.runtime)
 //    annotationProcessor "androidx.room:room-compiler:$room_version"
 //    kapt "androidx.room:room-compiler:$room_version"
-    ksp("androidx.room:room-compiler:2.6.1")
+    ksp(libs.androidx.room.compiler)
 
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation(libs.okhttp)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation(libs.coroutines.core)
+    implementation(libs.coroutines.android)
 
-    implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.3")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.3")
+    implementation(libs.lifecycle.extensions)
+    implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.lifecycle.runtime.ktx)
+    implementation(libs.lifecycle.livedata.ktx)
 
-    implementation("androidx.media3:media3-ui:1.3.1")
-    implementation("androidx.media3:media3-common:1.3.1")
+    implementation(libs.media3.ui)
+    implementation(libs.androidx.media3.common)
 
-    implementation("com.github.toyota-m2k:android-utilities:2.0.2")
-    implementation("com.github.toyota-m2k:android-binding:1.1.3")
-    implementation("com.github.toyota-m2k:android-dialog:3.7.2")
-    implementation("com.github.toyota-m2k:android-viewex:1.0.7")
+    implementation(libs.android.utilities)
+    implementation(libs.android.binding)
+    implementation(libs.android.dialog)
+    implementation(libs.android.viewex)
 
     implementation(project(path=":video"))
 
 
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.espresso.core)
 }
