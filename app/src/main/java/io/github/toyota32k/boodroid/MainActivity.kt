@@ -105,7 +105,7 @@ class MainActivity : UtMortalActivity() {
         val onlineButton = findViewById<ImageButton>(R.id.online_button)
         val refreshButton = findViewById<ImageButton>(R.id.refresh_button)
         val settingButton = findViewById<ImageButton>(R.id.setting_button)
-        val titleText = findViewById<TextView>(R.id.title_text)
+//        val titleText = findViewById<TextView>(R.id.title_text)
 
         binder
             .owner(this)
