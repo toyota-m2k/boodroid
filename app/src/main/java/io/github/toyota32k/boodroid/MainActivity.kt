@@ -42,6 +42,8 @@ import io.github.toyota32k.dialog.UtMessageBox
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
 import io.github.toyota32k.dialog.task.UtMortalActivity
 import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.utils.hideActionBar
+import io.github.toyota32k.utils.hideStatusBar
 import io.github.toyota32k.video.model.ControlPanelModel
 import io.github.toyota32k.video.view.AmvExoVideoPlayer
 import io.github.toyota32k.video.view.ControlPanel
@@ -158,6 +160,15 @@ class MainActivity : UtMortalActivity() {
         if(!viewModel.serverAvailable) {
             appViewModel.settingCommand.invoke()
         }
+
+        // 最近(2024/3/28現在)のAndroid Studioのテンプレートが書き出すコード（２）
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+//        hideActionBar()
+//        hideStatusBar()
     }
 
     private var updatingTheme:Boolean = false
@@ -177,12 +188,6 @@ class MainActivity : UtMortalActivity() {
         landscape = resources.configuration.isLandscape
         initViews()
 
-        // 最近(2024/3/28現在)のAndroid Studioのテンプレートが書き出すコード（２）
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
 
 //        lifecycleScope.launch {
 //            repeatOnLifecycle(Lifecycle.State.STARTED) {

@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "io.github.toyota32k.video"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 26
