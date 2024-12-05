@@ -48,13 +48,14 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
-class SettingsDialog : UtDialog(isDialog=true) {
+class SettingsDialog : UtDialog() {
     lateinit var viewModel: SettingViewModel
         private set
     private val binder = Binder()
 
     override fun preCreateBodyView() {
         super.preCreateBodyView()
+        isDialog = true
         viewModel = SettingViewModel.instanceFor(this)
         scrollable = true
         cancellable = false

@@ -52,7 +52,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class OfflineDialog : UtDialog(isDialog = true) {
+class OfflineDialog : UtDialog() {
     data class Selectable<T>(val value:T, var selected:Boolean=false)
 
     class OfflineDialogViewModel : ViewModel(), IUtPropertyHost, IUtImmortalTaskMutableContextSource by UtImmortalTaskContextSource() {
@@ -245,6 +245,7 @@ class OfflineDialog : UtDialog(isDialog = true) {
     private lateinit var selectedColor: Drawable
 
     override fun preCreateBodyView() {
+        isDialog = true
         context.theme!!.apply {
             normalColor = getAttrColorAsDrawable(com.google.android.material.R.attr.colorSurface, Color.WHITE)
             normalTextColor = getAttrColor(com.google.android.material.R.attr.colorOnSurface, Color.BLACK)
