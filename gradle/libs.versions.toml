@@ -1,7 +1,7 @@
 [versions]
 # plugins
 kotlin = "2.0.21"
-androidGradlePlugin = "8.7.2"
+androidGradlePlugin = "8.7.3"
 # ksp のバージョンは、kotlin_version と同じ世代のものを指定する必要がある。
 # https://github.com/google/ksp/releases で確認する。
 ksp = "2.0.21-1.0.26"

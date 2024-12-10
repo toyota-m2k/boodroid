@@ -30,6 +30,7 @@ import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.enableBinding
 import io.github.toyota32k.binder.materialRadioButtonGroupBinding
+import io.github.toyota32k.binder.multiEnableBinding
 import io.github.toyota32k.binder.multiVisibilityBinding
 import io.github.toyota32k.binder.radioGroupBinding
 import io.github.toyota32k.binder.recyclerViewBinding
@@ -97,6 +98,7 @@ class SettingsDialog : UtDialog() {
                 .add(binderWithCapability)
                 .radioGroupBinding(sourceTypeSelector, viewModel.sourceType, SourceType.idResolver)
                 .radioGroupBinding(themeSelector, viewModel.theme, ThemeSetting.idResolver)
+                .checkBinding(useDynamicColor, viewModel.useDynamicColor)
                 .radioGroupBinding(colorVariationSelector, viewModel.colorVariation, ColorVariation.idResolver)
                 .textBinding(categoryButton, viewModel.category)
                 .visibilityBinding(emptyListMessage, viewModel.hostCount.map { it==0 }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
@@ -106,7 +108,8 @@ class SettingsDialog : UtDialog() {
                 .checkBinding(showTitleCheckbox, viewModel.showTitleOnScreen)
                 .bindCommand(viewModel.commandAddToList, addToListButton)
                 .bindCommand(viewModel.commandCategory, categoryButton, callback=this@SettingsDialog::selectCategory)
-                .enableBinding(rightButton, viewModel.capability.map { it!=null })
+                .multiEnableBinding(arrayOf(colorVariationSelector, chkColorPink, chkColorBlue, chkColorGreen, chkColorPurple), viewModel.useDynamicColor, BoolConvert.Inverse)
+                .enableBinding(rightButton, viewModel.capability.map { it!=null }, alphaOnDisabled = 0.4f)
                 .recyclerViewBinding(hostList, viewModel.hostList, R.layout.list_item_host) { binder, view, host ->
                     view.findViewById<TextView>(R.id.name_text).text = if(host.name.isBlank()) "no name" else host.name
                     view.findViewById<TextView>(R.id.address_text).text = host.address

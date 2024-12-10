@@ -181,7 +181,7 @@ class MainActivity : UtMortalActivity() {
     private val mediaSession by lazy { MediaSession(this, "Boo") }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(AppViewModel.instance.settings.colorVariation.themeId)
+        setTheme(AppViewModel.instance.settings.themeId)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()  // 最近(2024/3/28現在)のAndroid Studioのテンプレートが書き出すコード（１）。。。タブレットでステータスバーなどによってクライアント領域が不正になる現象が回避できるっぽい。、
 

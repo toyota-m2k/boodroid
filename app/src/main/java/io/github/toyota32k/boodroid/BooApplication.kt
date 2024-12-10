@@ -39,7 +39,7 @@ class BooApplication : Application(), ViewModelStoreOwner {
             solidBackgroundOnPhone = false
             showDialogImmediately = UtDialogConfig.ShowDialogMode.Commit
             showInDialogModeAsDefault = true
-            useLegacyTheme()
+//            useLegacyTheme()
         }
 
         val appViewModel = AppViewModel.instance

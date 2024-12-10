@@ -154,7 +154,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                 offlineMode = if (urlChanged) false else v.offlineMode
             }
             refreshCommand.invoke(false)
-            if (v.colorVariation != o.colorVariation) {
+            if (v.themeId != o.themeId) {
                 UtImmortalSimpleTask.run {
                     withOwner {
                         val activity = it.asActivity() as? MainActivity ?: return@withOwner
