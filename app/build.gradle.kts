@@ -91,9 +91,7 @@ dependencies {
     implementation(libs.android.binding)
     implementation(libs.android.dialog)
     implementation(libs.android.viewex)
-
-    implementation(project(path=":video"))
-
+    implementation(libs.android.media.player)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)

@@ -1,16 +1,14 @@
 package io.github.toyota32k.boodroid.offline
 
 import androidx.core.net.toUri
-import io.github.toyota32k.boodroid.data.Chapter
-import io.github.toyota32k.boodroid.data.ChapterList
 import io.github.toyota32k.boodroid.data.ISizedItem
-import io.github.toyota32k.boodroid.data.VideoItem
-import io.github.toyota32k.player.model.Range
-import io.github.toyota32k.video.common.IAmvSource
-import io.github.toyota32k.video.model.IChapterList
+import io.github.toyota32k.lib.player.model.IChapterList
+import io.github.toyota32k.lib.player.model.IMediaSourceWithChapter
+import io.github.toyota32k.lib.player.model.Range
+import io.github.toyota32k.lib.player.model.chapter.Chapter
+import io.github.toyota32k.lib.player.model.chapter.ChapterList
 import java.io.File
-import java.security.InvalidParameterException
-import java.util.*
+import java.util.concurrent.atomic.AtomicLong
 
 class CachedVideoItem(
     override val id: String,
@@ -21,13 +19,14 @@ class CachedVideoItem(
     var filter: Int,
     override val size: Long,
     override val duration: Long,
-) : IAmvSource, ISizedItem {
+) : IMediaSourceWithChapter, ISizedItem {
     constructor(offlineData: OfflineData, file:File): this(offlineData.videoUrl, offlineData.name?:"", Range(offlineData.trimmingStart, offlineData.trimmingEnd), offlineData.type?:"mp4", file, offlineData.filter, offlineData.size, offlineData.duration)
     companion object {
         val idRegex:Regex by lazy { Regex("ytplayer/video\\?=(.*)") }
     }
     override val uri: String
         get() = file.toUri().toString()
+    override var startPosition =  AtomicLong(0L)
 
 //        get() {
 //            val g = idRegex.find(uri)?.groups
@@ -36,10 +35,5 @@ class CachedVideoItem(
 //            } else throw InvalidParameterException("no id in url")
 //        }
 
-    override suspend fun getChapterList(): IChapterList {
-        val database = OfflineManager.instance.database
-        return database.chapters().getForOwner(id).fold(ChapterList(id)) { acc, item->
-            acc.apply { add(Chapter(item.position, item.label ?: "", item.skip)) }
-        }
-    }
+    override val chapterList = ChapterList(OfflineManager.instance.database.chapters().getForOwner(id).map { Chapter(it.position, it.label ?: "", it.skip) }.toMutableList())
 }

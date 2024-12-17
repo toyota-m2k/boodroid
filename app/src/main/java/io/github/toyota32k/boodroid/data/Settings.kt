@@ -16,7 +16,6 @@ import io.github.toyota32k.utils.UtLog
 import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.IllegalStateException
-import java.net.URL
 
 enum class ThemeSetting(val v:Int, @IdRes val id:Int, val mode:Int) {
     SYSTEM(0, R.id.chk_theme_system, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM),

@@ -5,16 +5,15 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.graphics.Bitmap
-import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerNotificationManager
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
+import io.github.toyota32k.lib.player.model.IPlayerModel
+import io.github.toyota32k.lib.player.model.PlayerControllerModel
 import io.github.toyota32k.utils.UtLog
-import io.github.toyota32k.video.model.ControlPanelModel
-import io.github.toyota32k.video.model.PlayerModel
 
 /**
  * 端末スリープ中でも、バックグラウンドで再生を続けられるようにするためのサービスクラス
@@ -29,13 +28,13 @@ import io.github.toyota32k.video.model.PlayerModel
 class PlayerNotificationService : Service() {
     private lateinit var playerNotificationManager: PlayerNotificationManager
 
-    private var controlPanelModel:ControlPanelModel? = null
-    private val playerModel:PlayerModel? get() = controlPanelModel?.playerModel
+    private var controlPanelModel: PlayerControllerModel? = null
+    private val playerModel:IPlayerModel? get() = controlPanelModel?.playerModel
 
     companion object {
         private val logger = UtLog("SRV", BooApplication.logger)
-        private const val notificationId:Int = 0xB00
-        private const val channelId:String = "BooService"
+        private const val NOTIFICATION_ID:Int = 0xB00
+        private const val CHANNEL_ID:String = "BooService"
 
         /**
          * Activity がユーザー操作によって閉じられたときに、サービスも終了するための仕掛け
@@ -75,7 +74,7 @@ class PlayerNotificationService : Service() {
             //pass title (mostly playing audio name)
             override fun getCurrentContentTitle(player: Player): String {
                 val title = playerModel?.currentSource?.value?.name ?: "untitled"
-                logger.debug("$title")
+                logger.debug(title)
                 return title
             }
 
@@ -109,19 +108,17 @@ class PlayerNotificationService : Service() {
 
         }
 
-        if(Build.VERSION.SDK_INT >= 26) {
-            // 起動後、再生が開始されないと、playerからの通知が行われず、
-            // Context.startForegroundService() did not then call Service.startForeground() みたいな例外が出る。
-            // これを回避するため、サービス起動後、1回、startForeground()を呼んでおく。
-            // ref. https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforeground
-            startForeground(notificationId,
-                NotificationCompat.Builder(this, channelId)
-                .setContentTitle("")
-                .setContentText("").build())
-        }
+        // 起動後、再生が開始されないと、playerからの通知が行われず、
+        // Context.startForegroundService() did not then call Service.startForeground() みたいな例外が出る。
+        // これを回避するため、サービス起動後、1回、startForeground()を呼んでおく。
+        // ref. https://stackoverflow.com/questions/44425584/context-startforegroundservice-did-not-then-call-service-startforeground
+        startForeground(NOTIFICATION_ID,
+            NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("")
+            .setContentText("").build())
 
         playerNotificationManager = PlayerNotificationManager
-            .Builder(this, notificationId, channelId)
+            .Builder(this, NOTIFICATION_ID, CHANNEL_ID)
             .setChannelNameResourceId(R.string.channel_name)
             .setChannelDescriptionResourceId(R.string.channel_description)
             .setMediaDescriptionAdapter(adapter)

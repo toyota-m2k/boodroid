@@ -35,11 +35,11 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             >
-            <io.github.toyota32k.video.view.AmvExoVideoPlayer
-                android:id="@+id/player"
+            <!-- Video Player -->
+            <io.github.toyota32k.lib.player.view.VideoPlayerView
+                android:id="@+id/video_viewer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:playOnTouch="false"
                 />
             <TextView
                 android:id="@+id/title_text"
@@ -54,12 +54,6 @@
                 tools:text="あいうえお"
                 />
         </FrameLayout>
-
-        <io.github.toyota32k.video.view.ControlPanel
-            android:id="@+id/controller"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            />
 
     </LinearLayout>
 </LinearLayout>

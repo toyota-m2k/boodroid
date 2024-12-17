@@ -5,9 +5,9 @@ import androidx.room.Room
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.data.NetClient
 import io.github.toyota32k.boodroid.data.VideoItem
+import io.github.toyota32k.lib.player.model.IMediaSource
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.utils.UtObservableFlag
-import io.github.toyota32k.video.common.IAmvSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +25,7 @@ class OfflineManager(context: Context) {
         val instance:OfflineManager get() = BooApplication.instance.offlineManager
         const val DIR_NAME = "offline"
 
-        private fun IAmvSource.keyUrl() : String?
+        private fun IMediaSource.keyUrl() : String?
                 = when(this) {
             is VideoItem -> uri
             is CachedVideoItem -> id
@@ -76,7 +76,7 @@ class OfflineManager(context: Context) {
         return getOfflineData(keyUrl) != null
     }
     @Suppress("unused")
-    private fun isRegistered(videoItem: IAmvSource):Boolean {
+    private fun isRegistered(videoItem: IMediaSource):Boolean {
         return isRegistered(videoItem.keyUrl()?: return false)
     }
 
@@ -124,8 +124,8 @@ class OfflineManager(context: Context) {
 
             if(videoFile!=null) {
                 database.dataTable().insert(OfflineData(url, videoFile.path, videoItem.name, videoItem.trimming.start, videoItem.trimming.end, videoItem.type, 0, 0, videoItem.size, videoItem.duration))
-                val list = videoItem.getChapterList()
-                if(list!=null) {
+                val list = videoItem.chapterList
+                if(!list.isEmpty) {
                     database.chapters().insert(* list.chapters.map {
                         ChapterCache(url, it.position, it.label, it.skip)
                     }.toTypedArray())
@@ -161,7 +161,7 @@ class OfflineManager(context: Context) {
         }
     }
 
-    private fun unregisterVideo(videoItem:IAmvSource) {
+    private fun unregisterVideo(videoItem: IMediaSource) {
         logger.debug(videoItem.name)
         val url = videoItem.keyUrl() ?: return
         unregisterVideo(url)
@@ -178,7 +178,7 @@ class OfflineManager(context: Context) {
         }
     }
 
-    private fun unregisterVideos(list:List<IAmvSource>, progress: DownloadProgress?) {
+    private fun unregisterVideos(list:List<IMediaSource>, progress: DownloadProgress?) {
         if(list.isEmpty()) return
         progress?.setMessage("Deleting ...")
         database.runInTransaction {
@@ -186,7 +186,7 @@ class OfflineManager(context: Context) {
         }
     }
 
-    private fun updateSortOrder(list:List<IAmvSource>, progress: DownloadProgress?) {
+    private fun updateSortOrder(list:List<IMediaSource>, progress: DownloadProgress?) {
         if(list.isEmpty()) return
         progress?.setMessage("Sorting ...")
         database.runInTransaction {
@@ -217,7 +217,7 @@ class OfflineManager(context: Context) {
 //        return getOfflineVideos() as List<IAmvSource>
 //    }
 
-    class ListUpdater(private val oldList:List<CachedVideoItem>, private val newList: List<IAmvSource>) {
+    class ListUpdater(private val oldList:List<CachedVideoItem>, private val newList: List<IMediaSource>) {
         val remove = mutableListOf<CachedVideoItem>()
         val append = mutableListOf<VideoItem>()
 
@@ -286,7 +286,7 @@ class OfflineManager(context: Context) {
         }
     }
 
-    suspend fun setOfflineVideos(newList: List<IAmvSource>, progress:DownloadProgress?) : List<CachedVideoItem>? {
+    suspend fun setOfflineVideos(newList: List<IMediaSource>, progress:DownloadProgress?) : List<CachedVideoItem>? {
         progress?.reset()
         return busy.closeableTrySetIfNot()?.use {
             withContext(Dispatchers.IO) {

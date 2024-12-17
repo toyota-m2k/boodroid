@@ -4,13 +4,11 @@ import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
 import android.content.BroadcastReceiver
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.drawable.Icon
-import android.media.AudioManager
 import android.media.session.MediaSession
 import android.net.Uri
 import android.os.Build
@@ -21,7 +19,6 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
 import android.widget.ImageButton
-import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -35,18 +32,16 @@ import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.boodroid.common.compatGetParcelableExtra
 import io.github.toyota32k.boodroid.common.compatRegisterReceiver
 import io.github.toyota32k.boodroid.data.LastPlayInfo
-import io.github.toyota32k.boodroid.view.VideoListView
+import io.github.toyota32k.boodroid.databinding.ActivityMainBinding
+import io.github.toyota32k.boodroid.databinding.PanelVideoListBinding
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.boodroid.viewmodel.MainViewModel
 import io.github.toyota32k.dialog.UtMessageBox
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
 import io.github.toyota32k.dialog.task.UtMortalActivity
+import io.github.toyota32k.lib.player.model.PlayerControllerModel
+import io.github.toyota32k.lib.player.model.PlayerControllerModel.WindowMode
 import io.github.toyota32k.utils.UtLog
-import io.github.toyota32k.utils.hideActionBar
-import io.github.toyota32k.utils.hideStatusBar
-import io.github.toyota32k.video.model.ControlPanelModel
-import io.github.toyota32k.video.view.AmvExoVideoPlayer
-import io.github.toyota32k.video.view.ControlPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.combine
@@ -61,14 +56,11 @@ class MainActivity : UtMortalActivity() {
     private val binder = Binder()
     private val viewModel :MainViewModel by lazy { MainViewModel.instanceFor(this) }
     private val appViewModel:AppViewModel by lazy { AppViewModel.instance }
-    private val controlPanelModel:ControlPanelModel get() = viewModel.controlPanelModel
+    private val controlPanelModel: PlayerControllerModel get() = viewModel.controlPanelModel
     private val playerModel get() = controlPanelModel.playerModel
 
-    private lateinit var controlPanel: ControlPanel
-    private lateinit var videoListView: VideoListView
-    private lateinit var splitter: View
-    private lateinit var playerView : AmvExoVideoPlayer
-    private lateinit var listPanel:View
+    private lateinit var controls: ActivityMainBinding
+    private lateinit var panel: PanelVideoListBinding
 
     private var landscape:Boolean? = null
     private val Configuration.isLandscape : Boolean
@@ -84,78 +76,65 @@ class MainActivity : UtMortalActivity() {
      */
     private fun initViews() {
         logger.debug("mode=${controlPanelModel.windowMode.value}")
-        setContentView(R.layout.activity_main)
+
+        controls = ActivityMainBinding.inflate(layoutInflater)
+        panel = PanelVideoListBinding.bind(controls.videoListPanel)
+        setContentView(controls.root)
 
         binder.reset()
+        binder.owner(this)
 
-        playerView = findViewById(R.id.player)
-        controlPanel = findViewById(R.id.controller)
-        videoListView = findViewById(R.id.video_list)
-        splitter = findViewById(R.id.splitter)
+//        playerView = findViewById(R.id.player)
+//        controlPanel = findViewById(R.id.controller)
+//        videoListView = findViewById(R.id.video_list)
+//        splitter = findViewById(R.id.splitter)
+//
+//        listPanel = findViewById(R.id.video_list_panel)
 
-        listPanel = findViewById(R.id.video_list_panel)
+        panel.videoList.bindViewModel(binder)
 
-        playerView.bindViewModel(controlPanelModel, binder)
-        controlPanel.bindViewModel(controlPanelModel, binder)
-        videoListView.bindViewModel(controlPanelModel.playerModel, binder)
-
-        val selectButton = findViewById<ImageButton>(R.id.select_button)
+//        val selectButton = findViewById<ImageButton>(R.id.select_button)
 //        val upButton = findViewById<ImageButton>(R.id.up_button)
 //        val downButton = findViewById<ImageButton>(R.id.down_button)
-        val syncButton = findViewById<ImageButton>(R.id.sync_button)
-        val offlineButton = findViewById<ImageButton>(R.id.offline_button)
-        val onlineButton = findViewById<ImageButton>(R.id.online_button)
-        val refreshButton = findViewById<ImageButton>(R.id.refresh_button)
-        val settingButton = findViewById<ImageButton>(R.id.setting_button)
+//        val syncButton = findViewById<ImageButton>(R.id.sync_button)
+//        val offlineButton = findViewById<ImageButton>(R.id.offline_button)
+//        val onlineButton = findViewById<ImageButton>(R.id.online_button)
+//        val refreshButton = findViewById<ImageButton>(R.id.refresh_button)
+//        val settingButton = findViewById<ImageButton>(R.id.setting_button)
 //        val titleText = findViewById<TextView>(R.id.title_text)
 
         binder
             .owner(this)
-            .bindCommand(viewModel.selectOfflineVideoCommand, selectButton)
-            .bindCommand(viewModel.setupOfflineModeCommand, onlineButton,offlineButton)
-            .bindCommand(viewModel.syncWithServerCommand, syncButton)
-            .bindCommand(appViewModel.refreshCommand, refreshButton, true)
-            .bindCommand(appViewModel.settingCommand, settingButton)
-            .bindCommand(controlPanelModel.commandPlayerTapped, this::onPlayerTapped)
+            .bindCommand(viewModel.selectOfflineVideoCommand, panel.selectButton)
+            .bindCommand(viewModel.setupOfflineModeCommand, panel.onlineButton,panel.offlineButton)
+            .bindCommand(viewModel.syncWithServerCommand, panel.syncButton)
+            .bindCommand(appViewModel.refreshCommand, panel.refreshButton, true)
+            .bindCommand(appViewModel.settingCommand, panel.settingButton)
+//            .bindCommand(controlPanelModel.commandPlayerTapped, this::onPlayerTapped)
             // リロードボタンは オンラインモードのときだけ表示する
-            .visibilityBinding(refreshButton, appViewModel.offlineModeFlow, BoolConvert.Inverse)
+            .visibilityBinding(panel.refreshButton, appViewModel.offlineModeFlow, BoolConvert.Inverse)
             // オフラインボタンは、オンラインモードで、オフラインモード対応サーバーの場合だけ表示する。
-            .visibilityBinding(offlineButton, combine(appViewModel.offlineModeFlow,viewModel.offlineModeAvailable) {off,av-> !off && av })
+            .visibilityBinding(panel.offlineButton, combine(appViewModel.offlineModeFlow,viewModel.offlineModeAvailable) {off,av-> !off && av })
             // 選択アイテム同期ボタンは、オンラインモードで、サーバーがアイテム選択に対応している場合だけ表示する。
-            .visibilityBinding(syncButton, combine(appViewModel.offlineModeFlow,viewModel.syncCommandAvailable) {off,av-> !off && av })
+            .visibilityBinding(panel.syncButton, combine(appViewModel.offlineModeFlow,viewModel.syncCommandAvailable) {off,av-> !off && av })
             // オンラインボタン、再生アイテム選択ボタンは、オフラインモードの場合のみ表示する。
-            .multiVisibilityBinding(arrayOf(onlineButton,selectButton), appViewModel.offlineModeFlow)
-//
-//        binder.register(
-//            viewModel.selectOfflineVideoCommand.attachView(selectButton),
-////            viewModel.syncToServerCommand.attachView(upButton),
-////            viewModel.syncFromServerCommand.attachView(downButton),
-//            viewModel.setupOfflineModeCommand.attachView(onlineButton),
-//            viewModel.setupOfflineModeCommand.attachView(offlineButton),
-//            viewModel.syncWithServerCommand.attachView(syncButton),
-////            viewModel.menuCommand.connectViewE(findViewById(R.id.boo_title_button)),
-//            appViewModel.refreshCommand.attachView(refreshButton),
-//            appViewModel.settingCommand.attachView(settingButton),
-//            controlPanelModel.commandPlayerTapped.bind(this, this::onPlayerTapped),
-//            MultiVisibilityBinding.create(this, onlineButton, syncButton, refreshButton, data = appViewModel.offlineModeFlow.asLiveData(), boolConvert = BoolConvert.Inverse),
-//            MultiVisibilityBinding.create(this, selectButton, offlineButton, data = appViewModel.offlineModeFlow.asLiveData(), boolConvert = BoolConvert.Straight),
-//            TextBinding.create(this, titleText, viewModel.playerModel.currentSource.map { it?.name ?: ""}),
-//            VisibilityBinding.create(this, titleText, combine(controlPanelModel.windowMode, viewModel.playerModel.currentSource) {mode,src-> AppViewModel.instance.settings.showTitleOnScreen && mode== ControlPanelModel.WindowMode.FULLSCREEN && src!=null }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
-//        )
+            .multiVisibilityBinding(arrayOf(panel.onlineButton,panel.selectButton), appViewModel.offlineModeFlow)
+
+        controls.videoViewer.bindViewModel(controlPanelModel, binder)
 
         when(controlPanelModel.windowMode.value) {
-            ControlPanelModel.WindowMode.FULLSCREEN -> layoutForFullscreen()
-            ControlPanelModel.WindowMode.NORMAL -> layoutForNormal()
+            WindowMode.FULLSCREEN -> layoutForFullscreen()
+            WindowMode.NORMAL -> layoutForNormal()
             else -> { logger.error("unexpected state on windowMode.") }
         }
 
-        viewModel.playerModel.requestAuthentication.bind(this) { current->
-            UtImmortalSimpleTask.run {
-                appViewModel.authentication.authentication(true)
-                viewModel.playerModel.playAt(current.source, current.position)
-                true
-            }
-        }
+//        viewModel.playerModel.requestAuthentication.bind(this) { current->
+//            UtImmortalSimpleTask.run {
+//                appViewModel.authentication.authentication(true)
+//                viewModel.playerModel.playAt(current.source, current.position)
+//                true
+//            }
+//        }
 
         if(!viewModel.serverAvailable) {
             appViewModel.settingCommand.invoke()
@@ -206,9 +185,9 @@ class MainActivity : UtMortalActivity() {
         controlPanelModel.windowMode
             .onEach { mode ->
                 when (mode) {
-                    ControlPanelModel.WindowMode.NORMAL-> layoutForNormal()
-                    ControlPanelModel.WindowMode.FULLSCREEN->layoutForFullscreen()
-                    ControlPanelModel.WindowMode.PINP->layoutForPinP()
+                    WindowMode.NORMAL-> layoutForNormal()
+                    WindowMode.FULLSCREEN->layoutForFullscreen()
+                    WindowMode.PINP->layoutForPinP()
                 }
             }
             .onStart { logger.debug("mode collection BEGIN") }
@@ -251,10 +230,10 @@ class MainActivity : UtMortalActivity() {
                         val event = mediaButtonIntent.compatGetParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT, KeyEvent::class.java)
                         if (event?.action == KeyEvent.ACTION_DOWN) {
                             when (event.keyCode) {
-                                KeyEvent.KEYCODE_MEDIA_PLAY -> viewModel.controlPanelModel.commandTogglePlay.invoke()
-                                KeyEvent.KEYCODE_MEDIA_PAUSE, KeyEvent.KEYCODE_MEDIA_STOP -> viewModel.controlPanelModel.commandPause.invoke()
-                                KeyEvent.KEYCODE_MEDIA_NEXT -> viewModel.controlPanelModel.commandNext.invoke()
-                                KeyEvent.KEYCODE_MEDIA_PREVIOUS -> viewModel.controlPanelModel.commandPrev.invoke()
+                                KeyEvent.KEYCODE_MEDIA_PLAY -> playerModel.togglePlay()
+                                KeyEvent.KEYCODE_MEDIA_PAUSE, KeyEvent.KEYCODE_MEDIA_STOP -> playerModel.pause()
+                                KeyEvent.KEYCODE_MEDIA_NEXT -> appViewModel.videoListSource?.next()
+                                KeyEvent.KEYCODE_MEDIA_PREVIOUS -> appViewModel.videoListSource?.previous()
                                 // 他のキーコードに対する処理を追加
                             }
                         }
@@ -345,6 +324,7 @@ class MainActivity : UtMortalActivity() {
         super.onPause()
         logger.debug()
         keepScreenOn(false)
+        viewModel.savePlayPositionInfo()
     }
 
     override fun onStop() {
@@ -352,17 +332,17 @@ class MainActivity : UtMortalActivity() {
         logger.debug()
     }
 
-    private fun onPlayerTapped() {
-        when(controlPanelModel.windowMode.value) {
-            ControlPanelModel.WindowMode.FULLSCREEN-> {
-                controlPanel.visibility = if(controlPanel.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-            }
-            ControlPanelModel.WindowMode.NORMAL -> {
-                controlPanelModel.commandTogglePlay.invoke()
-            }
-            else -> {}
-        }
-    }
+//    private fun onPlayerTapped() {
+//        when(controlPanelModel.windowMode.value) {
+//            WindowMode.FULLSCREEN-> {
+//                controlPanel.visibility = if(controlPanel.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+//            }
+//            ControlPanelModel.WindowMode.NORMAL -> {
+//                controlPanelModel.commandTogglePlay.invoke()
+//            }
+//            else -> {}
+//        }
+//    }
 
     private fun keepScreenOn(sw:Boolean) {
         if(sw) {
@@ -375,14 +355,16 @@ class MainActivity : UtMortalActivity() {
     private fun layoutForPinP() {
 //        appViewModel.keepAlive(true)
         logger.debug()
+        controlPanelModel.showControlPanel.value = false
         enterPinP()
    }
 
-    private val exceptPlayerViews:Array<View> get() = arrayOf(listPanel, controlPanel, splitter)
+    private val exceptPlayerViews:Array<View> get() = arrayOf(controls.videoListPanel, controls.splitter)
 
     private fun layoutForFullscreen() {
 //        appViewModel.keepAlive(true)
         logger.debug()
+        controlPanelModel.showControlPanel.value = false
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         for(v in exceptPlayerViews) {
             v.visibility = View.GONE
@@ -410,6 +392,7 @@ class MainActivity : UtMortalActivity() {
     private fun layoutForNormal() {
 //        appViewModel.keepAlive(false)
         logger.debug()
+        controlPanelModel.showControlPanel.value = true
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         for(v in exceptPlayerViews) {
             v.visibility = View.VISIBLE
@@ -432,11 +415,11 @@ class MainActivity : UtMortalActivity() {
         logger.debug()
         if(isFinishing) {
             logger.debug("finishing")
-            val current = playerModel.currentSource.value
-            if (current != null) {
-                val pos = playerModel.playerSeekPosition.value
-                LastPlayInfo.set(BooApplication.instance.applicationContext, current.id, pos, true)
-            }
+//            val current = playerModel.currentSource.value
+//            if (current != null) {
+//                val pos = playerModel.playerSeekPosition.value
+//                LastPlayInfo.set(BooApplication.instance.applicationContext, current.id, pos, true)
+//            }
             if(!updatingTheme) {
                 logger.debug("activity finishing")
                 stopPlayerService()
@@ -465,8 +448,8 @@ class MainActivity : UtMortalActivity() {
     override fun handleKeyEvent(keyCode: Int, event: KeyEvent?): Boolean {
         if(keyCode==KeyEvent.KEYCODE_BACK) {
             when(controlPanelModel.windowMode.value) {
-                ControlPanelModel.WindowMode.NORMAL-> queryToFinish()
-                ControlPanelModel.WindowMode.FULLSCREEN->controlPanelModel.setWindowMode(ControlPanelModel.WindowMode.NORMAL)
+                WindowMode.NORMAL-> queryToFinish()
+                WindowMode.FULLSCREEN->controlPanelModel.setWindowMode(WindowMode.NORMAL)
                 else-> return false
             }
             return true
@@ -482,9 +465,10 @@ class MainActivity : UtMortalActivity() {
      */
     private fun enterPinP() {
         if(isPinP) return
+        val size = controlPanelModel.playerModel.videoSize.value
 
-        val w = controlPanelModel.playerModel.videoWidth ?: 100
-        val h = controlPanelModel.playerModel.videoHeight ?: 100
+        val w = size?.width ?: 100
+        val h = size?.height ?: 100
         val ro = Rational(w, h)
         val rational = when {
             ro.isNaN || ro.isInfinite || ro.isZero -> Rational(1, 1)
@@ -535,7 +519,7 @@ class MainActivity : UtMortalActivity() {
      */
     private val playAction: RemoteAction by lazy {
         val context = this
-        val icon = Icon.createWithResource(context, io.github.toyota32k.video.R.drawable.ic_play)
+        val icon = Icon.createWithResource(context, io.github.toyota32k.lib.player.R.drawable.ic_play)
         val title = context.getText(R.string.play)
         val pendingIntent = PendingIntent.getBroadcast(context, Action.PLAY.code, Intent(INTENT_NAME).putExtra(ACTION_TYPE_KEY, Action.PLAY.code), PendingIntent.FLAG_IMMUTABLE)
         RemoteAction(icon, title, title, pendingIntent)
@@ -546,7 +530,7 @@ class MainActivity : UtMortalActivity() {
      */
     private val pauseAction: RemoteAction by lazy {
         val context = this
-        val icon = Icon.createWithResource(context, io.github.toyota32k.video.R.drawable.ic_pause)
+        val icon = Icon.createWithResource(context, io.github.toyota32k.lib.player.R.drawable.ic_pause)
         val title = context.getText(R.string.pause)
         val pendingIntent = PendingIntent.getBroadcast(context, Action.PAUSE.code, Intent(INTENT_NAME).putExtra(ACTION_TYPE_KEY, Action.PAUSE.code), PendingIntent.FLAG_IMMUTABLE)
         RemoteAction(icon, title, title, pendingIntent)
@@ -557,7 +541,7 @@ class MainActivity : UtMortalActivity() {
      */
     private val seekTopAction:RemoteAction by lazy {
         val context = this
-        val icon = Icon.createWithResource(context, io.github.toyota32k.video.R.drawable.ic_prev)
+        val icon = Icon.createWithResource(context, io.github.toyota32k.lib.player.R.drawable.ic_prev)
         val title = context.getText(R.string.seekTop)
         val pendingIntent = PendingIntent.getBroadcast(context, Action.SEEK_TOP.code, Intent(INTENT_NAME).putExtra(ACTION_TYPE_KEY, Action.SEEK_TOP.code),PendingIntent.FLAG_IMMUTABLE)
         RemoteAction(icon, title, title, pendingIntent)
@@ -611,7 +595,7 @@ class MainActivity : UtMortalActivity() {
         landscape = null
         pinpScope?.cancel()
         unregisterReceiver(pinpBroadcastReceiver)
-        controlPanelModel.setWindowMode(ControlPanelModel.WindowMode.NORMAL)
+        controlPanelModel.setWindowMode(WindowMode.NORMAL)
     }
 
     /**

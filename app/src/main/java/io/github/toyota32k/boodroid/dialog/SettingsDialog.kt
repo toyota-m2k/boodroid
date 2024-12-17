@@ -1,35 +1,21 @@
 package io.github.toyota32k.boodroid.dialog
 
+
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.ListPopupWindow
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.map
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.button.MaterialButtonToggleGroup
 import io.github.toyota32k.binder.Binder
-import io.github.toyota32k.binder.BindingMode
 import io.github.toyota32k.binder.BoolConvert
-import io.github.toyota32k.binder.CheckBinding
-import io.github.toyota32k.binder.MaterialRadioButtonGroupBinding
-import io.github.toyota32k.binder.MaterialToggleButtonGroupBinding
-import io.github.toyota32k.binder.MultiEnableBinding
-import io.github.toyota32k.binder.RadioGroupBinding
-import io.github.toyota32k.binder.RecyclerViewBinding
-import io.github.toyota32k.binder.TextBinding
 import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.binder.checkBinding
-import io.github.toyota32k.binder.command.Command
 import io.github.toyota32k.binder.command.LiteCommand
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.enableBinding
-import io.github.toyota32k.binder.materialRadioButtonGroupBinding
 import io.github.toyota32k.binder.multiEnableBinding
 import io.github.toyota32k.binder.multiVisibilityBinding
 import io.github.toyota32k.binder.radioGroupBinding
@@ -43,7 +29,6 @@ import io.github.toyota32k.boodroid.viewmodel.SettingViewModel
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.utils.disposableObserve
-import io.github.toyota32k.utils.listChildren
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
