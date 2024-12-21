@@ -21,12 +21,13 @@ import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
 import io.github.toyota32k.dialog.task.showConfirmMessageBox
 
-class RatingDialog : UtDialog(isDialog=true) {
+class RatingDialog : UtDialog() {
     private lateinit var viewModel: RatingViewModel
     private val binder = Binder()
 
     override fun preCreateBodyView() {
         super.preCreateBodyView()
+        isDialog = true
         draggable = true
         widthOption = WidthOption.COMPACT
         heightOption = HeightOption.COMPACT
