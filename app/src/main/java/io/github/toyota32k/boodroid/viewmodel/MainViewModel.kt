@@ -17,9 +17,9 @@ import io.github.toyota32k.boodroid.offline.OfflineManager
 import io.github.toyota32k.dialog.UtSingleSelectionBox
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
 import io.github.toyota32k.dialog.task.showConfirmMessageBox
+import io.github.toyota32k.lib.player.model.IMediaSource
+import io.github.toyota32k.lib.player.model.PlayerControllerModel
 import io.github.toyota32k.utils.UtLogger
-import io.github.toyota32k.video.common.IAmvSource
-import io.github.toyota32k.video.model.ControlPanelModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +38,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    lateinit var controlPanelModel:ControlPanelModel
+    lateinit var controlPanelModel: PlayerControllerModel
     val playerModel get() = controlPanelModel.playerModel
     private val appViewModel: AppViewModel by lazy { AppViewModel.instance }
 
@@ -94,7 +94,15 @@ class MainViewModel : ViewModel() {
 
     private data class PlayPositionInfo(val index:Int, val position:Long)
 
-    private fun getPlayPositionInfo(list:List<IAmvSource>):PlayPositionInfo {
+    fun savePlayPositionInfo() {
+        val current = playerModel.currentSource.value
+        if (current != null) {
+            val pos = playerModel.playerSeekPosition.value
+            LastPlayInfo.set(BooApplication.instance.applicationContext, current.id, pos, true)
+        }
+    }
+
+    private fun getPlayPositionInfo(list:List<IMediaSource>):PlayPositionInfo {
         var index = -1
         var position = 0L
         // 再生中なら、同じ場所から再開
@@ -137,12 +145,11 @@ class MainViewModel : ViewModel() {
             } finally {
                 loading.value = false
             }
-
             if(src!=null) {
                 lastUpdate = src.modifiedDate
                 AppViewModel.logger.debug("list.count=${src.list.size}")
                 val pos = getPlayPositionInfo(src.list)
-                playerModel.setSources(src.list, pos.index, pos.position)
+                src.setCurrentSource(pos.index, pos.position)
 //                if(updateTimerTask==null) {
 //                    updateTimerTask = Timer().run {
 //                        schedule(60000,60000) {
@@ -150,12 +157,11 @@ class MainViewModel : ViewModel() {
 //                        }
 //                    }
 //                }
+                AppViewModel.instance.videoListSource = src
             } else {
                 AppViewModel.logger.debug("list empty")
                 lastUpdate = 0L
-                playerModel.setSources(emptyList())
-//                updateTimerTask?.cancel()
-//                updateTimerTask = null
+                AppViewModel.instance.videoListSource = null
             }
         }
     }
@@ -163,6 +169,7 @@ class MainViewModel : ViewModel() {
     private fun refreshVideoListFromLocal() {
         AppViewModel.logger.debug()
         val appViewModel = AppViewModel.instance
+        val listSource = appViewModel.videoListSource ?: return
         val om = OfflineManager.instance
         if (om.busy.flagged) return
         val list = om.getOfflineVideos().run {
@@ -179,10 +186,11 @@ class MainViewModel : ViewModel() {
         }
 
         val pos = getPlayPositionInfo(list)
-        playerModel.setSources(list, pos.index, pos.position)
+        listSource.setCurrentSource(pos.index, pos.position)
     }
 
     fun refreshVideoList(settingIfNotServerAvailable:Boolean) {
+        savePlayPositionInfo()
         if(AppViewModel.instance.offlineMode) {
             refreshVideoListFromLocal()
         } else {
@@ -195,8 +203,11 @@ class MainViewModel : ViewModel() {
     }
 
     fun tryPlayAt(id: String) {
-        val index = playerModel.videoSources.indexOfFirst { it.id == id }
-        playerModel.playAt(index)
+        val listSource = AppViewModel.instance.videoListSource ?: return
+        val index = listSource.list.indexOfFirst { it.id == id }
+        if(index>=0) {
+            listSource.setCurrentSource(index, 0)
+        }
     }
 
 
@@ -314,7 +325,7 @@ class MainViewModel : ViewModel() {
         playerModel.pause()
         val list:List<VideoItem>? =if(!AppViewModel.instance.offlineMode) {
             @Suppress("UNCHECKED_CAST")
-            playerModel.videoSources as List<VideoItem>
+            AppViewModel.instance.videoListSource?.list
         } else null
         OfflineDialog.setupOfflineMode(list)
     }

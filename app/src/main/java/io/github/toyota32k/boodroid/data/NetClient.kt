@@ -27,6 +27,12 @@ object NetClient {
             JSONObject(body)
         }
     }
+    suspend fun executeAndGetStringAsync(req:Request):String? {
+        return executeAsync(req).use { res ->
+            if (res.code != 200) throw IllegalStateException("Server Response Error (${res.code})")
+            res.body?.use { it.string() }
+        }
+    }
 
     /**
      * Coroutineを利用し、スレッドをブロックしないで同期的な通信を可能にする拡張メソッド

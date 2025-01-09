@@ -82,6 +82,7 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
 
     val sourceType = MutableStateFlow(SourceType.DB)
     val theme = MutableStateFlow(ThemeSetting.SYSTEM)
+    val useDynamicColor = MutableStateFlow(false)
     val colorVariation = MutableStateFlow(ColorVariation.PINK)
     val showTitleOnScreen = MutableStateFlow<Boolean>(false)
     val commandAddToList = LiteUnitCommand(this::addHost)
@@ -218,6 +219,7 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
             hostList = hostList,
             sourceType = sourceType.value,
             theme = theme.value,
+            useDynamicColor = useDynamicColor.value,
             colorVariation = colorVariation.value,
             showTitleOnScreen = showTitleOnScreen.value,
             settingsOnServer = settingsOnServer.toMap()
@@ -230,6 +232,7 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
         hostList.replace(s.hostList)
         sourceType.value = s.sourceType
         theme.value = s.theme
+        useDynamicColor.value = s.useDynamicColor
         colorVariation.value = s.colorVariation
         showTitleOnScreen.value = s.showTitleOnScreen
 

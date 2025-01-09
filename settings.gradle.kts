@@ -17,4 +17,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "boodroid"
 include(":app")
-include(":video")

@@ -1,12 +1,14 @@
+@file:OptIn(ExperimentalCoroutinesApi::class)
+
 package io.github.toyota32k.boodroid.viewmodel
 
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import io.github.toyota32k.binder.command.Command
+import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.binder.command.LiteCommand
 import io.github.toyota32k.binder.command.LiteUnitCommand
-import io.github.toyota32k.binder.command.UnitCommand
+import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.auth.Authentication
@@ -14,14 +16,22 @@ import io.github.toyota32k.boodroid.common.IUtPropertyHost
 import io.github.toyota32k.boodroid.data.QueryBuilder
 import io.github.toyota32k.boodroid.data.ServerCapability
 import io.github.toyota32k.boodroid.data.Settings
+import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.boodroid.data.VideoItemFilter
+import io.github.toyota32k.boodroid.data.VideoListSource
 import io.github.toyota32k.boodroid.dialog.SettingsDialog
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.lib.player.model.IMediaFeed
+import io.github.toyota32k.lib.player.model.IMediaSource
+import io.github.toyota32k.lib.player.model.PlayerControllerModel
+import io.github.toyota32k.utils.IUtPropOwner
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.utils.UtResetableValue
-import io.github.toyota32k.video.model.ControlPanelModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 
 interface IURLResolver {
     val auth:String
@@ -76,25 +86,77 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         super.onCleared()
     }
 
+    object EmptyVideoSource : IMediaFeed {
+        override val hasNext: StateFlow<Boolean> = MutableStateFlow(false)
+        override val hasPrevious: StateFlow<Boolean> = MutableStateFlow(false)
+        override val currentSource: StateFlow<IMediaSource?> = MutableStateFlow(null)
+        override fun next() {}
+        override fun previous() {}
+    }
+
+    inner class MediaFeed() : IMediaFeed, IUtPropOwner {
+        val listSource: StateFlow<VideoListSource> = MutableStateFlow<VideoListSource>(VideoListSource.empty)
+        override val hasNext: StateFlow<Boolean> = listSource.flatMapLatest { it.hasNext }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Eagerly, false)
+        override val hasPrevious: StateFlow<Boolean> = listSource.flatMapLatest { it.hasPrevious }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Eagerly, false)
+        override val currentSource: StateFlow<IMediaSource?> = listSource.flatMapLatest { it.currentSource }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Eagerly, null)
+//        val currentSourceIndex: StateFlow<Int> = listSource.flatMapLatest { it.currentSourceIndex }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Eagerly, -1)
+        override fun next() {
+            listSource.mutable.value.next()
+        }
+        override fun previous() {
+            listSource.mutable.value.previous()
+        }
+        val videoList = ObservableList<VideoItem>()
+
+        fun setVideoListSource(v:VideoListSource?) {
+            videoList.clear()
+            if(v!=null && v.list.isNotEmpty()) {
+                videoList.addAll(v.list)
+            }
+            mediaFeed.listSource.mutable.value = v ?: VideoListSource.empty
+        }
+    }
+
+    private val mediaFeed = MediaFeed()
+    val videoList:ObservableList<VideoItem>
+        get() = mediaFeed.videoList
+    var videoListSource: VideoListSource?
+        get() = mediaFeed.listSource.value
+        set(v) { mediaFeed.setVideoListSource(v) }
+    val currentSource:StateFlow<IMediaSource?>
+        get() = mediaFeed.currentSource
+
+//    val videoListSourceFlow: StateFlow<VideoListSource?>
+//        get() = mediaFeed.listSource
+
+
     // endregion
 
     // region Player/ControlPanel ViewModel
 
-    class RefCounteredControlPanelModel {
-        private val resetable = UtResetableValue<ControlPanelModel>()
+    inner class RefCounteredControlPanelModel {
+        private val resetable = UtResetableValue<PlayerControllerModel>()
         private var refCount:Int = 0
 
-        fun fetch():ControlPanelModel {
+        fun fetch():PlayerControllerModel {
             synchronized(this) {
                 if (!resetable.hasValue) {
-                    resetable.value = ControlPanelModel.create(BooApplication.instance.applicationContext)
+                    resetable.value =
+                        PlayerControllerModel.Builder(BooApplication.instance.applicationContext, viewModelScope)
+                            .supportChapter()
+                            .supportPlaylist(mediaFeed, true, true)
+                            .showNextPreviousButton()
+                            .supportFullscreen()
+                            .supportPiP()
+                            .enableSeekMedium(5000,15000)
+                            .build()
                     refCount = 0
                 }
                 refCount++
                 return resetable.value
             }
         }
-        fun release(v:ControlPanelModel) {
+        fun release(v:PlayerControllerModel) {
             synchronized(this) {
                 if(v == resetable.value) {
                     refCount--
@@ -107,7 +169,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
             }
         }
 
-        inline fun <T> withModel(fn:(ControlPanelModel)->T):T {
+        inline fun <T> withModel(fn:(PlayerControllerModel)->T):T {
             val v = fetch()
             return try {
                 fn(v)
@@ -154,7 +216,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                 offlineMode = if (urlChanged) false else v.offlineMode
             }
             refreshCommand.invoke(false)
-            if (v.colorVariation != o.colorVariation) {
+            if (v.themeId != o.themeId) {
                 UtImmortalSimpleTask.run {
                     withOwner {
                         val activity = it.asActivity() as? MainActivity ?: return@withOwner
