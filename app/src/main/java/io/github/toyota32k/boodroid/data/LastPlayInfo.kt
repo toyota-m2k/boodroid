@@ -20,13 +20,15 @@ data class LastPlayInfo(val id:String, val position:Long, val playing:Boolean) {
             return LastPlayInfo(id, position, playing)
         }
 
-        fun set(context: Context, id:String?, position:Long, playing:Boolean) {
+        fun set(context: Context, id:String?, position:Long?=null, playing:Boolean?=null) {
             UtLog("Data").debug("save: $id, $position")
             val pref = PreferenceManager.getDefaultSharedPreferences(context)
+            val pos = position ?: pref.getLong(KEY_LAST_PLAY_POSITION, 0L)
+            val play = playing ?: pref.getBoolean(KEY_LAST_PLAYING, false)
             pref.edit {
                 if(id!=null) putString(KEY_LAST_PLAY_ID, id) else remove(KEY_LAST_PLAY_ID)
-                putLong(KEY_LAST_PLAY_POSITION, position)
-                putBoolean(KEY_LAST_PLAYING, playing)
+                putLong(KEY_LAST_PLAY_POSITION, pos)
+                putBoolean(KEY_LAST_PLAYING, play)
             }
         }
     }

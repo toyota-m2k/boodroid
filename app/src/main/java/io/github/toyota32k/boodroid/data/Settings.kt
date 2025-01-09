@@ -16,7 +16,6 @@ import io.github.toyota32k.utils.UtLog
 import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.IllegalStateException
-import java.net.URL
 
 enum class ThemeSetting(val v:Int, @IdRes val id:Int, val mode:Int) {
     SYSTEM(0, R.id.chk_theme_system, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM),
@@ -75,6 +74,7 @@ class Settings(
     val hostList: List<HostAddressEntity>,
     val sourceType: SourceType,
     val theme:ThemeSetting,
+    val useDynamicColor: Boolean,
     val colorVariation: ColorVariation,
 
     val offlineMode:Boolean,
@@ -90,12 +90,13 @@ class Settings(
         hostList: List<HostAddressEntity> = src.hostList,
         sourceType: SourceType = src.sourceType,
         theme:ThemeSetting = src.theme,
+        useDynamicColor: Boolean = src.useDynamicColor,
         colorVariation: ColorVariation = src.colorVariation,
         offlineMode:Boolean = src.offlineMode,
         offlineFilter:Boolean = src.offlineFilter,
         showTitleOnScreen: Boolean = src.showTitleOnScreen,
         settingsOnServer: Map<String,SettingsOnServer> = src.settingsOnServer
-    ) : this(activeHostIndex, hostList, sourceType, theme, colorVariation, offlineMode, offlineFilter, showTitleOnScreen, settingsOnServer)
+    ) : this(activeHostIndex, hostList, sourceType, theme, useDynamicColor, colorVariation, offlineMode, offlineFilter, showTitleOnScreen, settingsOnServer)
 
     private val activeHost:HostAddressEntity?
         get() = if(0<=activeHostIndex&&activeHostIndex<hostList.size) hostList.get(activeHostIndex) else null
@@ -114,6 +115,8 @@ class Settings(
     private val restCommandBase:String get() = AppViewModel.instance.capability.value.root
     val baseUrl : String get() = "http://${hostAddress}${restCommandBase}"
 
+    val themeId: Int get() = if(useDynamicColor) R.style.Theme_Boodroid_Dynamic else colorVariation.themeId
+
     fun save(context: Context) {
 //        UtLogger.assert(isValid, "invalid settings")
 //        logger.debug("Settings:saving $this")
@@ -124,6 +127,7 @@ class Settings(
             putString(KEY_HOST_ENTITY_LIST, serializeHosts(hostList))
             putInt(KEY_SOURCE_TYPE, sourceType.v)
             putInt(KEY_THEME, theme.v)
+            putBoolean(KEY_USE_DYNAMIC_COLOR, useDynamicColor)
             putInt(KEY_COLOR_VARIATION, colorVariation.v)
             putBoolean(KEY_OFFLINE, offlineMode)
             putBoolean(KEY_OFFLINE_FILTER, offlineFilter)
@@ -140,6 +144,7 @@ class Settings(
         const val KEY_HOST_ENTITY_LIST = "hostEntityList"
         const val KEY_SOURCE_TYPE = "sourceType"
         const val KEY_THEME = "theme"
+        const val KEY_USE_DYNAMIC_COLOR = "useDynamicColor"
         const val KEY_COLOR_VARIATION = "colorVariation"
 //        const val KEY_RATING = "rating"
 //        const val KEY_MARKS = "marks"
@@ -156,6 +161,7 @@ class Settings(
                 hostList =  deserializeHosts(pref.getString(KEY_HOST_ENTITY_LIST, null)),
                 sourceType = SourceType.valueOf(pref.getInt(KEY_SOURCE_TYPE, -1)),
                 theme = ThemeSetting.valueOf(pref.getInt(KEY_THEME, -1)),
+                useDynamicColor = pref.getBoolean(KEY_USE_DYNAMIC_COLOR, false),
                 colorVariation = ColorVariation.valueOf(pref.getInt(KEY_COLOR_VARIATION,-1)),
                 offlineMode = pref.getBoolean(KEY_OFFLINE, false),
                 offlineFilter = pref.getBoolean(KEY_OFFLINE_FILTER,false),
@@ -225,6 +231,7 @@ class Settings(
             hostList = listOf(),
             sourceType = SourceType.DB,
             theme = ThemeSetting.SYSTEM,
+            useDynamicColor = false,
             colorVariation =  ColorVariation.PINK,
             offlineMode = false,
             offlineFilter = false,

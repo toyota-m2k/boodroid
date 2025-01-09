@@ -24,9 +24,9 @@ import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.task.*
+import io.github.toyota32k.lib.player.common.formatTime
 import io.github.toyota32k.utils.DisposableObserver
 import io.github.toyota32k.utils.asMutableLiveData
-import io.github.toyota32k.video.common.formatTime
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch

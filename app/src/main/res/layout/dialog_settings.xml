@@ -295,6 +295,12 @@
         android:layout_gravity="center_vertical"
         />
 
+    <CheckBox
+        android:id="@+id/use_dynamic_color"
+        android:text="@string/use_dynamic_color"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        />
     <RadioGroup
         android:id="@+id/color_variation_selector"
         android:layout_width="wrap_content"

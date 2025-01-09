@@ -4,14 +4,10 @@ import android.graphics.Color
 import io.github.toyota32k.boodroid.common.safeGetNullableString
 import io.github.toyota32k.boodroid.common.toIterable
 import io.github.toyota32k.utils.UtLogger
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.json.JSONObject
-import java.util.concurrent.atomic.AtomicBoolean
 
 data class CategoryInfo(val label:String, val color:Color,val sort:Int, val svgPath:String) {
     constructor(j:JSONObject) :this(

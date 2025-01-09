@@ -1,7 +1,7 @@
 [versions]
 # plugins
 kotlin = "2.0.21"
-androidGradlePlugin = "8.7.2"
+androidGradlePlugin = "8.7.3"
 # ksp のバージョンは、kotlin_version と同じ世代のものを指定する必要がある。
 # https://github.com/google/ksp/releases で確認する。
 ksp = "2.0.21-1.0.26"
@@ -28,6 +28,8 @@ androidUtilities = "2.5.1"
 androidBinding = "1.3.6"
 androidDialog = "4.0.4"
 androidViewEx = "1.1.2"
+#androidMediaPlayer = "2.4.9"
+androidMediaPlayer = "LOCAL"
 preferenceKtx = "1.2.1"
 recyclerview = "1.3.2"
 roomRuntime = "2.6.1"
@@ -56,6 +58,7 @@ android-utilities = { group = "com.github.toyota-m2k", name = "android-utilities
 android-binding = { group = "com.github.toyota-m2k", name = "android-binding", version.ref = "androidBinding" }
 android-dialog = { group = "com.github.toyota-m2k", name = "android-dialog", version.ref = "androidDialog" }
 android-viewex = { group = "com.github.toyota-m2k", name = "android-viewex", version.ref = "androidViewEx" }
+android-media-player = { group = "com.github.toyota-m2k", name="android-media-player", version.ref = "androidMediaPlayer" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

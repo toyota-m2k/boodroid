@@ -1,38 +1,59 @@
 package io.github.toyota32k.boodroid.data
 
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
-import io.github.toyota32k.player.model.Range
-import io.github.toyota32k.video.common.IAmvSource
-import io.github.toyota32k.video.model.IChapterList
+import io.github.toyota32k.lib.player.model.IChapter
+import io.github.toyota32k.lib.player.model.IChapterList
+import io.github.toyota32k.lib.player.model.IMediaSource
+import io.github.toyota32k.lib.player.model.IMediaSourceWithChapter
+import io.github.toyota32k.lib.player.model.IMutableChapterList
+import io.github.toyota32k.lib.player.model.Range
+import io.github.toyota32k.lib.player.model.chapter.MutableChapterList
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.json.JSONObject
+import java.util.concurrent.atomic.AtomicLong
 
-interface ISizedItem : IAmvSource {
+interface ISizedItem : IMediaSource {
     val size:Long
     val duration:Long
 }
 
-data class VideoItem(
-    override val id:String,
-    override val name:String,
-    override val trimming: Range,
-    override val type:String,             // 拡張子
-    override val size:Long,
-    override val duration: Long,
-    ) :IAmvSource, ISizedItem {
-    internal constructor(j: JSONObject)
-    : this(
-        j.getString("id"),
-        j.optString("name", ""),
-        Range(j.optLong("start", 0), j.optLong("end", 0)),
-        j.optString("type", "mp4"),
-        j.optLong("size", 0L),
-        j.optLong("duration", 0L),
-    )
+class VideoItem private constructor (j: JSONObject, val chapterRetriever: (suspend (VideoItem) -> List<IChapter>)?, private val mutableChapterList: MutableChapterList)
+    : IMediaSourceWithChapter, ISizedItem {
+    constructor(j: JSONObject, chapters: List<IChapter>) : this(j, null, MutableChapterList(chapters))
+    constructor(j: JSONObject, chapterRetriever: suspend (VideoItem) -> List<IChapter>) : this(j, chapterRetriever, MutableChapterList())
+
+    override val id:String
+    override val name:String
+    override val trimming: Range
+    override val type:String             // 拡張子
+    override val size:Long
+    override val duration: Long
+    override var startPosition:AtomicLong = AtomicLong(0L)
+    private var chapterListLoaded:Boolean = false
+
+    override val chapterList: IChapterList
+        get() {
+            if(!chapterListLoaded&&chapterRetriever!=null) {
+                chapterListLoaded = true
+                CoroutineScope(Dispatchers.IO).launch {
+                    mutableChapterList.initChapters(chapterRetriever(this@VideoItem))
+                }
+            }
+            return mutableChapterList
+        }
+
+    init {
+        id = j.getString("id")
+        name = j.optString("name", "")
+        trimming = Range(j.optLong("start", 0), j.optLong("end", 0))
+        type = j.optString("type", "mp4")
+        size = j.optLong("size", 0L)
+        duration = j.optLong("duration", 0L)
+    }
+
     override val uri:String
         get() = AppViewModel.url.item(id)
-
-    override suspend fun getChapterList(): IChapterList? {
-        return ChapterList.get(id)
-    }
 }
 
