@@ -18,7 +18,6 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
-import android.widget.ImageButton
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -31,7 +30,6 @@ import io.github.toyota32k.binder.multiVisibilityBinding
 import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.boodroid.common.compatGetParcelableExtra
 import io.github.toyota32k.boodroid.common.compatRegisterReceiver
-import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.boodroid.databinding.ActivityMainBinding
 import io.github.toyota32k.boodroid.databinding.PanelVideoListBinding
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
@@ -42,6 +40,8 @@ import io.github.toyota32k.dialog.task.UtMortalActivity
 import io.github.toyota32k.lib.player.model.PlayerControllerModel
 import io.github.toyota32k.lib.player.model.PlayerControllerModel.WindowMode
 import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.utils.gesture.Direction
+import io.github.toyota32k.utils.gesture.UtScaleGestureManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.combine
@@ -65,6 +65,8 @@ class MainActivity : UtMortalActivity() {
     private var landscape:Boolean? = null
     private val Configuration.isLandscape : Boolean
         get() = this.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    private lateinit var gestureManager: UtScaleGestureManager
 
     /**
      * 普通のActivityなら、onCreate()の中で setContentViewしてバインドするが、PinPをサポートするために、
@@ -148,6 +150,25 @@ class MainActivity : UtMortalActivity() {
         }
 //        hideActionBar()
 //        hideStatusBar()
+
+        // Gesture / Scaling
+        gestureManager = UtScaleGestureManager(this.applicationContext, true, controls.videoViewer.manipulationTarget)
+            .setup(this) {
+                onTap {
+                    playerModel.togglePlay()
+                }
+                onDoubleTap {
+                    gestureManager.agent.resetScrollAndScale()
+                }
+                onFlickVertical { event->
+                    val mode = controlPanelModel.windowMode.value
+                    when {
+                        mode == WindowMode.FULLSCREEN && event.direction== Direction.Start -> controlPanelModel.setWindowMode(WindowMode.NORMAL)
+                        mode == WindowMode.NORMAL && event.direction == Direction.End -> controlPanelModel.setWindowMode(WindowMode.FULLSCREEN)
+                        else -> { logger.error("unexpected state on windowMode.") }
+                    }
+                }
+            }
     }
 
     private var updatingTheme:Boolean = false

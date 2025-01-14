@@ -149,6 +149,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                             .supportFullscreen()
                             .supportPiP()
                             .enableSeekMedium(5000,15000)
+                            .enableVolumeController(true)
                             .build()
                     refCount = 0
                 }
