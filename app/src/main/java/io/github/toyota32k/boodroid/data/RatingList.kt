@@ -39,7 +39,8 @@ data class RatingInfo(val rating:Int, val label:String, val svgPath:String) {
     )
     val drawable: Drawable?
     init {
-        drawable = PathUtil.bitmapDrawableFromPath(BooApplication.instance.applicationContext, svgPath)
+//        drawable = PathUtil.bitmapDrawableFromPath(BooApplication.instance.applicationContext, svgPath)
+        drawable = PathUtil.shapeDrawableFromPath(svgPath)
     }
 }
 class RatingList(private val list: List<RatingInfo>, val default:Int) : List<RatingInfo> by list {

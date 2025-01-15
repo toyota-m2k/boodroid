@@ -21,6 +21,11 @@ object PathUtil {
      * ShapeDrawable(PathShape(Path)) みたいな便利なDrawableがあったから、それを使ってみた。
      * ところが、MaterialButton にセットすると描画位置が、右下にズレてしまって、どうやったら真ん中に表示されるのかわからない。
      * 描画先によっては使えるのかもしれないが。。。
+     *
+     * 2025.1.15 ... 情報更新
+     * もともとAndroidのバグだったのか、Android15 で試すと、これで正しく表示された。
+     * 逆に、bitmapDrawableFromPath()を使うと左上1/4くらいしか表示されなくなってしまった。
+     * とりあえず最新のAndroidで動くことを優先するか。。。
      */
     fun shapeDrawableFromPath(pathString:String, width:Float = 24f, height:Float = 24f): ShapeDrawable? {
         val path = createPathFromPathData(pathString) ?: return null
