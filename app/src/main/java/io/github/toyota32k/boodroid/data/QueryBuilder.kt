@@ -1,5 +1,6 @@
 package io.github.toyota32k.boodroid.data
 
+import android.net.Uri
 import java.lang.StringBuilder
 
 class QueryBuilder {
@@ -9,7 +10,7 @@ class QueryBuilder {
         if(sb.isNotEmpty()) {
             sb.append("&")
         }
-        sb.append("${name}=${value}")
+        sb.append("${name}=${Uri.encode(value)}")
     }
     fun add(name:String, value:Int) {
         if(sb.isNotEmpty()) {

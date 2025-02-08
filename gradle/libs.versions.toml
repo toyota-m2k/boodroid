@@ -31,7 +31,7 @@ androidViewEx = "1.1.6"
 androidMediaPlayer = "2.6.1"
 #androidMediaPlayer = "LOCAL"
 preferenceKtx = "1.2.1"
-recyclerview = "1.3.2"
+recyclerview = "1.4.0"
 roomRuntime = "2.6.1"
 
 [libraries]
