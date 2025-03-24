@@ -2,6 +2,11 @@
 
 package io.github.toyota32k.boodroid.viewmodel
 
+import android.app.WallpaperManager
+import android.content.Context
+import android.graphics.Bitmap
+import android.os.Build
+import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -19,6 +24,7 @@ import io.github.toyota32k.boodroid.data.Settings
 import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.boodroid.data.VideoItemFilter
 import io.github.toyota32k.boodroid.data.VideoListSource
+import io.github.toyota32k.boodroid.dialog.SaveImageDialog
 import io.github.toyota32k.boodroid.dialog.SettingsDialog
 import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
 import io.github.toyota32k.lib.player.model.IMediaFeed
@@ -131,7 +137,55 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
 
 
     // endregion
-
+    private suspend fun saveImageAsFile(activity:MainActivity, bitmap:Bitmap, fileName:String) {
+        val uri = activity.filePickers.createFilePicker.selectFile(fileName, "image/jpeg")
+        if(uri!=null) {
+            try {
+                activity.contentResolver.openOutputStream(uri)?.use {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
+                    it.flush()
+                }
+            } catch(e:Exception) {
+                logger.error(e)
+            }
+        }
+    }
+    fun setWallpaper(context: Context, bitmap:Bitmap, setLockScreen: Boolean, setHomeScreen: Boolean) {
+        val wallpaperManager = WallpaperManager.getInstance(context)
+        try {
+            val flags = (if (setLockScreen) WallpaperManager.FLAG_LOCK else 0) or
+                    (if (setHomeScreen) WallpaperManager.FLAG_SYSTEM else 0)
+            wallpaperManager.setBitmap(bitmap, null, true, flags)
+        } catch (e: Throwable) {
+            logger.error(e)
+        }
+    }
+    private fun saveBitmap(position:Long, bitmap:Bitmap) {
+        val name = currentSource.value?.name ?: return
+        val fileName = "${name}_${position}.jpg"
+        UtImmortalSimpleTask.run("snapshot") {
+            val vm = SaveImageDialog.SaveImageViewModel.create(taskName) ?: return@run false
+            if(showDialog(taskName) { SaveImageDialog() }.status.ok) {
+                if (vm.saveAsFile.value) {
+                    withOwner {
+                        val activity = it.asActivity() as? MainActivity ?: return@withOwner
+                        saveImageAsFile(activity, bitmap, fileName)
+                    }
+                }
+                if (vm.lockScreen.value || vm.homeScreen.value) {
+                    withOwner {
+                        setWallpaper(
+                            it.asContext(),
+                            bitmap,
+                            vm.lockScreen.value,
+                            vm.homeScreen.value
+                        )
+                    }
+                }
+            }
+            true
+        }
+    }
     // region Player/ControlPanel ViewModel
 
     inner class RefCounteredControlPanelModel {
@@ -148,6 +202,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                             .showNextPreviousButton()
                             .supportFullscreen()
                             .supportPiP()
+                            .supportSnapshot(::saveBitmap)
                             .enableSeekMedium(5000,15000)
                             .enableVolumeController(true)
                             .build()

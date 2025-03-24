@@ -110,7 +110,7 @@ class VideoListSource(val list:List<VideoItem>, val modifiedDate:Long) {
                 val lastUpdate = json.getString("date").toLong()
                 val jsonList = json.getJSONArray("list")
                     ?: throw IllegalStateException("Server Response Null List.")
-                VideoListSource( jsonList.toIterable().map { j -> VideoItem(j as JSONObject, ::getChapters) }, lastUpdate )
+                VideoListSource( jsonList.toIterable().filter { (it as JSONObject).optString("media", "")!="p" }.map { j -> VideoItem(j as JSONObject, ::getChapters) }, lastUpdate )
             } catch (e: Throwable) {
                 UtLogger.stackTrace(e)
                 return null
