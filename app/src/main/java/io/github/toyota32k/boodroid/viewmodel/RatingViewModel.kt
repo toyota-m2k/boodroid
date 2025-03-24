@@ -1,16 +1,11 @@
 package io.github.toyota32k.boodroid.viewmodel
 
-import androidx.lifecycle.ViewModel
 import io.github.toyota32k.boodroid.BooApplication
-import io.github.toyota32k.boodroid.common.UtImmortalTaskContextSource
 import io.github.toyota32k.boodroid.common.safeGetInt
 import io.github.toyota32k.boodroid.common.safeGetNullableString
 import io.github.toyota32k.boodroid.data.NetClient
 import io.github.toyota32k.boodroid.data.VideoItem
-import io.github.toyota32k.dialog.IUtDialog
-import io.github.toyota32k.dialog.task.IUtImmortalTask
-import io.github.toyota32k.dialog.task.IUtImmortalTaskMutableContextSource
-import io.github.toyota32k.dialog.task.UtImmortalViewModelHelper
+import io.github.toyota32k.dialog.task.UtDialogViewModel
 import io.github.toyota32k.utils.UtLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,7 +17,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
-class RatingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtImmortalTaskContextSource() {
+class RatingViewModel : UtDialogViewModel() {
     private lateinit var current:VideoItem
     private val id:String get() = current.id
     val name = MutableStateFlow("")
@@ -100,23 +95,5 @@ class RatingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtIm
 
     companion object {
         val logger = UtLog("RD", BooApplication.logger)
-            /**
-         * タスク開始時の初期化用
-         */
-        /**
-         * タスク開始時の初期化用
-         */
-        fun createBy(task: IUtImmortalTask, initialize:((RatingViewModel)->Unit)?=null) : RatingViewModel
-                = UtImmortalViewModelHelper.createBy(RatingViewModel::class.java, task, initialize)
-
-            /**
-         * ダイアログから取得する用
-         */
-
-        /**
-         * ダイアログから取得する用
-         */
-        fun instanceFor(dialog: IUtDialog):RatingViewModel
-                = UtImmortalViewModelHelper.instanceFor(RatingViewModel::class.java, dialog)
     }
 }

@@ -15,7 +15,7 @@ import io.github.toyota32k.boodroid.dialog.OfflineDialog
 import io.github.toyota32k.boodroid.dialog.VideoSelectDialog
 import io.github.toyota32k.boodroid.offline.OfflineManager
 import io.github.toyota32k.dialog.UtSingleSelectionBox
-import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.showConfirmMessageBox
 import io.github.toyota32k.lib.player.model.IMediaSource
 import io.github.toyota32k.lib.player.model.PlayerControllerModel
@@ -178,7 +178,7 @@ class MainViewModel : ViewModel() {
             } else this
         }
         if(list.isEmpty()) {
-            UtImmortalSimpleTask.run("emptyOfflineMode") {
+            UtImmortalTask.launchTask("emptyOfflineMode") {
                 val context = BooApplication.instance
                 showConfirmMessageBox(context.getString(R.string.offline_mode), context.getString(R.string.offline_empty_list))
                 true
@@ -272,7 +272,7 @@ class MainViewModel : ViewModel() {
     }
 
     private fun syncWithServer() {
-        UtImmortalSimpleTask.run("SyncWithServer") {
+        UtImmortalTask.launchTask ("SyncWithServer") {
             val context = BooApplication.instance.applicationContext
             fun s(@StringRes id:Int):String = context.getString(id)
             val menuItems = arrayOf(

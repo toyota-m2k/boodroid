@@ -20,8 +20,10 @@ import io.github.toyota32k.boodroid.databinding.DialogPasswordBinding
 import io.github.toyota32k.dialog.UtDialogEx
 import io.github.toyota32k.dialog.task.IUtImmortalTaskContext
 import io.github.toyota32k.dialog.task.IUtImmortalTaskMutableContextSource
+import io.github.toyota32k.dialog.task.UtDialogViewModel
 import io.github.toyota32k.dialog.task.UtImmortalTaskManager
 import io.github.toyota32k.dialog.task.createViewModel
+import io.github.toyota32k.dialog.task.getViewModel
 import io.github.toyota32k.dialog.task.immortalTaskContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,9 +32,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class PasswordDialog : UtDialogEx() {
-    class PasswordViewModel : ViewModel(), IUtImmortalTaskMutableContextSource {
-        override lateinit var immortalTaskContext: IUtImmortalTaskContext
-
+    class PasswordViewModel : UtDialogViewModel() {
         lateinit var authentication: Authentication
         val password = MutableStateFlow("")
         val message = MutableStateFlow("")
@@ -56,23 +56,23 @@ class PasswordDialog : UtDialogEx() {
             }
         }
 
-        companion object {
-            fun create(taskName:String, authentication: Authentication): PasswordViewModel {
-                return UtImmortalTaskManager.taskOf(taskName)?.task?.createViewModel<PasswordViewModel>()?.apply { this.authentication = authentication } ?: throw IllegalStateException("no task")
-            }
-
-            fun instanceFor(dlg: PasswordDialog): PasswordViewModel {
-                return ViewModelProvider(dlg.immortalTaskContext, ViewModelProvider.NewInstanceFactory())[PasswordViewModel::class.java]
-            }
-        }
+//        companion object {
+//            fun create(taskName:String, authentication: Authentication): PasswordViewModel {
+//                return UtImmortalTaskManager.taskOf(taskName)?.task?.createViewModel<PasswordViewModel>()?.apply { this.authentication = authentication } ?: throw IllegalStateException("no task")
+//            }
+//
+//            fun instanceFor(dlg: PasswordDialog): PasswordViewModel {
+//                return ViewModelProvider(dlg.immortalTaskContext, ViewModelProvider.NewInstanceFactory())[PasswordViewModel::class.java]
+//            }
+//        }
     }
 
     override fun preCreateBodyView() {
-        setLeftButton(BuiltInButtonType.CANCEL)
-        setRightButton(BuiltInButtonType.DONE)
+        leftButtonType = ButtonType.CANCEL
+        rightButtonType = ButtonType.DONE
         title = requireActivity().getString(R.string.password)
         gravityOption = GravityOption.CENTER
-        setLimitWidth(400)
+        widthOption = WidthOption.LIMIT(400)
         heightOption = HeightOption.COMPACT
         enableFocusManagement()
             .setInitialFocus(R.id.password)
@@ -80,7 +80,7 @@ class PasswordDialog : UtDialogEx() {
     }
 
     lateinit var controls: DialogPasswordBinding
-    private val viewModel: PasswordViewModel by lazy { PasswordViewModel.instanceFor(this) }
+    private val viewModel: PasswordViewModel by lazy { getViewModel<PasswordViewModel>() }
 
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
         controls = DialogPasswordBinding.inflate(inflater.layoutInflater)

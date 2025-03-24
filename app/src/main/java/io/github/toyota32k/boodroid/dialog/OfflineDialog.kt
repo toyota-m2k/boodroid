@@ -4,24 +4,12 @@ import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
-import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.ColorInt
-import androidx.annotation.StringRes
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
-import androidx.recyclerview.widget.RecyclerView
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.BoolConvert
-import io.github.toyota32k.binder.CheckBinding
-import io.github.toyota32k.binder.EnableBinding
-import io.github.toyota32k.binder.ProgressBarBinding
-import io.github.toyota32k.binder.RecyclerViewBinding
-import io.github.toyota32k.binder.TextBinding
-import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.binder.checkBinding
 import io.github.toyota32k.binder.command.Command
 import io.github.toyota32k.binder.command.LiteUnitCommand
@@ -35,7 +23,6 @@ import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.IUtPropertyHost
-import io.github.toyota32k.boodroid.common.UtImmortalTaskContextSource
 import io.github.toyota32k.boodroid.data.ISizedItem
 import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.boodroid.data.VideoListSource
@@ -44,15 +31,17 @@ import io.github.toyota32k.boodroid.databinding.PanelDownloadProgressBinding
 import io.github.toyota32k.boodroid.offline.CachedVideoItem
 import io.github.toyota32k.boodroid.offline.OfflineManager
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
-import io.github.toyota32k.dialog.IUtDialog
-import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialogEx
-import io.github.toyota32k.dialog.task.*
+import io.github.toyota32k.dialog.task.UtDialogViewModel
+import io.github.toyota32k.dialog.task.UtImmortalTask
+import io.github.toyota32k.dialog.task.createViewModel
+import io.github.toyota32k.dialog.task.getStringOrNull
+import io.github.toyota32k.dialog.task.getViewModel
+import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import io.github.toyota32k.lib.player.common.formatSize
 import io.github.toyota32k.lib.player.common.formatTime
 import io.github.toyota32k.lib.player.model.IMediaSource
 import io.github.toyota32k.utils.UtObservableFlag
-import io.github.toyota32k.utils.asMutableLiveData
 import io.github.toyota32k.utils.getAttrColor
 import io.github.toyota32k.utils.getAttrColorAsDrawable
 import kotlinx.coroutines.Dispatchers
@@ -67,7 +56,7 @@ import java.util.Locale
 class OfflineDialog : UtDialogEx() {
     data class Selectable<T>(val value:T, var selected:Boolean=false)
 
-    class OfflineDialogViewModel : ViewModel(), IUtPropertyHost, IUtImmortalTaskMutableContextSource by UtImmortalTaskContextSource() {
+    class OfflineDialogViewModel : UtDialogViewModel(), IUtPropertyHost {
         val offlineMode = MutableStateFlow(AppViewModel.instance.offlineMode)
         val sourceList = ObservableList<Selectable<VideoItem>>()
         val targetList = ObservableList<Selectable<ISizedItem>>()
@@ -108,7 +97,7 @@ class OfflineDialog : UtDialogEx() {
                                     VideoListSource.retrieve(0)?.list
                                 }
                                 if (list != null) {
-                                    sourceList.addAll(list.map { Selectable(it as VideoItem) })
+                                    sourceList.addAll(list.map { Selectable(it) })
                                 }
                             } finally {
                                 loadingSources.reset()
@@ -221,32 +210,30 @@ class OfflineDialog : UtDialogEx() {
 //            AppViewModel.instance.settings = Settings(AppViewModel.instance.settings, offlineMode = offlineMode.value)
             val oldMode = AppViewModel.instance.offlineMode
             val newMode = if(!oldMode && !offlineMode.value && newList.isNotEmpty()) {
-                UtImmortalSimpleTask.runAsync("enterOfflineMode") {
-                    val context = BooApplication.instance.applicationContext
-                    fun s(@StringRes id:Int) : String = context.getString(id)
-                    showYesNoMessageBox(s(R.string.app_name), s(R.string.query_enter_offline_mode))
+                UtImmortalTask.awaitTaskResult("enterOfflineMode") {
+                    showYesNoMessageBox(getStringOrNull(R.string.app_name), getStringOrNull(R.string.query_enter_offline_mode))
                 }
             } else offlineMode.value
             AppViewModel.instance.updateOfflineMode(newMode, filter = false, updateList = true)
             return true
         }
 
-        companion object {
-            /**
-             * ViewModel の生成
-             */
-            fun createBy(task: IUtImmortalTask, sources:List<VideoItem>?):OfflineDialogViewModel
-                = UtImmortalViewModelHelper.createBy(OfflineDialogViewModel::class.java, task) { it.prepare(sources) }
-
-            /**
-             * ダイアログから取得する用
-             */
-            fun instanceFor(dialog: IUtDialog): OfflineDialogViewModel
-                = UtImmortalViewModelHelper.instanceFor(OfflineDialogViewModel::class.java, dialog)
-        }
+//        companion object {
+//            /**
+//             * ViewModel の生成
+//             */
+//            fun createBy(task: IUtImmortalTask, sources:List<VideoItem>?):OfflineDialogViewModel
+//                = UtImmortalViewModelHelper.createBy(OfflineDialogViewModel::class.java, task) { it.prepare(sources) }
+//
+//            /**
+//             * ダイアログから取得する用
+//             */
+//            fun instanceFor(dialog: IUtDialog): OfflineDialogViewModel
+//                = UtImmortalViewModelHelper.instanceFor(OfflineDialogViewModel::class.java, dialog)
+//        }
     }
     
-    val viewModel:OfflineDialogViewModel by lazy { OfflineDialogViewModel.instanceFor(this) }
+    val viewModel:OfflineDialogViewModel by lazy { getViewModel<OfflineDialogViewModel>() }
 
     @ColorInt
     private var normalTextColor: Int = Color.WHITE
@@ -267,8 +254,8 @@ class OfflineDialog : UtDialogEx() {
         widthOption = WidthOption.FULL
         heightOption = HeightOption.FULL
         cancellable = false
-        setLeftButton(BuiltInButtonType.CANCEL)
-        setRightButton(BuiltInButtonType.DONE)
+        leftButtonType = ButtonType.CANCEL
+        rightButtonType = ButtonType.DONE
     }
 
     lateinit var controls: DialogOfflineModeBinding
@@ -341,7 +328,7 @@ class OfflineDialog : UtDialogEx() {
                 .bindCommand(viewModel.commandDeleteAll, clearTargetButton)
                 .recyclerViewBinding(sourceList, viewModel.sourceList, R.layout.list_item_video, bindView = ::bindSourceItemView)
                 .recyclerViewBinding(targetList, viewModel.targetList, R.layout.list_item_video, bindView = ::bindTargetItemView, dragAndDrop = true)
-                .dialogGuardViewVisibility(OfflineManager.instance.busy, showProgressRing = true)
+                .dialogBodyGuardViewVisibility(OfflineManager.instance.busy, showProgressRing = true)
                 .dialogRightButtonEnable(OfflineManager.instance.busy, boolConvert = BoolConvert.Inverse)
         }
         return controls.root
@@ -357,10 +344,9 @@ class OfflineDialog : UtDialogEx() {
 
     companion object {
         fun setupOfflineMode(videoList:List<VideoItem>?) {
-            UtImmortalSimpleTask.run(OfflineDialog::class.java.name) {
-                OfflineDialogViewModel.createBy(this, videoList)
+            UtImmortalTask.launchTask(OfflineDialog::class.java.name) {
+                createViewModel<OfflineDialogViewModel> { prepare(videoList) }
                 showDialog(taskName) { OfflineDialog() }
-                true
             }
         }
     }

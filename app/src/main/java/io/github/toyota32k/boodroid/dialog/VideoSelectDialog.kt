@@ -23,6 +23,7 @@ import io.github.toyota32k.boodroid.offline.OfflineManager
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialog
+import io.github.toyota32k.dialog.UtDialogEx
 import io.github.toyota32k.dialog.task.*
 import io.github.toyota32k.lib.player.common.formatTime
 import io.github.toyota32k.utils.DisposableObserver
@@ -32,8 +33,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
-class VideoSelectDialog : UtDialog() {
-    class VideoSelectDialogViewModel: ViewModel(), IUtImmortalTaskMutableContextSource by UtImmortalTaskContextSource() {
+class VideoSelectDialog : UtDialogEx() {
+    class VideoSelectDialogViewModel: UtDialogViewModel() {
         val videoList = ObservableList<CachedVideoItem>().apply { addAll(OfflineManager.instance.getOfflineVideos()) }
         val enableFilter = MutableStateFlow(AppViewModel.instance.offlineFilter)
         val totalTime = MutableStateFlow(0L)
@@ -93,7 +94,7 @@ class VideoSelectDialog : UtDialog() {
                     OfflineManager.instance.updateFilter(videoList)
                     if (!AppViewModel.instance.offlineFilter && !enableFilter.value && isSelected) {
                         // 選択したがフィルターを有効化していない？
-                        UtImmortalSimpleTask.runAsync("confirmEnableFilter") {
+                        UtImmortalTask.awaitTaskResult("confirmEnableFilter") {
                             val context = BooApplication.instance.applicationContext
                             fun s(@StringRes id: Int): String = context.getString(id)
                             if (showYesNoMessageBox(s(R.string.app_name), "Enable Filter")) {
@@ -108,31 +109,31 @@ class VideoSelectDialog : UtDialog() {
             } else false
         }
 
-        companion object {
-            /**
-             * ViewModel の生成
-             */
-            fun createBy(task: IUtImmortalTask): VideoSelectDialogViewModel
-                    = UtImmortalViewModelHelper.createBy(VideoSelectDialogViewModel::class.java, task)
-
-            /**
-             * ダイアログから取得する用
-             */
-            fun instanceFor(dialog: IUtDialog): VideoSelectDialogViewModel
-                    = UtImmortalViewModelHelper.instanceFor(VideoSelectDialogViewModel::class.java, dialog)
-
-        }
+//        companion object {
+//            /**
+//             * ViewModel の生成
+//             */
+//            fun createBy(task: IUtImmortalTask): VideoSelectDialogViewModel
+//                    = UtImmortalViewModelHelper.createBy(VideoSelectDialogViewModel::class.java, task)
+//
+//            /**
+//             * ダイアログから取得する用
+//             */
+//            fun instanceFor(dialog: IUtDialog): VideoSelectDialogViewModel
+//                    = UtImmortalViewModelHelper.instanceFor(VideoSelectDialogViewModel::class.java, dialog)
+//
+//        }
     }
 
-    val viewModel by lazy { VideoSelectDialogViewModel.instanceFor(this) }
-    val binder = Binder()
+    val viewModel by lazy { getViewModel<VideoSelectDialogViewModel>() }
 
     override fun preCreateBodyView() {
+        noHeader = true
         widthOption = WidthOption.FULL
         heightOption = HeightOption.FULL
         cancellable = false
-        setLeftButton(BuiltInButtonType.CANCEL)
-        setRightButton(BuiltInButtonType.DONE)
+        leftButtonType = ButtonType.CANCEL
+        rightButtonType = ButtonType.DONE
     }
 
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
@@ -175,8 +176,8 @@ class VideoSelectDialog : UtDialog() {
 
     companion object {
         fun setupOfflineVideoFilter() {
-            UtImmortalSimpleTask.run("setupOfflineVideoFilter") {
-                VideoSelectDialogViewModel.createBy(this)
+            UtImmortalTask.launchTask("setupOfflineVideoFilter") {
+                createViewModel<VideoSelectDialogViewModel>()
                 showDialog(taskName) { VideoSelectDialog() }
                 true
             }

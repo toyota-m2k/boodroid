@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import androidx.appcompat.widget.ListPopupWindow
-import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.observe
@@ -17,35 +16,34 @@ import io.github.toyota32k.boodroid.data.bindRatingList
 import io.github.toyota32k.boodroid.databinding.DialogRatingBinding
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.boodroid.viewmodel.RatingViewModel
-import io.github.toyota32k.dialog.UtDialog
-import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.UtDialogEx
+import io.github.toyota32k.dialog.task.UtImmortalTask
+import io.github.toyota32k.dialog.task.createViewModel
+import io.github.toyota32k.dialog.task.getViewModel
 import io.github.toyota32k.dialog.task.showConfirmMessageBox
 
-class RatingDialog : UtDialog() {
-    private lateinit var viewModel: RatingViewModel
-    private val binder = Binder()
+class RatingDialog : UtDialogEx() {
+    private lateinit var controls: DialogRatingBinding
+    private val viewModel by lazy { getViewModel<RatingViewModel>() }
 
     override fun preCreateBodyView() {
-        super.preCreateBodyView()
         isDialog = true
         draggable = true
         widthOption = WidthOption.COMPACT
         heightOption = HeightOption.COMPACT
         gravityOption = GravityOption.CENTER
-        setLeftButton(BuiltInButtonType.CANCEL)
-        setRightButton(BuiltInButtonType.OK)
+        leftButtonType = ButtonType.CANCEL
+        rightButtonType = ButtonType.OK
+        noHeader = true
     }
 
-    lateinit var controls: DialogRatingBinding
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
         val owner = requireActivity()
         controls = DialogRatingBinding.inflate(inflater.layoutInflater)
-        viewModel = RatingViewModel.instanceFor(this)
         val cap = AppViewModel.instance.capability.value
 
         return controls.apply {
             binder
-                .owner(owner)
                 .bindRatingList(ratingSelector, viewModel.rating, cap.ratingList)
                 .bindMarkListRadio(markSelector, viewModel.mark, cap.markList)
                 .textBinding(itemName, viewModel.name)
@@ -61,7 +59,7 @@ class RatingDialog : UtDialog() {
     }
 
     private fun onError() {
-        UtImmortalSimpleTask.run("rating error") {
+        UtImmortalTask.launchTask("rating error") {
             showConfirmMessageBox(null, "cannot access the video item.")
             onNegative()
             true
@@ -95,8 +93,8 @@ class RatingDialog : UtDialog() {
 
     companion object {
         fun show(item: VideoItem) {
-            UtImmortalSimpleTask.run("rating") {
-                RatingViewModel.createBy(this) { it.prepare(item, immortalCoroutineScope) }
+            UtImmortalTask.launchTask("rating") {
+                createViewModel<RatingViewModel> { prepare(item, immortalCoroutineScope) }
                 showDialog(taskName) { RatingDialog() }
                 true
             }

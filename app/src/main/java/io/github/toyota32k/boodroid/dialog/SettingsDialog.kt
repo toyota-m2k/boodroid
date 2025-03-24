@@ -1,7 +1,6 @@
 package io.github.toyota32k.boodroid.dialog
 
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.*
@@ -27,45 +26,41 @@ import io.github.toyota32k.boodroid.data.*
 import io.github.toyota32k.boodroid.databinding.DialogSettingsBinding
 import io.github.toyota32k.boodroid.viewmodel.SettingViewModel
 import io.github.toyota32k.dialog.IUtDialog
-import io.github.toyota32k.dialog.UtDialog
+import io.github.toyota32k.dialog.UtDialogEx
+import io.github.toyota32k.dialog.task.getViewModel
 import io.github.toyota32k.utils.disposableObserve
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
-class SettingsDialog : UtDialog() {
-    lateinit var viewModel: SettingViewModel
-        private set
-    private val binder = Binder()
+class SettingsDialog : UtDialogEx() {
+    private val viewModel by lazy { getViewModel<SettingViewModel>() }
 
     override fun preCreateBodyView() {
-        super.preCreateBodyView()
         isDialog = true
-        viewModel = SettingViewModel.instanceFor(this)
         scrollable = true
         cancellable = false
         draggable = true
         title = viewModel.version
-        guardColor = Color.argb(0xD0, 0xFF, 0xFF, 0xFF)
+        guardColor = GuardColor.THEME_SEE_THROUGH
         if(isPhone) {
             widthOption = WidthOption.FULL
             heightOption = HeightOption.FULL
             scrollable = true
         } else {
+            widthOption = WidthOption.LIMIT(500)
             heightOption = HeightOption.AUTO_SCROLL
-            gravityOption = GravityOption.CENTER
-            setLimitWidth(500)
         }
         gravityOption = GravityOption.CENTER
-        setLeftButton(BuiltInButtonType.CANCEL)
-        setRightButton(BuiltInButtonType.DONE)
+        leftButtonType = ButtonType.CANCEL
+        rightButtonType = ButtonType.DONE
     }
 
-    private lateinit var binderWithCapability:Binder
+    private val binderWithCapability = Binder()
     private lateinit var controls: DialogSettingsBinding
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
-        binderWithCapability = Binder() // binder.dispose()で disposeされるので、毎回作成
+//        binderWithCapability = Binder() // binder.dispose()で disposeされるので、毎回作成
         val owner = requireActivity()
         binder.owner(owner)
         binderWithCapability.owner(owner)
@@ -95,11 +90,11 @@ class SettingsDialog : UtDialog() {
                 .bindCommand(viewModel.commandCategory, categoryButton, callback=this@SettingsDialog::selectCategory)
                 .multiEnableBinding(arrayOf(colorVariationSelector, chkColorPink, chkColorBlue, chkColorGreen, chkColorPurple), viewModel.useDynamicColor, BoolConvert.Inverse)
                 .enableBinding(rightButton, viewModel.capability.map { it!=null }, alphaOnDisabled = 0.4f)
-                .recyclerViewBinding(hostList, viewModel.hostList, R.layout.list_item_host) { binder, view, host ->
+                .recyclerViewBinding(hostList, viewModel.hostList, R.layout.list_item_host) { itemBinder, view, host ->
                     view.findViewById<TextView>(R.id.name_text).text = if(host.name.isBlank()) "no name" else host.name
                     view.findViewById<TextView>(R.id.address_text).text = host.address
-                    binder.reset()
-                    binder
+                    itemBinder.reset()
+                    itemBinder
                         .owner(owner)
                         .bindCommand(LiteUnitCommand { viewModel.onActiveHostSelected(host) }, view.findViewById<View>(R.id.item_container))
                         .bindCommand(LiteCommand(viewModel::editHost), view.findViewById(R.id.edit_button), host)

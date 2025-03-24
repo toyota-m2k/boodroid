@@ -2,7 +2,6 @@ package io.github.toyota32k.boodroid.viewmodel
 
 import android.content.Context
 import androidx.annotation.StringRes
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.binder.command.Command
 import io.github.toyota32k.binder.command.LiteUnitCommand
@@ -10,7 +9,6 @@ import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.PackageUtil
-import io.github.toyota32k.boodroid.common.UtImmortalTaskContextSource
 import io.github.toyota32k.boodroid.data.ColorVariation
 import io.github.toyota32k.boodroid.data.HostAddressEntity
 import io.github.toyota32k.boodroid.data.ServerCapability
@@ -21,10 +19,8 @@ import io.github.toyota32k.boodroid.data.ThemeSetting
 import io.github.toyota32k.boodroid.dialog.HostAddressDialog
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.task.IUtImmortalTask
-import io.github.toyota32k.dialog.task.IUtImmortalTaskMutableContextSource
-import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
-import io.github.toyota32k.dialog.task.UtImmortalViewModelHelper
-import io.github.toyota32k.dialog.task.getString
+import io.github.toyota32k.dialog.task.UtDialogViewModel
+import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.showOkCancelMessageBox
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -73,7 +69,7 @@ import kotlinx.coroutines.launch
 //        set(v) {selected = v}
 //}
 
-class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtImmortalTaskContextSource() {
+class SettingViewModel : UtDialogViewModel() {
     val activeHost = MutableStateFlow<HostAddressEntity?>(null)
 //    val editingHost = MutableLiveData<String>()
     val hostList = ObservableList<HostAddressEntity>()
@@ -308,23 +304,23 @@ class SettingViewModel : ViewModel(), IUtImmortalTaskMutableContextSource by UtI
 //        fun instanceFor(activity: ViewModelStoreOwner):SettingViewModel {
 //            return ViewModelProvider(activity, ViewModelProvider.NewInstanceFactory()).get(SettingViewModel::class.java)
 //        }
-        /**
-         * タスク開始時の初期化用
-         */
-        fun createBy(task: IUtImmortalTask, initialize: ((SettingViewModel) -> Unit)? = null): SettingViewModel
-            = UtImmortalViewModelHelper.createBy(SettingViewModel::class.java, task, initialize)
-
-        /**
-         * ダイアログから取得する用
-         */
-        fun instanceFor(dialog: IUtDialog): SettingViewModel
-            = UtImmortalViewModelHelper.instanceFor(SettingViewModel::class.java, dialog)
+//        /**
+//         * タスク開始時の初期化用
+//         */
+//        fun createBy(task: IUtImmortalTask, initialize: ((SettingViewModel) -> Unit)? = null): SettingViewModel
+//            = UtImmortalViewModelHelper.createBy(SettingViewModel::class.java, task, initialize)
+//
+//        /**
+//         * ダイアログから取得する用
+//         */
+//        fun instanceFor(dialog: IUtDialog): SettingViewModel
+//            = UtImmortalViewModelHelper.instanceFor(SettingViewModel::class.java, dialog)
 
         fun getString(@StringRes id:Int):String =
             BooApplication.instance.getString(id)
 
         suspend fun confirm(@StringRes id:Int):Boolean {
-            return UtImmortalSimpleTask.runAsync("confirm") {
+            return UtImmortalTask.awaitTaskResult("confirm") {
                 showOkCancelMessageBox(getString(R.string.app_name), getString(id))
             }
         }

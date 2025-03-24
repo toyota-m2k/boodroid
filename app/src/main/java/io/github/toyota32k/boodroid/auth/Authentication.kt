@@ -5,7 +5,8 @@ import io.github.toyota32k.boodroid.auth.HashUtils.encodeHex
 import io.github.toyota32k.boodroid.data.NetClient
 import io.github.toyota32k.boodroid.dialog.PasswordDialog
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
-import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.task.UtImmortalTask
+import io.github.toyota32k.dialog.task.createViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -108,8 +109,8 @@ class Authentication {
     suspend fun authentication(force:Boolean=false):Boolean {
         if(!AppViewModel.instance.needAuth) return true
         if(!force && checkAuthToken()) return true
-        return UtImmortalSimpleTask.runAsync("auth") {
-            PasswordDialog.PasswordViewModel.create(taskName, this@Authentication)
+        return UtImmortalTask.awaitTaskResult("auth") {
+            createViewModel<PasswordDialog.PasswordViewModel> { authentication = this@Authentication }
             showDialog(taskName) { PasswordDialog() }.status.ok
         }
     }

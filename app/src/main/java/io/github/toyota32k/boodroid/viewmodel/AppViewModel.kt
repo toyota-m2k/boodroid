@@ -5,8 +5,6 @@ package io.github.toyota32k.boodroid.viewmodel
 import android.app.WallpaperManager
 import android.content.Context
 import android.graphics.Bitmap
-import android.os.Build
-import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -26,7 +24,8 @@ import io.github.toyota32k.boodroid.data.VideoItemFilter
 import io.github.toyota32k.boodroid.data.VideoListSource
 import io.github.toyota32k.boodroid.dialog.SaveImageDialog
 import io.github.toyota32k.boodroid.dialog.SettingsDialog
-import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
+import io.github.toyota32k.dialog.task.UtImmortalTask
+import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.lib.player.model.IMediaFeed
 import io.github.toyota32k.lib.player.model.IMediaSource
 import io.github.toyota32k.lib.player.model.PlayerControllerModel
@@ -138,7 +137,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
 
     // endregion
     private suspend fun saveImageAsFile(activity:MainActivity, bitmap:Bitmap, fileName:String) {
-        val uri = activity.filePickers.createFilePicker.selectFile(fileName, "image/jpeg")
+        val uri = activity.activityBrokers.createFilePicker.selectFile(fileName, "image/jpeg")
         if(uri!=null) {
             try {
                 activity.contentResolver.openOutputStream(uri)?.use {
@@ -163,8 +162,8 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
     private fun saveBitmap(position:Long, bitmap:Bitmap) {
         val name = currentSource.value?.name ?: return
         val fileName = "${name}_${position}.jpg"
-        UtImmortalSimpleTask.run("snapshot") {
-            val vm = SaveImageDialog.SaveImageViewModel.create(taskName) ?: return@run false
+        UtImmortalTask.launchTask("snapshot") {
+            val vm = createViewModel<SaveImageDialog.SaveImageViewModel>()
             if(showDialog(taskName) { SaveImageDialog() }.status.ok) {
                 if (vm.saveAsFile.value) {
                     withOwner {
@@ -245,8 +244,8 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
      * 設定ダイアログを開く
      */
     val settingCommand = LiteUnitCommand {
-        UtImmortalSimpleTask.run("settings") {
-            SettingViewModel.createBy(this) { it.prepare() }
+        UtImmortalTask.launchTask("settings") {
+            createViewModel<SettingViewModel> { prepare() }
             this.showDialog(taskName) { SettingsDialog() }.status.ok
         }
     }
@@ -273,7 +272,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
             }
             refreshCommand.invoke(false)
             if (v.themeId != o.themeId) {
-                UtImmortalSimpleTask.run {
+                UtImmortalTask.launchTask {
                     withOwner {
                         val activity = it.asActivity() as? MainActivity ?: return@withOwner
                         activity.restartActivityToUpdateTheme()

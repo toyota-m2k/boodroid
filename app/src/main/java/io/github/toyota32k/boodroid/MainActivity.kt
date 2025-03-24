@@ -34,11 +34,12 @@ import io.github.toyota32k.boodroid.databinding.ActivityMainBinding
 import io.github.toyota32k.boodroid.databinding.PanelVideoListBinding
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.boodroid.viewmodel.MainViewModel
-import io.github.toyota32k.dialog.UtMessageBox
-import io.github.toyota32k.dialog.broker.pickers.IUtFilePickerStoreProvider
-import io.github.toyota32k.dialog.broker.pickers.UtFilePickerStore
-import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
-import io.github.toyota32k.dialog.task.UtMortalActivity
+import io.github.toyota32k.dialog.broker.IUtActivityBrokerStoreProvider
+import io.github.toyota32k.dialog.broker.UtActivityBrokerStore
+import io.github.toyota32k.dialog.broker.pickers.UtCreateFilePicker
+import io.github.toyota32k.dialog.mortal.UtMortalActivity
+import io.github.toyota32k.dialog.task.UtImmortalTask
+import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import io.github.toyota32k.lib.player.model.PlayerControllerModel
 import io.github.toyota32k.lib.player.model.PlayerControllerModel.WindowMode
 import io.github.toyota32k.utils.UtLog
@@ -52,9 +53,9 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 
-class MainActivity : UtMortalActivity(), IUtFilePickerStoreProvider {
+class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     override val logger = UtLog("Main", BooApplication.logger)
-    override val filePickers = UtFilePickerStore(this)
+    override val activityBrokers = UtActivityBrokerStore(this, UtCreateFilePicker())
 
     private val binder = Binder()
     private val viewModel :MainViewModel by lazy { MainViewModel.instanceFor(this) }
@@ -459,9 +460,8 @@ class MainActivity : UtMortalActivity(), IUtFilePickerStoreProvider {
     }
 
     private fun queryToFinish() {
-        UtImmortalSimpleTask.run {
-            val dlg = showDialog("finishing") { UtMessageBox.createForYesNo("BooDroid", "Finish BooDroid") }
-            if(dlg.status.yes) {
+        UtImmortalTask.launchTask {
+            if(showYesNoMessageBox("BooDroid", "Finish BooDroid")) {
                 stopPlayerService()
                 finishAndRemoveTask()
                 true
@@ -469,7 +469,7 @@ class MainActivity : UtMortalActivity(), IUtFilePickerStoreProvider {
         }
     }
 
-    override fun handleKeyEvent(keyCode: Int, event: KeyEvent?): Boolean {
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if(keyCode==KeyEvent.KEYCODE_BACK) {
             when(controlPanelModel.windowMode.value) {
                 WindowMode.NORMAL-> queryToFinish()
@@ -478,7 +478,7 @@ class MainActivity : UtMortalActivity(), IUtFilePickerStoreProvider {
             }
             return true
         }
-        return false
+        return super.onKeyDown(keyCode, event)
     }
 
     // region PinP

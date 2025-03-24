@@ -2,53 +2,32 @@ package io.github.toyota32k.boodroid.dialog
 
 import android.os.Bundle
 import android.view.View
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
-import io.github.toyota32k.binder.Binder
-import io.github.toyota32k.binder.EditTextBinding
-import io.github.toyota32k.binder.EnableBinding
-import io.github.toyota32k.boodroid.R
-import io.github.toyota32k.boodroid.common.UtImmortalTaskContextSource
+import io.github.toyota32k.binder.editTextBinding
 import io.github.toyota32k.boodroid.data.HostAddressEntity
-import io.github.toyota32k.dialog.IUtDialog
-import io.github.toyota32k.dialog.UtDialog
-import io.github.toyota32k.dialog.task.IUtImmortalTask
-import io.github.toyota32k.dialog.task.IUtImmortalTaskMutableContextSource
-import io.github.toyota32k.dialog.task.UtImmortalSimpleTask
-import io.github.toyota32k.dialog.task.UtImmortalViewModelHelper
-import io.github.toyota32k.utils.asMutableLiveData
+import io.github.toyota32k.boodroid.databinding.DialogHostAddressBinding
+import io.github.toyota32k.dialog.UtDialogEx
+import io.github.toyota32k.dialog.task.UtDialogViewModel
+import io.github.toyota32k.dialog.task.UtImmortalTask
+import io.github.toyota32k.dialog.task.createViewModel
+import io.github.toyota32k.dialog.task.getViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 
-class HostAddressDialog : UtDialog() {
-    class HostAddressDialogViewModel: ViewModel(), IUtImmortalTaskMutableContextSource by UtImmortalTaskContextSource() {
+class HostAddressDialog : UtDialogEx() {
+    class HostAddressDialogViewModel: UtDialogViewModel() {
         val name = MutableStateFlow("")
         val address = MutableStateFlow("")
-
-        companion object {
-            /**
-             * タスク開始時の初期化用
-             */
-            fun createBy(task: IUtImmortalTask, initialHost:HostAddressEntity?): HostAddressDialogViewModel
-                    = UtImmortalViewModelHelper.createBy(HostAddressDialogViewModel::class.java, task).apply {
-                        if(initialHost!=null) {
-                            name.value = initialHost.name
-                            address.value = initialHost.address
-                        }
-                    }
-            /**
-             * ダイアログから取得する用
-             */
-            fun instanceFor(dialog: IUtDialog): HostAddressDialogViewModel
-                    = UtImmortalViewModelHelper.instanceFor(HostAddressDialogViewModel::class.java, dialog)
-
-        }
     }
 
     companion object {
         suspend fun getHostAddress(initialHost: HostAddressEntity?): HostAddressEntity? {
-            return UtImmortalSimpleTask.executeAsync(HostAddressDialog::class.java.name) {
-                val vm = HostAddressDialogViewModel.createBy(this, initialHost)
+            return UtImmortalTask.awaitTaskResult(HostAddressDialog::class.java.name) {
+                val vm = createViewModel<HostAddressDialogViewModel> {
+                    if(initialHost!=null) {
+                        name.value = initialHost.name
+                        address.value = initialHost.address
+                    }
+                }
                 if(showDialog(taskName) { HostAddressDialog() }.status.ok) {
                     HostAddressEntity(vm.name.value, vm.address.value)
                 } else null
@@ -56,34 +35,28 @@ class HostAddressDialog : UtDialog() {
         }
     }
 
-    private var binder = Binder()
-    private val viewModel by lazy { HostAddressDialogViewModel.instanceFor(this) }
+    private val viewModel by lazy { getViewModel<HostAddressDialogViewModel>() }
+    private lateinit var controls: DialogHostAddressBinding
 
     override fun preCreateBodyView() {
-        super.preCreateBodyView()
-        isDialog = true
         parentVisibilityOption = ParentVisibilityOption.NONE
         draggable = true
-        guardColor = GuardColor.DIM.color
-        if(isPhone) {
-            widthOption = WidthOption.FULL
-        } else {
-            heightOption = HeightOption.COMPACT
-        }
+        guardColor = GuardColor.DIM
+        widthOption = WidthOption.LIMIT(400)
         heightOption = HeightOption.COMPACT
         gravityOption = GravityOption.CENTER
-        setLeftButton(BuiltInButtonType.CANCEL)
-        setRightButton(BuiltInButtonType.OK)
+        leftButtonType = ButtonType.CANCEL
+        rightButtonType = ButtonType.OK
     }
 
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
-        return inflater.inflate(R.layout.dialog_host_address).also { dlg->
-            binder.register(
-                EditTextBinding.create(this, dlg.findViewById(R.id.host_name), viewModel.name.asMutableLiveData(this)),
-                EditTextBinding.create(this, dlg.findViewById(R.id.host_address), viewModel.address.asMutableLiveData(this)),
-                EnableBinding.create(this, rightButton, viewModel.address.map { it.isNotBlank() }.asLiveData()),
-            )
-        }
+        return DialogHostAddressBinding.inflate(inflater.layoutInflater).apply {
+            controls = this
+            binder
+            .editTextBinding(hostName, viewModel.name)
+            .editTextBinding(hostAddress, viewModel.address)
+            .dialogRightButtonEnable(viewModel.address.map { it.isNotBlank() })
+        }.root
     }
 
 }
