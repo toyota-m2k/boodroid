@@ -1,7 +1,7 @@
 [versions]
 # plugins
 kotlin = "2.1.10"
-androidGradlePlugin = "8.9.0"
+androidGradlePlugin = "8.9.1"
 # ksp のバージョンは、kotlin_version と同じ世代のものを指定する必要がある。
 # https://github.com/google/ksp/releases で確認する。
 ksp = "2.1.10-1.0.31"
@@ -25,10 +25,10 @@ junit = "4.13.2"
 androidxTestExtJunit = "1.2.1"
 espressoCore = "3.6.1"
 androidUtilities = "2.7.5"
-androidBinding = "1.4.1"
-androidDialog = "5.0.1"
-androidViewEx = "1.1.7"
-androidMediaPlayer = "2.6.2"
+androidBinding = "1.5.0"
+androidDialog = "5.1.0"
+androidViewEx = "1.1.8"
+androidMediaPlayer = "2.6.3"
 #androidMediaPlayer = "LOCAL"
 preferenceKtx = "1.2.1"
 recyclerview = "1.4.0"

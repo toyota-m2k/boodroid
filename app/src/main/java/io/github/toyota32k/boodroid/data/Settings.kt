@@ -51,10 +51,10 @@ enum class ColorVariation(val v:Int, @IdRes val id:Int, @StyleRes val themeId:In
     }
     companion object {
         fun id2value(@IdRes id: Int, def: ColorVariation = ColorVariation.PINK): ColorVariation {
-            return ColorVariation.values().find { it.id == id } ?: def
+            return entries.find { it.id == id } ?: def
         }
         fun valueOf(v: Int, def: ColorVariation = ColorVariation.PINK): ColorVariation {
-            return values().find { it.v == v } ?: def
+            return entries.find { it.v == v } ?: def
         }
         val idResolver: IIDValueResolver<ColorVariation> by lazy { IDResolver() }
     }
