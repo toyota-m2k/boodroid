@@ -43,6 +43,7 @@ import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import io.github.toyota32k.lib.player.model.PlayerControllerModel
 import io.github.toyota32k.lib.player.model.PlayerControllerModel.WindowMode
+import io.github.toyota32k.lib.player.model.PlaylistPlayerModel
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.gesture.Direction
@@ -508,7 +509,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         }
         val param = PictureInPictureParams.Builder()
             .setAspectRatio(rational)
-            .setActions(listOf(playAction, pauseAction, seekTopAction))
+            .setActions(listOf(playAction, pauseAction, nextAction))
             .build()
         enterPictureInPictureMode(param)
     }
@@ -519,10 +520,24 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     private enum class Action(val code:Int) {
         PLAY(1),
         PAUSE(2),
-        SEEK_TOP(3),
+        NEXT(3),
     }
 
-    private lateinit var pinpBroadcastReceiver: BroadcastReceiver        // PinP中のコマンド（ブロードキャスト）を受け取るレシーバー
+    private val pinpBroadcastReceiver: BroadcastReceiver by lazy {       // PinP中のコマンド（ブロードキャスト）を受け取るレシーバー
+        object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent == null || intent.action != INTENT_NAME) {
+                    return
+                }
+                when (intent.getIntExtra(ACTION_TYPE_KEY, -1)) {
+                    Action.PAUSE.code -> controlPanelModel.playerModel.pause()
+                    Action.PLAY.code -> controlPanelModel.playerModel.play()
+                    Action.NEXT.code -> (controlPanelModel.playerModel as PlaylistPlayerModel).commandNext.invoke()
+                    else -> {}
+                }
+            }
+        }
+    }
 
 //    private val headsetBroadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
 //        override fun onReceive(context: Context, intent: Intent) {
@@ -551,7 +566,9 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         val context = this
         val icon = Icon.createWithResource(context, io.github.toyota32k.lib.player.R.drawable.ic_play)
         val title = context.getText(R.string.play)
-        val pendingIntent = PendingIntent.getBroadcast(context, Action.PLAY.code, Intent(INTENT_NAME).putExtra(ACTION_TYPE_KEY, Action.PLAY.code), PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent = PendingIntent.getBroadcast(
+            context, Action.PLAY.code,
+            Intent(INTENT_NAME).setPackage(packageName).putExtra(ACTION_TYPE_KEY, Action.PLAY.code), PendingIntent.FLAG_IMMUTABLE)
         RemoteAction(icon, title, title, pendingIntent)
     }
 
@@ -562,18 +579,22 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         val context = this
         val icon = Icon.createWithResource(context, io.github.toyota32k.lib.player.R.drawable.ic_pause)
         val title = context.getText(R.string.pause)
-        val pendingIntent = PendingIntent.getBroadcast(context, Action.PAUSE.code, Intent(INTENT_NAME).putExtra(ACTION_TYPE_KEY, Action.PAUSE.code), PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent = PendingIntent.getBroadcast(
+            context, Action.PAUSE.code,
+            Intent(INTENT_NAME).setPackage(packageName).putExtra(ACTION_TYPE_KEY, Action.PAUSE.code), PendingIntent.FLAG_IMMUTABLE)
         RemoteAction(icon, title, title, pendingIntent)
     }
 
     /**
      * 先頭へシーク
      */
-    private val seekTopAction:RemoteAction by lazy {
+    private val nextAction:RemoteAction by lazy {
         val context = this
-        val icon = Icon.createWithResource(context, io.github.toyota32k.lib.player.R.drawable.ic_prev)
-        val title = context.getText(R.string.seekTop)
-        val pendingIntent = PendingIntent.getBroadcast(context, Action.SEEK_TOP.code, Intent(INTENT_NAME).putExtra(ACTION_TYPE_KEY, Action.SEEK_TOP.code),PendingIntent.FLAG_IMMUTABLE)
+        val icon = Icon.createWithResource(context, io.github.toyota32k.lib.player.R.drawable.ic_next)
+        val title = context.getText(R.string.skipNext)
+        val pendingIntent = PendingIntent.getBroadcast(
+            context, Action.NEXT.code,
+            Intent(INTENT_NAME).setPackage(packageName).putExtra(ACTION_TYPE_KEY, Action.NEXT.code),PendingIntent.FLAG_IMMUTABLE)
         RemoteAction(icon, title, title, pendingIntent)
     }
 
@@ -599,20 +620,6 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             }
         }.launchIn(pinpScope!!)
 
-        pinpBroadcastReceiver = object: BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                if (intent == null||intent.action!=INTENT_NAME) {
-                    return
-                }
-
-                when(intent.getIntExtra(ACTION_TYPE_KEY, -1)) {
-                    Action.PAUSE.code -> controlPanelModel.playerModel.pause()
-                    Action.PLAY.code -> controlPanelModel.playerModel.play()
-                    Action.SEEK_TOP.code -> controlPanelModel.playerModel.seekTo(0L)
-                    else -> {}
-                }
-            }
-        }
         compatRegisterReceiver(pinpBroadcastReceiver, IntentFilter(INTENT_NAME), exported = false)
     }
 
@@ -644,7 +651,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     // endregion
 
     companion object {
-        private const val INTENT_NAME = "PlayVideo"
-        private const val ACTION_TYPE_KEY = "ActionType"
+        private val INTENT_NAME = "io.github.toyota32k.boodroid.PLAYER_ACTION"
+        private val ACTION_TYPE_KEY = "ActionType"
     }
 }
