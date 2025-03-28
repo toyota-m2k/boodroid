@@ -77,9 +77,9 @@ class SettingsDialog : UtDialogEx() {
             binder
                 .add(binderWithCapability)
                 .radioGroupBinding(sourceTypeSelector, viewModel.sourceType, SourceType.idResolver)
-                .radioGroupBinding(themeSelector, viewModel.theme, ThemeSetting.idResolver)
-                .checkBinding(useDynamicColor, viewModel.useDynamicColor)
-                .radioGroupBinding(colorVariationSelector, viewModel.colorVariation, ColorVariation.idResolver)
+//                .radioGroupBinding(themeSelector, viewModel.theme, ThemeSetting.idResolver)
+//                .checkBinding(useDynamicColor, viewModel.useDynamicColor)
+//                .radioGroupBinding(colorVariationSelector, viewModel.colorVariation, ColorVariation.idResolver)
                 .textBinding(categoryButton, viewModel.category)
                 .visibilityBinding(emptyListMessage, viewModel.hostCount.map { it==0 }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
                 .multiVisibilityBinding(arrayOf(ratingSelector,ratingLabel), combine(viewModel.sourceType,viewModel.capability) { st,cap-> st == SourceType.DB && cap?.hasRating == true }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
@@ -88,7 +88,7 @@ class SettingsDialog : UtDialogEx() {
                 .checkBinding(showTitleCheckbox, viewModel.showTitleOnScreen)
                 .bindCommand(viewModel.commandAddToList, addToListButton)
                 .bindCommand(viewModel.commandCategory, categoryButton, callback=this@SettingsDialog::selectCategory)
-                .multiEnableBinding(arrayOf(colorVariationSelector, chkColorPink, chkColorBlue, chkColorGreen, chkColorPurple), viewModel.useDynamicColor, BoolConvert.Inverse)
+//                .multiEnableBinding(arrayOf(colorVariationSelector, chkColorPink, chkColorBlue, chkColorGreen, chkColorPurple), viewModel.useDynamicColor, BoolConvert.Inverse)
                 .enableBinding(rightButton, viewModel.capability.map { it!=null }, alphaOnDisabled = 0.4f)
                 .recyclerViewBinding(hostList, viewModel.hostList, R.layout.list_item_host) { itemBinder, view, host ->
                     view.findViewById<TextView>(R.id.name_text).text = if(host.name.isBlank()) "no name" else host.name
@@ -102,12 +102,12 @@ class SettingsDialog : UtDialogEx() {
                         .visibilityBinding(view.findViewById(R.id.check_mark), viewModel.activeHost.map { it==host }, hiddenMode = VisibilityBinding.HiddenMode.HideByInvisible)
                 }
                 .add(
-                    viewModel.theme.disposableObserve(owner) { theme->
-                        val mode = theme.mode
-                        if(AppCompatDelegate.getDefaultNightMode()!=mode) {
-                            AppCompatDelegate.setDefaultNightMode(mode)
-                        }
-                    },
+//                    viewModel.theme.disposableObserve(owner) { theme->
+//                        val mode = theme.mode
+//                        if(AppCompatDelegate.getDefaultNightMode()!=mode) {
+//                            AppCompatDelegate.setDefaultNightMode(mode)
+//                        }
+//                    },
                     viewModel.commandComplete.bind(owner) {
                         complete(if(viewModel.result) IUtDialog.Status.POSITIVE else IUtDialog.Status.NEGATIVE)
                     }

@@ -14,6 +14,7 @@ import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
+import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.auth.Authentication
 import io.github.toyota32k.boodroid.common.IUtPropertyHost
 import io.github.toyota32k.boodroid.data.QueryBuilder
@@ -22,8 +23,12 @@ import io.github.toyota32k.boodroid.data.Settings
 import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.boodroid.data.VideoItemFilter
 import io.github.toyota32k.boodroid.data.VideoListSource
+import io.github.toyota32k.boodroid.dialog.ColorVariationDialog
+import io.github.toyota32k.boodroid.dialog.ColorVariationDialog.ColorVariationViewModel
 import io.github.toyota32k.boodroid.dialog.SaveImageDialog
 import io.github.toyota32k.boodroid.dialog.SettingsDialog
+import io.github.toyota32k.boodroid.view.MenuCommand
+import io.github.toyota32k.boodroid.view.PopupCommandMenu
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.lib.player.model.IMediaFeed
@@ -78,10 +83,10 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         if(!prepared) {
 //            settings = Settings.load(BooApplication.instance)
             prepared = true
-            val mode = settings.theme.mode
-            if(AppCompatDelegate.getDefaultNightMode()!=mode) {
-                AppCompatDelegate.setDefaultNightMode(mode)
-            }
+//            val mode = settings.theme.mode
+//            if(AppCompatDelegate.getDefaultNightMode()!=mode) {
+//                AppCompatDelegate.setDefaultNightMode(mode)
+//            }
         }
         return this
     }
@@ -246,8 +251,18 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
     val settingCommand = LiteUnitCommand {
         UtImmortalTask.launchTask("settings") {
             createViewModel<SettingViewModel> { prepare() }
-            this.showDialog(taskName) { SettingsDialog() }.status.ok
+            this.showDialog(taskName) { SettingsDialog() }
         }
+    }
+
+    val colorVariationCommand = LiteUnitCommand {
+        ColorVariationDialog.show()
+    }
+
+    val settingMenu:PopupCommandMenu by lazy {
+        PopupCommandMenu()
+            .add(MenuCommand(BooApplication.instance.getString(R.string.host_setting), settingCommand))
+            .add(MenuCommand(BooApplication.instance.getString(R.string.color_variation), colorVariationCommand))
     }
 
     /**
@@ -271,15 +286,15 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                 offlineMode = if (urlChanged) false else v.offlineMode
             }
             refreshCommand.invoke(false)
-            if (v.themeId != o.themeId) {
-                UtImmortalTask.launchTask {
-                    withOwner {
-                        val activity = it.asActivity() as? MainActivity ?: return@withOwner
-                        activity.restartActivityToUpdateTheme()
-                    }
-                    true
-                }
-            }
+//            if (v.themeId != o.themeId) {
+//                UtImmortalTask.launchTask {
+//                    withOwner {
+//                        val activity = it.asActivity() as? MainActivity ?: return@withOwner
+//                        activity.restartActivityToUpdateTheme()
+//                    }
+//                    true
+//                }
+//            }
         }
 
     /**

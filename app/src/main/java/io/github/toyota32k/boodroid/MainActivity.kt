@@ -25,6 +25,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.BoolConvert
+import io.github.toyota32k.binder.clickBinding
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.multiVisibilityBinding
 import io.github.toyota32k.binder.visibilityBinding
@@ -43,6 +44,7 @@ import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import io.github.toyota32k.lib.player.model.PlayerControllerModel
 import io.github.toyota32k.lib.player.model.PlayerControllerModel.WindowMode
 import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.gesture.Direction
 import io.github.toyota32k.utils.gesture.UtScaleGestureManager
 import kotlinx.coroutines.CoroutineScope
@@ -115,7 +117,10 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             .bindCommand(viewModel.setupOfflineModeCommand, panel.onlineButton,panel.offlineButton)
             .bindCommand(viewModel.syncWithServerCommand, panel.syncButton)
             .bindCommand(appViewModel.refreshCommand, panel.refreshButton, true)
-            .bindCommand(appViewModel.settingCommand, panel.settingButton)
+//            .bindCommand(appViewModel.settingCommand, panel.settingButton)
+            .clickBinding(panel.settingButton) {
+                appViewModel.settingMenu.showMenu(it, dp2px(200))
+            }
 //            .bindCommand(controlPanelModel.commandPlayerTapped, this::onPlayerTapped)
             // リロードボタンは オンラインモードのときだけ表示する
             .visibilityBinding(panel.refreshButton, appViewModel.offlineModeFlow, BoolConvert.Inverse)
@@ -142,9 +147,9 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 //            }
 //        }
 
-        if(!viewModel.serverAvailable) {
-            appViewModel.settingCommand.invoke()
-        }
+//        if(!viewModel.serverAvailable) {
+//            appViewModel.settingCommand.invoke()
+//        }
 
         // 最近(2024/3/28現在)のAndroid Studioのテンプレートが書き出すコード（２）
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -185,7 +190,8 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     private val mediaSession by lazy { MediaSession(this, "Boo") }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(AppViewModel.instance.settings.themeId)
+        //setTheme(AppViewModel.instance.settings.themeId)
+        appViewModel.settings.applyTheme(this)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()  // 最近(2024/3/28現在)のAndroid Studioのテンプレートが書き出すコード（１）。。。タブレットでステータスバーなどによってクライアント領域が不正になる現象が回避できるっぽい。、
 
