@@ -7,7 +7,7 @@ androidGradlePlugin = "8.9.1"
 ksp = "2.1.10-1.0.31"
 
 # libraries
-coreKtx = "1.15.0"
+coreKtx = "1.16.0"
 appcompat = "1.7.0"
 constraintLayout = "2.2.1"
 material = "1.12.0"
@@ -23,14 +23,14 @@ media3Ui = "1.6.0"
 junit = "4.13.2"
 androidxTestExtJunit = "1.2.1"
 espressoCore = "3.6.1"
-androidUtilities = "2.7.5"
-androidBinding = "1.5.0"
-androidDialog = "5.1.0"
-androidViewEx = "1.1.8"
+androidUtilities = "2.7.6"
+androidBinding = "1.5.1"
+androidDialog = "5.3.1"
+androidViewEx = "1.1.9"
 androidMediaPlayer = "2.6.4"
 preferenceKtx = "1.2.1"
 recyclerview = "1.4.0"
-roomRuntime = "2.6.1"
+roomRuntime = "2.7.0"
 
 [libraries]
 androidx-media3-common = { module = "androidx.media3:media3-common", version.ref = "media3Exoplayer" }
