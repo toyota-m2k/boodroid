@@ -18,6 +18,8 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
+import android.window.OnBackInvokedDispatcher
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -44,6 +46,7 @@ import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import io.github.toyota32k.lib.player.model.PlayerControllerModel
 import io.github.toyota32k.lib.player.model.PlayerControllerModel.WindowMode
 import io.github.toyota32k.lib.player.model.PlaylistPlayerModel
+import io.github.toyota32k.utils.CompatBackKeyDispatcher
 import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.utils.dp2px
 import io.github.toyota32k.utils.gesture.Direction
@@ -55,6 +58,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlin.text.compareTo
 
 class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     override val logger = UtLog("Main", BooApplication.logger)
@@ -189,6 +193,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     }
 
     private val mediaSession by lazy { MediaSession(this, "Boo") }
+    private val compatBackKeyDispatcher = CompatBackKeyDispatcher()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         //setTheme(AppViewModel.instance.settings.themeId)
@@ -252,6 +257,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 
         startPlayerService()
 
+        // Headset Button 対応
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // ヘッドセットからのボタンイベント監視を開始
             mediaSession.isActive = true
@@ -273,6 +279,11 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
                     return super.onMediaButtonEvent(mediaButtonIntent)
                 }
             })
+        }
+
+        // Back Key のカスタマイズ
+        compatBackKeyDispatcher.register(this) {
+            onBackKeyDown()
         }
     }
 
@@ -476,17 +487,21 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         }
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if(keyCode==KeyEvent.KEYCODE_BACK) {
-            when(controlPanelModel.windowMode.value) {
-                WindowMode.NORMAL-> queryToFinish()
-                WindowMode.FULLSCREEN->controlPanelModel.setWindowMode(WindowMode.NORMAL)
-                else-> return false
-            }
-            return true
+    private fun onBackKeyDown():Boolean {
+        when(controlPanelModel.windowMode.value) {
+            WindowMode.NORMAL-> queryToFinish()
+            WindowMode.FULLSCREEN->controlPanelModel.setWindowMode(WindowMode.NORMAL)
+            else-> return false
         }
-        return super.onKeyDown(keyCode, event)
+        return true
     }
+
+//    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+//        if(keyCode==KeyEvent.KEYCODE_BACK && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+//            return onBackKeyDown()
+//        }
+//        return super.onKeyDown(keyCode, event)
+//    }
 
     // region PinP
     private var isPinP = false

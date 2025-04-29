@@ -46,7 +46,7 @@ class OfflineManager(context: Context) {
     val database:OfflineDB = Room
             .databaseBuilder(context.applicationContext, OfflineDB::class.java, "offline_db")
             .allowMainThreadQueries()
-            .fallbackToDestructiveMigration()
+            .fallbackToDestructiveMigration(false)
             .build()
 
     private val privateDir:File by lazy {

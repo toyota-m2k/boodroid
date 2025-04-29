@@ -1,10 +1,10 @@
 [versions]
 # plugins
-kotlin = "2.1.10"
-androidGradlePlugin = "8.9.1"
+kotlin = "2.1.20"
+androidGradlePlugin = "8.9.2"
 # ksp のバージョンは、kotlin_version と同じ世代のものを指定する必要がある。
 # https://github.com/google/ksp/releases で確認する。
-ksp = "2.1.10-1.0.31"
+ksp = "2.1.20-2.0.0"
 
 # libraries
 coreKtx = "1.16.0"
@@ -12,25 +12,25 @@ appcompat = "1.7.0"
 constraintLayout = "2.2.1"
 material = "1.12.0"
 okhttp = "4.12.0"
-coroutinesCore = "1.10.1"
-coroutinesAndroid = "1.10.1"
+coroutinesCore = "1.10.2"
+coroutinesAndroid = "1.10.2"
 lifecycleExtensions = "2.2.0"
 lifecycleViewModelKtx = "2.8.7"
 lifecycleRuntimeKtx = "2.8.7"
 lifecycleLiveDataKtx = "2.8.7"
-media3Exoplayer = "1.6.0"
-media3Ui = "1.6.0"
+media3Exoplayer = "1.6.1"
+media3Ui = "1.6.1"
 junit = "4.13.2"
 androidxTestExtJunit = "1.2.1"
 espressoCore = "3.6.1"
-androidUtilities = "2.7.6"
-androidBinding = "1.5.1"
-androidDialog = "5.3.1"
-androidViewEx = "1.1.9"
-androidMediaPlayer = "2.6.4"
+androidUtilities = "2.8.0"
+androidBinding = "1.5.2"
+androidDialog = "5.4.1"
+androidViewEx = "1.1.11"
+androidMediaPlayer = "2.6.6"
 preferenceKtx = "1.2.1"
 recyclerview = "1.4.0"
-roomRuntime = "2.7.0"
+roomRuntime = "2.7.1"
 
 [libraries]
 androidx-media3-common = { module = "androidx.media3:media3-common", version.ref = "media3Exoplayer" }
