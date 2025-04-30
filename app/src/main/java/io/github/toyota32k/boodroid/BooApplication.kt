@@ -34,7 +34,6 @@ class BooApplication : Application(), ViewModelStoreOwner {
             showDialogImmediately = UtDialogConfig.ShowDialogMode.Commit
             showInDialogModeAsDefault = true
             hideStatusBarOnDialogMode = false
-            enableOnBackInvokerDispatcher = true    // isDialog == true なので無視されるけど
 //            useLegacyTheme()
         }
 
