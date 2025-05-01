@@ -22,8 +22,8 @@ import kotlinx.coroutines.flow.combine
 class SaveImageDialog : UtDialogEx() {
     class SaveImageViewModel : UtDialogViewModel() {
         val saveAsFile = MutableStateFlow(false)
-        val lockScreen = MutableStateFlow(false)
-        val homeScreen = MutableStateFlow(false)
+        val setWallpaper = MutableStateFlow(false)
+        val isReady = combine(saveAsFile, setWallpaper) { s, w -> s || w }
     }
 
     lateinit var controls: DialogSaveImageBinding
@@ -34,7 +34,7 @@ class SaveImageDialog : UtDialogEx() {
         rightButtonType = ButtonType.DONE
         title = "Snapshot"
         gravityOption = GravityOption.CENTER
-        widthOption = WidthOption.LIMIT(400)
+        widthOption = WidthOption.COMPACT
         heightOption = HeightOption.COMPACT
     }
 
@@ -46,16 +46,8 @@ class SaveImageDialog : UtDialogEx() {
         binder
             .owner(this)
             .checkBinding(controls.saveAsFile, viewModel.saveAsFile)
-            .checkBinding(controls.lockScreen, viewModel.lockScreen)
-            .checkBinding(controls.homeScreen, viewModel.homeScreen)
-            .enableBinding(
-                rightButton,
-                combine(
-                    viewModel.saveAsFile,
-                    viewModel.lockScreen,
-                    viewModel.homeScreen
-                ) { s, l, h -> s || l || h }
-            )
+            .checkBinding(controls.setWallpaper, viewModel.setWallpaper)
+            .dialogRightButtonEnable(viewModel.isReady)
         return controls.root
     }
 }

@@ -73,5 +73,7 @@
     <string name="color_contrast_hint">Color Contrast</string>
     <string name="theme_hint">Theme</string>
     <string name="skipNext">Next Media</string>
+    <string name="set_clop_hint">Set Crop Hint</string>
+    <string name="wallpaper">Wallpaper</string>
 
 </resources>

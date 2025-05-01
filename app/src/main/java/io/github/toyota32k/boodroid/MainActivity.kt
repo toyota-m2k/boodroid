@@ -10,7 +10,6 @@ import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.drawable.Icon
 import android.media.session.MediaSession
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Rational
@@ -18,9 +17,8 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
-import android.window.OnBackInvokedDispatcher
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
+import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
@@ -58,7 +56,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
-import kotlin.text.compareTo
 
 class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     override val logger = UtLog("Main", BooApplication.logger)
@@ -292,11 +289,14 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         handleUriInIntent(intent)
     }
 
+    private var playerServiceIntent:Intent? = null
     private fun startPlayerService() {
         try {
             logger.info("startForegroundService calling.")
-            val intent = Intent(this, PlayerNotificationService::class.java)
-            startForegroundService(intent)
+            Intent(this, PlayerNotificationService::class.java).also { intent->
+                playerServiceIntent = intent
+                startForegroundService(intent)
+            }
         } catch(e:Throwable) {
             logger.stackTrace(e, "cannot start service.")
         }
@@ -304,7 +304,9 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 
     private fun stopPlayerService() {
         logger.debug()
-        stopService(Intent(application, PlayerNotificationService::class.java))
+        playerServiceIntent?.also { intent->
+            stopService(intent)
+        }
     }
 
 
@@ -312,7 +314,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     private fun isAcceptableUrl(url:String?):Boolean {
         if(url==null) return false
         if(!url.startsWith("https://")) return false
-        val host = Uri.parse(url).host ?: return false
+        val host = url.toUri().host ?: return false
         return host.contains("youtube.com")||host.contains("youtu.be")
     }
 
@@ -666,7 +668,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     // endregion
 
     companion object {
-        private val INTENT_NAME = "io.github.toyota32k.boodroid.PLAYER_ACTION"
-        private val ACTION_TYPE_KEY = "ActionType"
+        private const val INTENT_NAME = "io.github.toyota32k.boodroid.PLAYER_ACTION"
+        private const val ACTION_TYPE_KEY = "ActionType"
     }
 }

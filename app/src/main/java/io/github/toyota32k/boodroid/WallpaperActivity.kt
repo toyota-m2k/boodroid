@@ -1,25 +1,19 @@
 package io.github.toyota32k.boodroid
 
 import android.app.WallpaperManager
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
-import android.graphics.Point
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
-import android.view.View
-import android.view.WindowManager
 import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
@@ -30,18 +24,18 @@ import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.command.LiteCommand
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
-import io.github.toyota32k.binder.multiVisibilityBinding
 import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.boodroid.databinding.ActivityWallpaperBinding
+import io.github.toyota32k.boodroid.dialog.WallpaperDialog
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
-import io.github.toyota32k.boodroid.viewmodel.MainViewModel
+import io.github.toyota32k.dialog.mortal.UtMortalActivity
+import io.github.toyota32k.dialog.task.UtImmortalTask
+import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.lib.player.common.FitMode
 import io.github.toyota32k.lib.player.common.UtFitter
 import io.github.toyota32k.lib.player.view.VideoPlayerView.SimpleManipulationTarget
 import io.github.toyota32k.utils.UtLog
-import io.github.toyota32k.utils.gesture.IUtManipulationTarget
 import io.github.toyota32k.utils.gesture.UtScaleGestureManager
-import io.github.toyota32k.utils.gesture.UtSimpleManipulationTarget
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -49,7 +43,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class WallpaperActivity : AppCompatActivity() {
+class WallpaperActivity : UtMortalActivity() {
     class WallpaperViewModel : ViewModel() {
         companion object {
             fun instanceFor(owner: WallpaperActivity): WallpaperViewModel {
@@ -60,15 +54,10 @@ class WallpaperActivity : AppCompatActivity() {
         val toggleToolbarCommand = LiteUnitCommand {
             showToolbar.value = !showToolbar.value
         }
-        val toggleCropCommand = LiteUnitCommand {
-            enableCrop.value = !enableCrop.value
-        }
         val rotateCommand = LiteCommand<Boolean>()
 
         val okCommand = LiteUnitCommand()
         val cancelCommand = LiteUnitCommand()
-        val completeCommand = LiteUnitCommand()
-        val retryCommand = LiteUnitCommand()
 
         class RecyclingBitmapFlow private constructor(val flow:MutableStateFlow<Bitmap?>) : Flow<Bitmap?> by flow {
             constructor(bitmap: Bitmap?) : this(MutableStateFlow(bitmap))
@@ -82,16 +71,12 @@ class WallpaperActivity : AppCompatActivity() {
 
         val sourceBitmap = RecyclingBitmapFlow(null)
         val rotatedBitmap = RecyclingBitmapFlow(null)
-        val croppedBitmap = RecyclingBitmapFlow(null)
+//        val croppedBitmap = RecyclingBitmapFlow(null)
         val currentBitmap: Flow<Bitmap?> = combine(sourceBitmap, rotatedBitmap) {s,r-> r ?: s }
-        val previewBitmap: Flow<Bitmap?> = combine(currentBitmap, croppedBitmap) {c,cr-> cr ?: c }
-        val resultAsBitmap: Bitmap get() = croppedBitmap.value ?: rotatedBitmap.value ?: sourceBitmap.value ?: throw IllegalStateException("no source bitmap")
+        val currentBitmapValue get() = rotatedBitmap.value ?: sourceBitmap.value
 
         var rotation: Int = 0   // degree
         val showToolbar = MutableStateFlow(false)
-        val enableCrop = MutableStateFlow(true)
-        val previewing = MutableStateFlow(false)
-//        var resultBitmap: Bitmap? = null
 
         private fun rotate(degree:Int) {
             val source = sourceBitmap.value ?: throw IllegalStateException("no source bitmap")
@@ -121,10 +106,7 @@ class WallpaperActivity : AppCompatActivity() {
             rotation = 0
             sourceBitmap.value = null
             rotatedBitmap.value = null
-            croppedBitmap.value = null
-            enableCrop.value = true
             showToolbar.value = false
-            previewing.value = false
         }
     }
 
@@ -134,6 +116,7 @@ class WallpaperActivity : AppCompatActivity() {
     private val binder = Binder()
 
     private fun prepareSourceBitmap():Boolean {
+        if(viewModel.sourceBitmap.value!=null) return true
         val sourceBitmap = if (intent?.action == Intent.ACTION_SEND) {
             // 外部アプリから「送る」られた
             if (intent.type?.startsWith("image/") == false) return false
@@ -176,7 +159,7 @@ class WallpaperActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        gestureManager = UtScaleGestureManager(applicationContext, enableDoubleTap=false, SimpleManipulationTarget(controls.bitmapContainer, controls.imageView))
+        gestureManager = UtScaleGestureManager(applicationContext, enableDoubleTap=false, SimpleManipulationTarget(controls.bitmapContainer, controls.imageView), minScale=1f)
             .setup(this) {
                 onTap {
                     viewModel.toggleToolbarCommand.invoke()
@@ -193,53 +176,53 @@ class WallpaperActivity : AppCompatActivity() {
                     viewModel.rotateLeft()
                 }
             }
-            .bindCommand(viewModel.toggleCropCommand, controls.cropOnButton, controls.cropOffButton)
-            .visibilityBinding(controls.cropOnButton, viewModel.enableCrop)
-            .visibilityBinding(controls.cropOffButton, viewModel.enableCrop, BoolConvert.Inverse)
             .bindCommand(viewModel.toggleToolbarCommand, controls.foldToolbarButton, controls.unfoldToolbarButton)
-            .visibilityBinding(controls.toolbar, combine(viewModel.showToolbar, viewModel.previewing) {show,preview-> show && !preview})
+            .visibilityBinding(controls.toolbar, viewModel.showToolbar)
             .visibilityBinding(controls.unfoldToolbarButton, viewModel.showToolbar, BoolConvert.Inverse)
-            .multiVisibilityBinding(arrayOf(controls.topMask, controls.leftMask, controls.rightMask, controls.bottomMask), viewModel.enableCrop)
-            .visibilityBinding(controls.previewContainer, viewModel.previewing)
             .imageBinding(controls.imageView, viewModel.currentBitmap)
-            .imageBinding(controls.previewImage, viewModel.previewBitmap)
             .bindCommand(viewModel.okCommand, controls.okButton) {
-                if(viewModel.enableCrop.value) {
-                    viewModel.croppedBitmap.value = cropBitmap(viewModel.resultAsBitmap)
+                val source = viewModel.currentBitmapValue?:return@bindCommand
+                UtImmortalTask.launchTask("Set Wallpaper") {
+                    val vm = createViewModel<WallpaperDialog.WallpaperViewModel>()
+                    if (showDialog(taskName) { WallpaperDialog() }.status.ok) {
+                        cropBitmap(source, !vm.useCropHint.value)?.use { cropInfo->
+                            if(cropInfo.croppedBitmap!=null) {
+                                setWallpaper(cropInfo.croppedBitmap, vm.lockScreen.value, vm.homeScreen.value, null)
+                            } else {
+                                setWallpaper(source, vm.lockScreen.value, vm.homeScreen.value, cropInfo.rect)
+                            }
+                        }
+                        finish()
+                    }
                 }
-                viewModel.previewing.value = true
             }
             .bindCommand(viewModel.cancelCommand, controls.cancelButton) {
                 finish()
             }
-            .bindCommand(viewModel.retryCommand, controls.retryButton) {
-                viewModel.previewing.value = false
-            }
-            .bindCommand(viewModel.completeCommand, controls.confirmButton) {
-                val bitmap = viewModel.resultAsBitmap
-                setWallpaper(bitmap, AppViewModel.instance.lockScreenWallpaper, AppViewModel.instance.homeScreenWallpaper)
-                finish()
-            }
-
     }
 
-    fun setWallpaper(bitmap: Bitmap, setLockScreen: Boolean, setHomeScreen: Boolean) {
+    fun setWallpaper(bitmap: Bitmap, setLockScreen: Boolean, setHomeScreen: Boolean, hintRect:Rect?) {
         val wallpaperManager = WallpaperManager.getInstance(this)
         try {
             val flags = (if (setLockScreen) WallpaperManager.FLAG_LOCK else 0) or
                     (if (setHomeScreen) WallpaperManager.FLAG_SYSTEM else 0)
             if(flags == 0) return
-            wallpaperManager.setBitmap(bitmap, null, true, flags)
+            wallpaperManager.setBitmap(bitmap, hintRect, true, flags)
         } catch (e: Throwable) {
             logger.error(e)
         }
     }
 
-    private fun cropBitmap(bitmap: Bitmap) : Bitmap {
+    data class CropInfo(val rect:Rect, val croppedBitmap:Bitmap?) : AutoCloseable {
+        override fun close() {
+            croppedBitmap?.recycle()
+        }
+    }
+    private fun cropBitmap(bitmap: Bitmap, generateCroppedBitmap:Boolean) : CropInfo? {
         val scale = controls.imageView.scaleX               // x,y 方向のscaleは同じ
         val rtx = controls.imageView.translationX
         val rty = controls.imageView.translationY
-        if (scale ==1f && rtx==0f && rty==0f) return bitmap
+        if (scale ==1f && rtx==0f && rty==0f) return null
         //viewModel.cropParams = PlayerViewModel.CropParams(rtx, rty, scale)
         val tx = rtx / scale
         val ty = rty / scale
@@ -276,35 +259,36 @@ class WallpaperActivity : AppCompatActivity() {
         val w = (ex - sx) * bs
         val h = (ey - sy) * bs
 
-        val newBitmap = Bitmap.createBitmap(bitmap, x.roundToInt(), y.roundToInt(), w.roundToInt(), h.roundToInt())
+        val newBitmap = if(generateCroppedBitmap) Bitmap.createBitmap(bitmap, x.roundToInt(), y.roundToInt(), w.roundToInt(), h.roundToInt()) else null
 
-        val screenSize = getScreenSize()
-        logger.debug("bitmap ${newBitmap.width}x${newBitmap.height} / screen ${screenSize.x}x${screenSize.y}")
-        return newBitmap
+//        val screenSize = getScreenSize()
+//        logger.debug("bitmap ${newBitmap.width}x${newBitmap.height} / screen ${screenSize.x}x${screenSize.y}")
+
+        return CropInfo(Rect(x.roundToInt(), y.roundToInt(), (x+w).roundToInt(), (y+h).roundToInt()), newBitmap )
     }
 
-    val logger = UtLog("WP")
+    override val logger = UtLog("WP")
 
-    fun getScreenSize(): Point {
-        val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val point = Point()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // Android 11以降
-            val metrics = windowManager.currentWindowMetrics
-            val bounds = metrics.bounds
-            point.x = bounds.width()
-            point.y = bounds.height()
-        } else {
-            // Android 10以前
-            @Suppress("DEPRECATION")
-            val display = windowManager.defaultDisplay
-            @Suppress("DEPRECATION")
-            display.getRealSize(point)
-        }
-
-        return point
-    }
+//    fun getScreenSize(): Point {
+//        val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+//        val point = Point()
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//            // Android 11以降
+//            val metrics = windowManager.currentWindowMetrics
+//            val bounds = metrics.bounds
+//            point.x = bounds.width()
+//            point.y = bounds.height()
+//        } else {
+//            // Android 10以前
+//            @Suppress("DEPRECATION")
+//            val display = windowManager.defaultDisplay
+//            @Suppress("DEPRECATION")
+//            display.getRealSize(point)
+//        }
+//
+//        return point
+//    }
 }
 
 class ImageViewBinding(override val data: LiveData<Bitmap?>) : BaseBinding<Bitmap?>(BindingMode.OneWay) {

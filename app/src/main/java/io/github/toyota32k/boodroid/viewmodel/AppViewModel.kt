@@ -159,24 +159,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
     }
 
     var wallpaperSourceBitmap:Bitmap? = null
-    var lockScreenWallpaper:Boolean = false
-    var homeScreenWallpaper:Boolean = false
 
-    fun setWallpaper(context: Context, bitmap:Bitmap, setLockScreen: Boolean, setHomeScreen: Boolean) {
-        wallpaperSourceBitmap = bitmap
-        lockScreenWallpaper = setLockScreen
-        homeScreenWallpaper = setHomeScreen
-        context.startActivity(Intent(context, WallpaperActivity::class.java))
-
-//        val wallpaperManager = WallpaperManager.getInstance(context)
-//        try {
-//            val flags = (if (setLockScreen) WallpaperManager.FLAG_LOCK else 0) or
-//                    (if (setHomeScreen) WallpaperManager.FLAG_SYSTEM else 0)
-//            wallpaperManager.setBitmap(bitmap, null, true, flags)
-//        } catch (e: Throwable) {
-//            logger.error(e)
-//        }
-    }
     private fun saveBitmap(position:Long, bitmap:Bitmap) {
         val name = currentSource.value?.name ?: return
         val fileName = "${name}_${position}.jpg"
@@ -189,18 +172,17 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                         saveImageAsFile(activity, bitmap, fileName)
                     }
                 }
-                if (vm.lockScreen.value || vm.homeScreen.value) {
+                if (vm.setWallpaper.value) {
                     withOwner {
-                        setWallpaper(
-                            it.asContext(),
-                            bitmap,
-                            vm.lockScreen.value,
-                            vm.homeScreen.value
-                        )
+                        controlPanelModelSource.withModel {
+                            it.playerModel.pause()
+                        }
+                        val context = it.asContext()
+                        wallpaperSourceBitmap = bitmap
+                        context.startActivity(Intent(context, WallpaperActivity::class.java))
                     }
                 }
             }
-            true
         }
     }
     // region Player/ControlPanel ViewModel

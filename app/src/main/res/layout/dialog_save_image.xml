@@ -14,16 +14,10 @@
         android:text="@string/save_as_file"
         />
     <CheckBox
-        android:id="@+id/lock_screen"
+        android:id="@+id/set_wallpaper"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/wallpaper_lock_screen"
-        />
-    <CheckBox
-        android:id="@+id/home_screen"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/wallpaper_home_screen"
+        android:text="@string/wallpaper"
         />
 
 </LinearLayout>

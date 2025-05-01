@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingVertical="30dp"
+    android:paddingHorizontal="40dp"
+    >
+    <CheckBox
+        android:id="@+id/lock_screen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/wallpaper_lock_screen"
+        />
+    <CheckBox
+        android:id="@+id/home_screen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/wallpaper_home_screen"
+        />
+    <View
+        android:layout_width="wrap_content"
+        android:layout_height="1dp"
+        android:background="?attr/colorOutline"
+        />
+    <CheckBox
+        android:id="@+id/use_crop_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/set_clop_hint"
+        />
+
+</LinearLayout>
