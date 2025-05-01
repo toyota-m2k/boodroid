@@ -15,7 +15,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 1
-        versionName = "1.12.3"
+        versionName = "1.13.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.androidx.recyclerview)
 
     implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.activity)
 //    annotationProcessor "androidx.room:room-compiler:$room_version"
 //    kapt "androidx.room:room-compiler:$room_version"
     ksp(libs.androidx.room.compiler)

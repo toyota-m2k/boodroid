@@ -4,6 +4,7 @@ package io.github.toyota32k.boodroid.viewmodel
 
 import android.app.WallpaperManager
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
@@ -15,6 +16,7 @@ import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.R
+import io.github.toyota32k.boodroid.WallpaperActivity
 import io.github.toyota32k.boodroid.auth.Authentication
 import io.github.toyota32k.boodroid.common.IUtPropertyHost
 import io.github.toyota32k.boodroid.data.QueryBuilder
@@ -42,6 +44,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlin.jvm.java
 
 interface IURLResolver {
     val auth:String
@@ -154,15 +157,25 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
             }
         }
     }
+
+    var wallpaperSourceBitmap:Bitmap? = null
+    var lockScreenWallpaper:Boolean = false
+    var homeScreenWallpaper:Boolean = false
+
     fun setWallpaper(context: Context, bitmap:Bitmap, setLockScreen: Boolean, setHomeScreen: Boolean) {
-        val wallpaperManager = WallpaperManager.getInstance(context)
-        try {
-            val flags = (if (setLockScreen) WallpaperManager.FLAG_LOCK else 0) or
-                    (if (setHomeScreen) WallpaperManager.FLAG_SYSTEM else 0)
-            wallpaperManager.setBitmap(bitmap, null, true, flags)
-        } catch (e: Throwable) {
-            logger.error(e)
-        }
+        wallpaperSourceBitmap = bitmap
+        lockScreenWallpaper = setLockScreen
+        homeScreenWallpaper = setHomeScreen
+        context.startActivity(Intent(context, WallpaperActivity::class.java))
+
+//        val wallpaperManager = WallpaperManager.getInstance(context)
+//        try {
+//            val flags = (if (setLockScreen) WallpaperManager.FLAG_LOCK else 0) or
+//                    (if (setHomeScreen) WallpaperManager.FLAG_SYSTEM else 0)
+//            wallpaperManager.setBitmap(bitmap, null, true, flags)
+//        } catch (e: Throwable) {
+//            logger.error(e)
+//        }
     }
     private fun saveBitmap(position:Long, bitmap:Bitmap) {
         val name = currentSource.value?.name ?: return
