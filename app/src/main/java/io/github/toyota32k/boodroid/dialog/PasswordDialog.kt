@@ -2,8 +2,6 @@ package io.github.toyota32k.boodroid.dialog
 
 import android.os.Bundle
 import android.view.View
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.VisibilityBinding
@@ -18,13 +16,8 @@ import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.auth.Authentication
 import io.github.toyota32k.boodroid.databinding.DialogPasswordBinding
 import io.github.toyota32k.dialog.UtDialogEx
-import io.github.toyota32k.dialog.task.IUtImmortalTaskContext
-import io.github.toyota32k.dialog.task.IUtImmortalTaskMutableContextSource
 import io.github.toyota32k.dialog.task.UtDialogViewModel
-import io.github.toyota32k.dialog.task.UtImmortalTaskManager
-import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.dialog.task.getViewModel
-import io.github.toyota32k.dialog.task.immortalTaskContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine

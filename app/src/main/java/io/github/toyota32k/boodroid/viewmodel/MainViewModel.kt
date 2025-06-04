@@ -10,7 +10,11 @@ import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.R
-import io.github.toyota32k.boodroid.data.*
+import io.github.toyota32k.boodroid.data.LastPlayInfo
+import io.github.toyota32k.boodroid.data.NetClient
+import io.github.toyota32k.boodroid.data.ServerCapability
+import io.github.toyota32k.boodroid.data.VideoItem
+import io.github.toyota32k.boodroid.data.VideoListSource
 import io.github.toyota32k.boodroid.dialog.OfflineDialog
 import io.github.toyota32k.boodroid.dialog.VideoSelectDialog
 import io.github.toyota32k.boodroid.offline.OfflineManager
@@ -169,7 +173,7 @@ class MainViewModel : ViewModel() {
     private fun refreshVideoListFromLocal() {
         AppViewModel.logger.debug()
         val appViewModel = AppViewModel.instance
-        val listSource = appViewModel.videoListSource ?: return
+//        val listSource = appViewModel.videoListSource ?: return
         val om = OfflineManager.instance
         if (om.busy.flagged) return
         val list = om.getOfflineVideos().run {
@@ -186,7 +190,9 @@ class MainViewModel : ViewModel() {
         }
 
         val pos = getPlayPositionInfo(list)
-        listSource.setCurrentSource(pos.index, pos.position)
+        appViewModel.videoListSource = VideoListSource(list, lastUpdate).apply {
+            setCurrentSource(pos.index, pos.position)
+        }
     }
 
     fun refreshVideoList(settingIfNotServerAvailable:Boolean) {
@@ -325,7 +331,7 @@ class MainViewModel : ViewModel() {
         playerModel.pause()
         val list:List<VideoItem>? =if(!AppViewModel.instance.offlineMode) {
             @Suppress("UNCHECKED_CAST")
-            AppViewModel.instance.videoListSource?.list
+            AppViewModel.instance.videoListSource?.list?.mapNotNull { it as? VideoItem }
         } else null
         OfflineDialog.setupOfflineMode(list)
     }

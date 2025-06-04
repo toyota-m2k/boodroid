@@ -35,6 +35,7 @@ import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.lib.player.model.IMediaFeed
 import io.github.toyota32k.lib.player.model.IMediaSource
+import io.github.toyota32k.lib.player.model.IMediaSourceWithChapter
 import io.github.toyota32k.lib.player.model.PlayerControllerModel
 import io.github.toyota32k.utils.IUtPropOwner
 import io.github.toyota32k.utils.UtLog
@@ -119,7 +120,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         override fun previous() {
             listSource.mutable.value.previous()
         }
-        val videoList = ObservableList<VideoItem>()
+        val videoList = ObservableList<IMediaSourceWithChapter>()
 
         fun setVideoListSource(v:VideoListSource?) {
             videoList.clear()
@@ -131,7 +132,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
     }
 
     private val mediaFeed = MediaFeed()
-    val videoList:ObservableList<VideoItem>
+    val videoList:ObservableList<IMediaSourceWithChapter>
         get() = mediaFeed.videoList
     var videoListSource: VideoListSource?
         get() = mediaFeed.listSource.value

@@ -5,6 +5,7 @@ import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.lib.player.model.IChapter
 import io.github.toyota32k.lib.player.model.IChapterList
 import io.github.toyota32k.lib.player.model.IMediaSource
+import io.github.toyota32k.lib.player.model.IMediaSourceWithChapter
 import io.github.toyota32k.lib.player.model.chapter.Chapter
 import io.github.toyota32k.lib.player.model.chapter.ChapterList
 import io.github.toyota32k.utils.UtLogger
@@ -18,7 +19,7 @@ import okhttp3.Request
 import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicBoolean
 
-class VideoListSource(val list:List<VideoItem>, val modifiedDate:Long) {
+class VideoListSource(val list:List<IMediaSourceWithChapter>, val modifiedDate:Long) {
     suspend fun checkUpdate(date:Long) : Boolean {
         val url = AppViewModel.url.check(date) ?: return false
         val req = Request.Builder()
@@ -61,7 +62,7 @@ class VideoListSource(val list:List<VideoItem>, val modifiedDate:Long) {
             currentSourceIndex.value = 0
         }
     }
-    fun setCurrentSource(item:VideoItem, pos:Long=0L) {
+    fun setCurrentSource(item:IMediaSourceWithChapter, pos:Long=0L) {
         setCurrentSource(list.indexOf(item), pos)
     }
 

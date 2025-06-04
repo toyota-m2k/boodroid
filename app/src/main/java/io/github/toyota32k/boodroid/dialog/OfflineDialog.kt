@@ -97,7 +97,7 @@ class OfflineDialog : UtDialogEx() {
                                     VideoListSource.retrieve(0)?.list
                                 }
                                 if (list != null) {
-                                    sourceList.addAll(list.map { Selectable(it) })
+                                    sourceList.addAll(list.map { Selectable(it as VideoItem) })
                                 }
                             } finally {
                                 loadingSources.reset()
@@ -326,8 +326,21 @@ class OfflineDialog : UtDialogEx() {
                 .bindCommand(viewModel.commandDelete, delButton)
                 .bindCommand(viewModel.commandClearSelection, resetSelectionButton)
                 .bindCommand(viewModel.commandDeleteAll, clearTargetButton)
-                .recyclerViewBinding(sourceList, viewModel.sourceList, R.layout.list_item_video, bindView = ::bindSourceItemView)
-                .recyclerViewBinding(targetList, viewModel.targetList, R.layout.list_item_video, bindView = ::bindTargetItemView, dragAndDrop = true)
+                .recyclerViewBinding(sourceList) {
+                    options(
+                        list = viewModel.sourceList,
+                        itemLayoutId = R.layout.list_item_video,
+                        bindView = ::bindSourceItemView
+                    )
+                }
+                .recyclerViewBinding(targetList) {
+                    options(
+                        list = viewModel.targetList,
+                        itemLayoutId = R.layout.list_item_video,
+                        bindView = ::bindTargetItemView,
+                        dragAndDrop = true
+                    )
+                }
                 .dialogBodyGuardViewVisibility(OfflineManager.instance.busy, showProgressRing = true)
                 .dialogRightButtonEnable(OfflineManager.instance.busy, boolConvert = BoolConvert.Inverse)
         }

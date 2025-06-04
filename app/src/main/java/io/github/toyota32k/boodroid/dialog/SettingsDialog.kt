@@ -4,31 +4,27 @@ package io.github.toyota32k.boodroid.dialog
 import android.os.Bundle
 import android.view.View
 import android.widget.*
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.ListPopupWindow
 import androidx.lifecycle.lifecycleScope
 import io.github.toyota32k.binder.Binder
-import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.binder.checkBinding
 import io.github.toyota32k.binder.command.LiteCommand
-import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.enableBinding
-import io.github.toyota32k.binder.multiEnableBinding
 import io.github.toyota32k.binder.multiVisibilityBinding
 import io.github.toyota32k.binder.radioGroupBinding
-import io.github.toyota32k.binder.recyclerViewBinding
+import io.github.toyota32k.binder.recyclerViewBindingEx
 import io.github.toyota32k.binder.textBinding
 import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.data.*
 import io.github.toyota32k.boodroid.databinding.DialogSettingsBinding
+import io.github.toyota32k.boodroid.databinding.ListItemHostBinding
 import io.github.toyota32k.boodroid.viewmodel.SettingViewModel
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialogEx
 import io.github.toyota32k.dialog.task.getViewModel
-import io.github.toyota32k.utils.disposableObserve
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -90,29 +86,26 @@ class SettingsDialog : UtDialogEx() {
                 .bindCommand(viewModel.commandCategory, categoryButton, callback=this@SettingsDialog::selectCategory)
 //                .multiEnableBinding(arrayOf(colorVariationSelector, chkColorPink, chkColorBlue, chkColorGreen, chkColorPurple), viewModel.useDynamicColor, BoolConvert.Inverse)
                 .enableBinding(rightButton, viewModel.capability.map { it!=null }, alphaOnDisabled = 0.4f)
-                .recyclerViewBinding(hostList, viewModel.hostList, R.layout.list_item_host) { itemBinder, view, host ->
-                    view.findViewById<TextView>(R.id.name_text).text = if(host.name.isBlank()) "no name" else host.name
-                    view.findViewById<TextView>(R.id.address_text).text = host.address
-                    itemBinder.reset()
-                    itemBinder
-                        .owner(owner)
-                        .bindCommand(LiteUnitCommand { viewModel.onActiveHostSelected(host) }, view.findViewById<View>(R.id.item_container))
-                        .bindCommand(LiteCommand(viewModel::editHost), view.findViewById(R.id.edit_button), host)
-                        .bindCommand(LiteCommand(viewModel::removeHost), view.findViewById(R.id.del_button), host)
-                        .visibilityBinding(view.findViewById(R.id.check_mark), viewModel.activeHost.map { it==host }, hiddenMode = VisibilityBinding.HiddenMode.HideByInvisible)
+                .recyclerViewBindingEx(hostList) {
+                    options(
+                        list = viewModel.hostList,
+                        inflater = ListItemHostBinding::inflate,
+                        bindView = { itemControls, itemBinder, view, host->
+                            itemControls.nameText.text = if(host.name.isBlank()) "no name" else host.name
+                            itemControls.addressText.text = host.address
+                            itemBinder.reset()
+                            itemBinder
+                                .owner(owner)
+                                .bindCommand( LiteCommand(viewModel::onActiveHostSelected), itemControls.itemContainer, host)
+                                .bindCommand( LiteCommand(viewModel::editHost), itemControls.editButton, host)
+                                .bindCommand( LiteCommand(viewModel::removeHost), itemControls.delButton, host)
+                                .visibilityBinding(itemControls.checkMark, viewModel.activeHost.map { it == host }, hiddenMode = VisibilityBinding.HiddenMode.HideByInvisible)
+                        }
+                    )
                 }
-                .add(
-//                    viewModel.theme.disposableObserve(owner) { theme->
-//                        val mode = theme.mode
-//                        if(AppCompatDelegate.getDefaultNightMode()!=mode) {
-//                            AppCompatDelegate.setDefaultNightMode(mode)
-//                        }
-//                    },
-                    viewModel.commandComplete.bind(owner) {
-                        complete(if(viewModel.result) IUtDialog.Status.POSITIVE else IUtDialog.Status.NEGATIVE)
-                    }
-                )
-
+                .bindCommand(viewModel.commandComplete) {
+                    complete(if(viewModel.result) IUtDialog.Status.POSITIVE else IUtDialog.Status.NEGATIVE)
+                }
         }
         return controls.root
     }

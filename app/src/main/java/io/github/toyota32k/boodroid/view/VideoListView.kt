@@ -14,11 +14,14 @@ import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.genericBoolBinding
 import io.github.toyota32k.binder.recyclerViewBinding
+import io.github.toyota32k.binder.recyclerViewBindingEx
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.boodroid.data.VideoItem
+import io.github.toyota32k.boodroid.databinding.ListItemVideoBinding
 import io.github.toyota32k.boodroid.dialog.RatingDialog
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
+import io.github.toyota32k.lib.player.model.IMediaSourceWithChapter
 import io.github.toyota32k.utils.getAttrColor
 import io.github.toyota32k.utils.getAttrColorAsDrawable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -51,24 +54,30 @@ class VideoListView @JvmOverloads constructor(
     fun bindViewModel(binder: Binder) {
         val owner = binder.lifecycleOwner!!
         binder
-        .recyclerViewBinding(this, model.videoList, R.layout.list_item_video) { itemBinder, view, videoItem ->
-            val textView = view.findViewById<TextView>(R.id.video_item_text)
-            val index = model.videoList.indexOf(videoItem)
-            textView.text = videoItem.name
-            itemBinder
-                .owner(owner)
-                .bindCommand(LiteUnitCommand { onItemTapped(videoItem) }, textView)
-                .genericBoolBinding(textView, model.currentSource.map { it?.id == videoItem.id }) {view, hit->
-                    val txv = view as TextView
-                    if(hit) {
-                        txv.background = selectedColor
-                        txv.setTextColor(selectedTextColor)
-                    } else {
-                        txv.background = normalColor
-                        txv.setTextColor(normalTextColor)
-                    }
+        .recyclerViewBindingEx(this) {
+            options(
+                list = model.videoList,
+                inflater = ListItemVideoBinding::inflate,
+                bindView = { itemControls, itemBinder, view, videoItem ->
+                    itemControls.videoItemText.text = videoItem.name
+                    itemBinder
+                        .owner(owner)
+                        .bindCommand(LiteUnitCommand { onItemTapped(videoItem) }, itemControls.videoItemText)
+                        .genericBoolBinding(
+                            itemControls.videoItemText,
+                            model.currentSource.map { it?.id == videoItem.id }) { view, hit ->
+                            val txv = view as TextView
+                            if (hit) {
+                                txv.background = selectedColor
+                                txv.setTextColor(selectedTextColor)
+                            } else {
+                                txv.background = normalColor
+                                txv.setTextColor(normalTextColor)
+                            }
+                        }
                 }
-            }
+            )
+        }
         model.currentSource.onEach {
             // 再生ターゲットが変わったときに、それをリスト内に表示するようスクロール
             if(it!=null) {
@@ -82,9 +91,9 @@ class VideoListView @JvmOverloads constructor(
 
     }
 
-    private fun onItemTapped(videoItem:VideoItem) {
+    private fun onItemTapped(videoItem: IMediaSourceWithChapter) {
         if(model.currentSource.value == videoItem) {
-            if(AppViewModel.instance.capability.value.canPutReputation) {
+            if(AppViewModel.instance.capability.value.canPutReputation && videoItem is VideoItem) {
                 RatingDialog.show(videoItem)
             }
         } else {

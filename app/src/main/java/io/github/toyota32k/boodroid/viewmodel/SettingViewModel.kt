@@ -103,7 +103,7 @@ class SettingViewModel : UtDialogViewModel() {
     }
 
     var result:Boolean = false
-    val commandComplete = Command()
+    val commandComplete = LiteUnitCommand()
 
     init {
         hostList.addListenerForever {

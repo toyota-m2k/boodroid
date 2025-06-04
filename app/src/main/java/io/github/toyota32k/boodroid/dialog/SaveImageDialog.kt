@@ -2,20 +2,11 @@ package io.github.toyota32k.boodroid.dialog
 
 import android.os.Bundle
 import android.view.View
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import io.github.toyota32k.binder.checkBinding
-import io.github.toyota32k.binder.enableBinding
 import io.github.toyota32k.boodroid.databinding.DialogSaveImageBinding
 import io.github.toyota32k.dialog.UtDialogEx
-import io.github.toyota32k.dialog.task.IUtImmortalTaskContext
-import io.github.toyota32k.dialog.task.IUtImmortalTaskMutableContextSource
 import io.github.toyota32k.dialog.task.UtDialogViewModel
-import io.github.toyota32k.dialog.task.UtImmortalTaskManager
-import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.dialog.task.getViewModel
-import io.github.toyota32k.dialog.task.immortalTaskContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 

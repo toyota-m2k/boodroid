@@ -2,32 +2,29 @@ package io.github.toyota32k.boodroid.dialog
 
 import android.os.Bundle
 import android.view.View
-import android.widget.CheckBox
-import android.widget.TextView
 import androidx.annotation.StringRes
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
-import io.github.toyota32k.binder.Binder
-import io.github.toyota32k.binder.CheckBinding
-import io.github.toyota32k.binder.RecyclerViewBinding
-import io.github.toyota32k.binder.TextBinding
-import io.github.toyota32k.binder.command.Command
+import io.github.toyota32k.binder.checkBinding
+import io.github.toyota32k.binder.command.LiteUnitCommand
+import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.list.ObservableList
+import io.github.toyota32k.binder.observe
+import io.github.toyota32k.binder.recyclerViewBindingEx
+import io.github.toyota32k.binder.textBinding
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.R
-import io.github.toyota32k.boodroid.common.UtImmortalTaskContextSource
+import io.github.toyota32k.boodroid.databinding.DialogVideoSelectBinding
+import io.github.toyota32k.boodroid.databinding.ListItemVideoCheckBinding
 import io.github.toyota32k.boodroid.offline.CachedVideoItem
 import io.github.toyota32k.boodroid.offline.OfflineManager
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
-import io.github.toyota32k.dialog.IUtDialog
-import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialogEx
-import io.github.toyota32k.dialog.task.*
+import io.github.toyota32k.dialog.task.UtDialogViewModel
+import io.github.toyota32k.dialog.task.UtImmortalTask
+import io.github.toyota32k.dialog.task.createViewModel
+import io.github.toyota32k.dialog.task.getViewModel
+import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import io.github.toyota32k.lib.player.common.formatTime
-import io.github.toyota32k.utils.DisposableObserver
-import io.github.toyota32k.utils.asMutableLiveData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -136,36 +133,35 @@ class VideoSelectDialog : UtDialogEx() {
         rightButtonType = ButtonType.DONE
     }
 
-    override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
-        return inflater.inflate(R.layout.dialog_video_select).also { dlg ->
-//            val selectAllButton = dlg.findViewById<Button>(R.id.select_all)
-//            val unselectAllButton = dlg.findViewById<Button>(R.id.unselect_all)
-            binder.register(
-                CheckBinding.create(this, dlg.findViewById(R.id.enable_filter_checkbox), viewModel.enableFilter.asMutableLiveData(this)),
-                TextBinding.create(this, dlg.findViewById(R.id.target_total_time), viewModel.totalTime.map { formatTime(it*1000,it*1000) }.asLiveData()),
-//                EnableBinding.create(this, unselectAllButton, viewModel.isSelected.asLiveData()),
-//                viewModel.commandSelectAll.connectViewEx(selectAllButton),
-//                viewModel.commandUnselectAll.connectViewEx(unselectAllButton),
-                RecyclerViewBinding.create(this,dlg.findViewById(R.id.video_list), viewModel.videoList, R.layout.list_item_video_check) { itemBinder, view, item ->
-                    val textView = view.findViewById<TextView>(R.id.video_item_text)
-                    val checkbox = view.findViewById<CheckBox>(R.id.video_item_checkbox)
-                    val check = MutableLiveData<Boolean>(item.filter>0)
-                    textView.text = item.name
-                    itemBinder.register(
-                        CheckBinding.create(this, checkbox, check),
-                        DisposableObserver(check, this) {
-                            item.filter = if(it == true) 1 else 0
-                            viewModel.updateTotalTime()
-                        },
-                        Command {
-                            check.value = check.value == false
-                        }.connectView(textView),
-                    )
-                }
-            )
-        }
-    }
+    private lateinit var controls: DialogVideoSelectBinding
 
+    override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
+        controls = DialogVideoSelectBinding.inflate(inflater.layoutInflater)
+        binder
+            .checkBinding(controls.enableFilterCheckbox, viewModel.enableFilter)
+            .textBinding(controls.targetTotalTime, viewModel.totalTime.map { formatTime(it*1000,it*1000) })
+            .recyclerViewBindingEx(controls.videoList) {
+                options(
+                    list = viewModel.videoList,
+                    inflater = ListItemVideoCheckBinding::inflate,
+                    bindView = { itemControls, itemBinder, view, item ->
+                        itemControls.videoItemText.text = item.name
+                        val check = MutableStateFlow<Boolean>(item.filter>0)
+                        itemBinder
+                            .owner(owner)
+                            .checkBinding(itemControls.videoItemCheckbox, check)
+                            .observe(check) {
+                                item.filter = if(it == true) 1 else 0
+                                viewModel.updateTotalTime()
+                            }
+                            .bindCommand(LiteUnitCommand(), itemControls.videoItemText) {
+                                check.value = !check.value
+                            }
+                    }
+                )
+            }
+        return controls.root
+    }
     override fun onPositive() {
         lifecycleScope.launch {
             if(viewModel.complete()) {
