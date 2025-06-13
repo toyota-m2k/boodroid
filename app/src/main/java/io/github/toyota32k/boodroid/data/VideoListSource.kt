@@ -3,12 +3,9 @@ package io.github.toyota32k.boodroid.data
 import io.github.toyota32k.boodroid.common.toIterable
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.lib.player.model.IChapter
-import io.github.toyota32k.lib.player.model.IChapterList
 import io.github.toyota32k.lib.player.model.IMediaSource
 import io.github.toyota32k.lib.player.model.IMediaSourceWithChapter
 import io.github.toyota32k.lib.player.model.chapter.Chapter
-import io.github.toyota32k.lib.player.model.chapter.ChapterList
-import io.github.toyota32k.utils.UtLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -30,7 +27,7 @@ class VideoListSource(val list:List<IMediaSourceWithChapter>, val modifiedDate:L
             val json = NetClient.executeAndGetJsonAsync(req)
             json.getString("update") == "1"
         } catch(e:Throwable) {
-            UtLogger.stackTrace(e)
+            NetClient.logger.stackTrace(e)
             return false
         }
     }
@@ -113,7 +110,7 @@ class VideoListSource(val list:List<IMediaSourceWithChapter>, val modifiedDate:L
                     ?: throw IllegalStateException("Server Response Null List.")
                 VideoListSource( jsonList.toIterable().filter { (it as JSONObject).optString("media", "")!="p" }.map { j -> VideoItem(j as JSONObject, ::getChapters) }, lastUpdate )
             } catch (e: Throwable) {
-                UtLogger.stackTrace(e)
+                NetClient.logger.stackTrace(e)
                 return null
             }
         }

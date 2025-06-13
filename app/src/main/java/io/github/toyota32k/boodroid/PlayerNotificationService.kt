@@ -13,7 +13,7 @@ import androidx.media3.ui.PlayerNotificationManager
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.lib.player.model.IPlayerModel
 import io.github.toyota32k.lib.player.model.PlayerControllerModel
-import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.logger.UtLog
 
 /**
  * 端末スリープ中でも、バックグラウンドで再生を続けられるようにするためのサービスクラス

@@ -42,8 +42,8 @@ import io.github.toyota32k.lib.player.common.formatSize
 import io.github.toyota32k.lib.player.common.formatTime
 import io.github.toyota32k.lib.player.model.IMediaSource
 import io.github.toyota32k.utils.UtObservableFlag
-import io.github.toyota32k.utils.getAttrColor
-import io.github.toyota32k.utils.getAttrColorAsDrawable
+import io.github.toyota32k.utils.android.getAttrColor
+import io.github.toyota32k.utils.android.getAttrColorAsDrawable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -7,8 +7,8 @@ import io.github.toyota32k.boodroid.offline.OfflineManager
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.UtStandardString
+import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.UtLazyResetableValue
-import io.github.toyota32k.utils.UtLog
 
 class BooApplication : Application(), ViewModelStoreOwner {
     private val mViewModelStore = UtLazyResetableValue { ViewModelStore() }
@@ -52,6 +52,6 @@ class BooApplication : Application(), ViewModelStoreOwner {
     companion object {
         private lateinit var instance_:BooApplication
         val instance get() = instance_
-        val logger = UtLog("Boo.", omissionNamespace = "io.github.toyota32k.")
+        val logger = UtLog("Boo.", namespace = "io.github.toyota32k.")
     }
 }

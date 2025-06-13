@@ -6,7 +6,7 @@ import io.github.toyota32k.boodroid.common.safeGetNullableString
 import io.github.toyota32k.boodroid.data.NetClient
 import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.dialog.task.UtDialogViewModel
-import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.logger.UtLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

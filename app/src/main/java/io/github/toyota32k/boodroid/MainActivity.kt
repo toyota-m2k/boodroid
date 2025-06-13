@@ -44,9 +44,9 @@ import io.github.toyota32k.dialog.task.showYesNoMessageBox
 import io.github.toyota32k.lib.player.model.PlayerControllerModel
 import io.github.toyota32k.lib.player.model.PlayerControllerModel.WindowMode
 import io.github.toyota32k.lib.player.model.PlaylistPlayerModel
-import io.github.toyota32k.utils.CompatBackKeyDispatcher
-import io.github.toyota32k.utils.UtLog
-import io.github.toyota32k.utils.dp2px
+import io.github.toyota32k.logger.UtLog
+import io.github.toyota32k.utils.android.CompatBackKeyDispatcher
+import io.github.toyota32k.utils.android.dp2px
 import io.github.toyota32k.utils.gesture.Direction
 import io.github.toyota32k.utils.gesture.UtScaleGestureManager
 import kotlinx.coroutines.CoroutineScope

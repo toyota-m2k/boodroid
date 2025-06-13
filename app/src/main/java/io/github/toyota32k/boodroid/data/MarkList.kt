@@ -7,8 +7,7 @@ import io.github.toyota32k.binder.MaterialRadioButtonUnSelectableGroupBinding
 import io.github.toyota32k.binder.MaterialToggleButtonGroupBinding
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.toIterable
-import io.github.toyota32k.utils.UtLogger
-import io.github.toyota32k.utils.asMutableLiveData
+import io.github.toyota32k.utils.lifecycle.asMutableLiveData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
@@ -77,7 +76,7 @@ class MarkList(private val list:List<MarkInfo>) : List<MarkInfo> by list {
                         ?: throw IllegalStateException("Server Response Null List.")
                     jsonList.toIterable().map { j -> MarkInfo(j as JSONObject) }.toList()
                 } catch (e: Throwable) {
-                    UtLogger.stackTrace(e)
+                    Data.logger.stackTrace(e)
                     null
                 }
             }

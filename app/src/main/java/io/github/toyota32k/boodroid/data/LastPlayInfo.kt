@@ -3,7 +3,6 @@ package io.github.toyota32k.boodroid.data
 import android.content.Context
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
-import io.github.toyota32k.utils.UtLog
 
 data class LastPlayInfo(val id:String, val position:Long, val playing:Boolean) {
     companion object {
@@ -16,12 +15,12 @@ data class LastPlayInfo(val id:String, val position:Long, val playing:Boolean) {
             val id = pref.getString(KEY_LAST_PLAY_ID, null) ?: return null
             val position = pref.getLong(KEY_LAST_PLAY_POSITION, 0L)
             val playing = pref.getBoolean(KEY_LAST_PLAYING, false)
-            UtLog("Data").debug("load: $id, at=$position, playing=$playing")
+            Data.logger.debug("load: $id, at=$position, playing=$playing")
             return LastPlayInfo(id, position, playing)
         }
 
         fun set(context: Context, id:String?, position:Long?=null, playing:Boolean?=null) {
-            UtLog("Data").debug("save: $id, $position")
+            Data.logger.debug("save: $id, $position")
             val pref = PreferenceManager.getDefaultSharedPreferences(context)
             val pos = position ?: pref.getLong(KEY_LAST_PLAY_POSITION, 0L)
             val play = playing ?: pref.getBoolean(KEY_LAST_PLAYING, false)

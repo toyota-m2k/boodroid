@@ -6,7 +6,7 @@ import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.data.NetClient
 import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.lib.player.model.IMediaSource
-import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.UtObservableFlag
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

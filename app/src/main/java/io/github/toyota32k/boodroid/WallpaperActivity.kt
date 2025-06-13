@@ -31,10 +31,10 @@ import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.dialog.mortal.UtMortalActivity
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
-import io.github.toyota32k.lib.player.common.FitMode
-import io.github.toyota32k.lib.player.common.UtFitter
 import io.github.toyota32k.lib.player.view.VideoPlayerView.SimpleManipulationTarget
-import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.logger.UtLog
+import io.github.toyota32k.utils.android.FitMode
+import io.github.toyota32k.utils.android.UtFitter
 import io.github.toyota32k.utils.gesture.UtScaleGestureManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

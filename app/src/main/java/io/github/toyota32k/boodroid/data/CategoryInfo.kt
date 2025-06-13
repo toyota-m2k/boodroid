@@ -3,7 +3,6 @@ package io.github.toyota32k.boodroid.data
 import android.graphics.Color
 import io.github.toyota32k.boodroid.common.safeGetNullableString
 import io.github.toyota32k.boodroid.common.toIterable
-import io.github.toyota32k.utils.UtLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -84,7 +83,7 @@ class CategoryList(private val list:List<CategoryInfo>, val unchecked:String) : 
                         }
                     CategoryList(list, unchecked)
                 } catch (e: Throwable) {
-                    UtLogger.stackTrace(e)
+                    Data.logger.stackTrace(e)
                     emptyList
                 }
             }

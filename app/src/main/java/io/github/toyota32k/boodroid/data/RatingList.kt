@@ -1,13 +1,6 @@
 package io.github.toyota32k.boodroid.data
 
-import android.app.Application
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.ShapeDrawable
 import android.view.View
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.LifecycleOwner
@@ -17,14 +10,11 @@ import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.IBinding
 import io.github.toyota32k.binder.IIDValueResolver
 import io.github.toyota32k.binder.MaterialRadioButtonUnSelectableGroupBinding
-import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.PathUtil
 import io.github.toyota32k.boodroid.common.safeGetInt
 import io.github.toyota32k.boodroid.common.toIterable
-import io.github.toyota32k.utils.UtLogger
-import io.github.toyota32k.utils.asMutableLiveData
-import io.github.toyota32k.utils.dp2px
+import io.github.toyota32k.utils.lifecycle.asMutableLiveData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
@@ -37,11 +27,7 @@ data class RatingInfo(val rating:Int, val label:String, val svgPath:String) {
         j.getString("label"),
         j.optString("svg", ""),
     )
-    val drawable: Drawable?
-    init {
-//        drawable = PathUtil.bitmapDrawableFromPath(BooApplication.instance.applicationContext, svgPath)
-        drawable = PathUtil.shapeDrawableFromPath(svgPath)
-    }
+    val drawable: Drawable? = PathUtil.shapeDrawableFromPath(svgPath)
 }
 class RatingList(private val list: List<RatingInfo>, val default:Int) : List<RatingInfo> by list {
     fun isValidRating(v:Int):Boolean {
@@ -115,7 +101,7 @@ class RatingList(private val list: List<RatingInfo>, val default:Int) : List<Rat
                         jsonList.toIterable().map { j -> RatingInfo(j as JSONObject) }.toList(),
                         default)
                 } catch (e: Throwable) {
-                    UtLogger.stackTrace(e)
+                    Data.logger.stackTrace(e)
                     emptyList
                 }
             }

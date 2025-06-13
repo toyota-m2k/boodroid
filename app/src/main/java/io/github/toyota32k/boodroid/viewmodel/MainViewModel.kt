@@ -23,7 +23,7 @@ import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.showConfirmMessageBox
 import io.github.toyota32k.lib.player.model.IMediaSource
 import io.github.toyota32k.lib.player.model.PlayerControllerModel
-import io.github.toyota32k.utils.UtLogger
+import io.github.toyota32k.logger.UtLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,6 +40,7 @@ class MainViewModel : ViewModel() {
         fun instanceFor(owner: MainActivity): MainViewModel {
             return ViewModelProvider(owner, ViewModelProvider.NewInstanceFactory())[MainViewModel::class.java].prepare(owner)
         }
+        val logger = UtLog("MVM", BooApplication.logger)
     }
 
     lateinit var controlPanelModel: PlayerControllerModel
@@ -234,7 +235,7 @@ class MainViewModel : ViewModel() {
             try {
                 NetClient.executeAsync(req).close()
             } catch(e:Throwable) {
-                UtLogger.stackTrace(e)
+                logger.stackTrace(e)
             }
         }
     }
@@ -255,7 +256,7 @@ class MainViewModel : ViewModel() {
                     tryPlayAt(json.getString("id"))
                 }
             } catch(e:Throwable) {
-                UtLogger.stackTrace(e)
+                logger.stackTrace(e)
             }
         }
     }

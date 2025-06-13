@@ -1,23 +1,17 @@
 package io.github.toyota32k.boodroid.data
 
 import android.content.Context
-import androidx.annotation.IdRes
-import androidx.annotation.StyleRes
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.edit
 import androidx.fragment.app.FragmentActivity
 import androidx.preference.PreferenceManager
-import io.github.toyota32k.binder.IIDValueResolver
 import io.github.toyota32k.boodroid.BooApplication
-import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.safeGetString
 import io.github.toyota32k.boodroid.common.toIterable
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
-import io.github.toyota32k.utils.UtLog
+import io.github.toyota32k.logger.UtLog
 import org.json.JSONArray
 import org.json.JSONObject
-import java.lang.IllegalStateException
 
 //enum class ThemeSetting(val v:Int, @IdRes val id:Int, val mode:Int) {
 //    SYSTEM(0, R.id.chk_theme_system, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM),

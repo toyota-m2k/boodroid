@@ -2,11 +2,8 @@
 
 package io.github.toyota32k.boodroid.viewmodel
 
-import android.app.WallpaperManager
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -22,11 +19,9 @@ import io.github.toyota32k.boodroid.common.IUtPropertyHost
 import io.github.toyota32k.boodroid.data.QueryBuilder
 import io.github.toyota32k.boodroid.data.ServerCapability
 import io.github.toyota32k.boodroid.data.Settings
-import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.boodroid.data.VideoItemFilter
 import io.github.toyota32k.boodroid.data.VideoListSource
 import io.github.toyota32k.boodroid.dialog.ColorVariationDialog
-import io.github.toyota32k.boodroid.dialog.ColorVariationDialog.ColorVariationViewModel
 import io.github.toyota32k.boodroid.dialog.SaveImageDialog
 import io.github.toyota32k.boodroid.dialog.SettingsDialog
 import io.github.toyota32k.boodroid.view.MenuCommand
@@ -37,15 +32,14 @@ import io.github.toyota32k.lib.player.model.IMediaFeed
 import io.github.toyota32k.lib.player.model.IMediaSource
 import io.github.toyota32k.lib.player.model.IMediaSourceWithChapter
 import io.github.toyota32k.lib.player.model.PlayerControllerModel
+import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.IUtPropOwner
-import io.github.toyota32k.utils.UtLog
 import io.github.toyota32k.utils.UtResetableValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
-import kotlin.jvm.java
 
 interface IURLResolver {
     val auth:String

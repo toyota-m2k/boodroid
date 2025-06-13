@@ -1,17 +1,17 @@
 package io.github.toyota32k.boodroid.common
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Path
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ShapeDrawable
-import android.graphics.drawable.VectorDrawable
 import android.graphics.drawable.shapes.PathShape
 import androidx.annotation.ColorInt
-import io.github.toyota32k.utils.UtLog
-import io.github.toyota32k.utils.dp2px
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.drawable.toDrawable
+import io.github.toyota32k.logger.UtLog
+import io.github.toyota32k.utils.android.dp2px
 
 object PathUtil {
     val logger = UtLog("PathUtil")
@@ -48,11 +48,11 @@ object PathUtil {
         val px = context.dp2px(width)
         val py = context.dp2px(height)
         sd.shape.resize(px,py)
-        val bitmap = Bitmap.createBitmap(px.toInt(), py.toInt(), Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(px.toInt(), py.toInt())
         val canvas = Canvas(bitmap)
         sd.paint.color = color
         sd.draw(canvas)
-        return BitmapDrawable(context.resources, bitmap)
+        return bitmap.toDrawable(context.resources)
     }
 
     /**

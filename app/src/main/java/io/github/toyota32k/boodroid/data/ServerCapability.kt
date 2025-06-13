@@ -1,6 +1,5 @@
 package io.github.toyota32k.boodroid.data
 
-import io.github.toyota32k.utils.UtLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -93,7 +92,7 @@ data class Capability(
                 try {
                     Capability(hostAddress, NetClient.executeAndGetJsonAsync(req))
                 } catch (e: Throwable) {
-                    UtLogger.stackTrace(e)
+                    NetClient.logger.stackTrace(e)
                     null
                 }
             }
