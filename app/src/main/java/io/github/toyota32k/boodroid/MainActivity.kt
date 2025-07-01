@@ -270,7 +270,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
                         if (event?.action == KeyEvent.ACTION_DOWN) {
                             when (event.keyCode) {
                                 KeyEvent.KEYCODE_MEDIA_PLAY -> playerModel.togglePlay()
-                                KeyEvent.KEYCODE_MEDIA_PAUSE, KeyEvent.KEYCODE_MEDIA_STOP -> playerModel.pause()
+                                KeyEvent.KEYCODE_MEDIA_PAUSE, KeyEvent.KEYCODE_MEDIA_STOP -> playerModel.stop()
                                 KeyEvent.KEYCODE_MEDIA_NEXT -> appViewModel.videoListSource?.next()
                                 KeyEvent.KEYCODE_MEDIA_PREVIOUS -> appViewModel.videoListSource?.previous()
                                 // 他のキーコードに対する処理を追加
@@ -551,7 +551,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
                     return
                 }
                 when (intent.getIntExtra(ACTION_TYPE_KEY, -1)) {
-                    Action.PAUSE.code -> controlPanelModel.playerModel.pause()
+                    Action.PAUSE.code -> controlPanelModel.playerModel.stop()
                     Action.PLAY.code -> controlPanelModel.playerModel.play()
                     Action.NEXT.code -> (controlPanelModel.playerModel as PlaylistPlayerModel).commandNext.invoke()
                     else -> {}
