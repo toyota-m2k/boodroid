@@ -2,9 +2,49 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="vertical"
     >
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/display_text"
+        android:textStyle="bold"
+        />
+    <CheckBox
+        android:id="@+id/show_title_checkbox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/show_title_on_screen"
+        android:layout_marginHorizontal="20dp"
+        />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/slide_interval_title"
+        android:textStyle="bold"
+        android:layout_marginTop="10dp"
+        android:labelFor="@id/slide_interval_input"
+        />
+    <EditText
+        android:id="@+id/slide_interval_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="numberDecimal"
+        android:digits="0123456789"
+        android:layout_marginHorizontal="20dp"
+        android:importantForAutofill="no"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/color_variation_title"
+        android:textStyle="bold"
+        android:layout_marginTop="10dp"
+        />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/day_night_mode_container"
@@ -12,6 +52,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/day_night_hint"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="10dp"
         >
         <AutoCompleteTextView
             android:id="@+id/day_night_dropdown"
@@ -29,6 +71,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/color_contrast_hint"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="10dp"
         >
         <AutoCompleteTextView
             android:id="@+id/color_contrast_dropdown"
@@ -46,6 +90,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/theme_hint"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="10dp"
         >
         <AutoCompleteTextView
             android:id="@+id/theme_dropdown"

@@ -35,6 +35,8 @@ import io.github.toyota32k.lib.player.view.VideoPlayerView.SimpleManipulationTar
 import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.android.FitMode
 import io.github.toyota32k.utils.android.UtFitter
+import io.github.toyota32k.utils.android.hideActionBar
+import io.github.toyota32k.utils.android.hideStatusBar
 import io.github.toyota32k.utils.gesture.UtScaleGestureManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,7 +78,7 @@ class WallpaperActivity : UtMortalActivity() {
         val currentBitmapValue get() = rotatedBitmap.value ?: sourceBitmap.value
 
         var rotation: Int = 0   // degree
-        val showToolbar = MutableStateFlow(false)
+        val showToolbar = MutableStateFlow(true)
 
         private fun rotate(degree:Int) {
             val source = sourceBitmap.value ?: throw IllegalStateException("no source bitmap")
@@ -159,6 +161,8 @@ class WallpaperActivity : UtMortalActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        hideStatusBar()
+        hideActionBar()
         gestureManager = UtScaleGestureManager(applicationContext, enableDoubleTap=false, SimpleManipulationTarget(controls.bitmapContainer, controls.imageView), minScale=1f)
             .setup(this) {
                 onTap {

@@ -77,6 +77,8 @@ class Settings(
     val offlineFilter:Boolean,
 
     val showTitleOnScreen:Boolean,
+    val slideInterval:Int = 5,  // sec
+
     val settingsOnServer: Map<String,SettingsOnServer>,
     var themeInfo:ThemeInfo,
     var contrastLevel: ThemeSelector.ContrastLevel,
@@ -94,11 +96,12 @@ class Settings(
         offlineMode:Boolean = src.offlineMode,
         offlineFilter:Boolean = src.offlineFilter,
         showTitleOnScreen: Boolean = src.showTitleOnScreen,
+        slideInterval: Int = src.slideInterval,
         settingsOnServer: Map<String,SettingsOnServer> = src.settingsOnServer,
         themeInfo:ThemeInfo = src.themeInfo,
         contrastLevel: ThemeSelector.ContrastLevel = src.contrastLevel,
         nightMode: ThemeSelector.NightMode = src.nightMode,
-    ) : this(activeHostIndex, hostList, sourceType, offlineMode, offlineFilter, showTitleOnScreen, settingsOnServer, themeInfo, contrastLevel, nightMode)
+    ) : this(activeHostIndex, hostList, sourceType, offlineMode, offlineFilter, showTitleOnScreen, slideInterval, settingsOnServer, themeInfo, contrastLevel, nightMode)
 
     private val activeHost:HostAddressEntity?
         get() = if(0<=activeHostIndex&&activeHostIndex<hostList.size) hostList.get(activeHostIndex) else null
@@ -131,6 +134,7 @@ class Settings(
             putBoolean(KEY_OFFLINE, offlineMode)
             putBoolean(KEY_OFFLINE_FILTER, offlineFilter)
             putBoolean(KEY_SHOW_TITLE_ON_SCREEN, showTitleOnScreen)
+            putInt(KEY_SLIDE_INTERVAL, slideInterval)
             putStringSet(KEY_SETTINGS_ON_SERVER, serializeSettingsOnServer(settingsOnServer))
             putString(KEY_THEME_NAME, themeInfo.label)
             putString(KEY_CONTRAST_LEVEL, contrastLevel.name)
@@ -165,6 +169,7 @@ class Settings(
         const val KEY_OFFLINE = "offline"
         const val KEY_OFFLINE_FILTER = "offlineFilter"
         const val KEY_SHOW_TITLE_ON_SCREEN = "showTitleOnScreen"
+        const val KEY_SLIDE_INTERVAL = "slideInterval"
         const val KEY_SETTINGS_ON_SERVER = "settingsOnServer"
         const val KEY_THEME_NAME = "themeName"
         const val KEY_CONTRAST_LEVEL = "contrastLevel"
@@ -179,6 +184,7 @@ class Settings(
                 offlineMode = pref.getBoolean(KEY_OFFLINE, false),
                 offlineFilter = pref.getBoolean(KEY_OFFLINE_FILTER,false),
                 showTitleOnScreen = pref.getBoolean(KEY_SHOW_TITLE_ON_SCREEN, false),
+                slideInterval = pref.getInt(KEY_SLIDE_INTERVAL, 5),
                 settingsOnServer = deserializeSettingsOnServer(pref.getStringSet(KEY_SETTINGS_ON_SERVER, null)),
                 themeInfo = ThemeList.themeOf(pref.getString(KEY_THEME_NAME,null) ?: "Default"),
                 contrastLevel = ThemeSelector.ContrastLevel.parse(pref.getString(KEY_CONTRAST_LEVEL,null)?:"System") ?: ThemeSelector.ContrastLevel.System,
@@ -252,6 +258,7 @@ class Settings(
             offlineMode = false,
             offlineFilter = false,
             showTitleOnScreen = false,
+            slideInterval = 5,
             settingsOnServer = emptyMap(),
             themeInfo = ThemeList.themes[0],
             contrastLevel = ThemeSelector.ContrastLevel.System,

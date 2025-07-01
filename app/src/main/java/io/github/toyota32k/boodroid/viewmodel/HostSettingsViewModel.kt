@@ -3,7 +3,6 @@ package io.github.toyota32k.boodroid.viewmodel
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
-import io.github.toyota32k.binder.command.Command
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.boodroid.BooApplication
@@ -65,7 +64,7 @@ import kotlinx.coroutines.launch
 //        set(v) {selected = v}
 //}
 
-class SettingViewModel : UtDialogViewModel() {
+class HostSettingsViewModel : UtDialogViewModel() {
     val activeHost = MutableStateFlow<HostAddressEntity?>(null)
 //    val editingHost = MutableLiveData<String>()
     val hostList = ObservableList<HostAddressEntity>()
@@ -76,7 +75,7 @@ class SettingViewModel : UtDialogViewModel() {
 //    val theme = MutableStateFlow(ThemeSetting.SYSTEM)
 //    val useDynamicColor = MutableStateFlow(false)
 //    val colorVariation = MutableStateFlow(ColorVariation.PINK)
-    val showTitleOnScreen = MutableStateFlow<Boolean>(false)
+//    val showTitleOnScreen = MutableStateFlow<Boolean>(false)
     val commandAddToList = LiteUnitCommand(this::addHost)
     val commandCategory = LiteUnitCommand()
 
@@ -93,7 +92,7 @@ class SettingViewModel : UtDialogViewModel() {
     lateinit var originalSettings: Settings
 
     var prepared: Boolean = false
-    fun prepare(): SettingViewModel {
+    fun prepare(): HostSettingsViewModel {
         if (!prepared) {
             prepared = true
             load()
@@ -213,7 +212,7 @@ class SettingViewModel : UtDialogViewModel() {
 //            theme = theme.value,
 //            useDynamicColor = useDynamicColor.value,
 //            colorVariation = colorVariation.value,
-            showTitleOnScreen = showTitleOnScreen.value,
+//            showTitleOnScreen = showTitleOnScreen.value,
             settingsOnServer = settingsOnServer.toMap()
         )
 
@@ -226,7 +225,7 @@ class SettingViewModel : UtDialogViewModel() {
 //        theme.value = s.theme
 //        useDynamicColor.value = s.useDynamicColor
 //        colorVariation.value = s.colorVariation
-        showTitleOnScreen.value = s.showTitleOnScreen
+//        showTitleOnScreen.value = s.showTitleOnScreen
 
         settingsOnServer = s.settingsOnServer.toMutableMap()
 //        val sos = s.settingsOnActiveHost

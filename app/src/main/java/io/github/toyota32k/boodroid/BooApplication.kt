@@ -39,7 +39,7 @@ class BooApplication : Application(), ViewModelStoreOwner {
 
         val appViewModel = AppViewModel.instance
         if (!AppViewModel.instance.settings.isValid) {
-            appViewModel.settingCommand.invoke()
+            appViewModel.hostSettingsCommand.invoke()
         }
     }
 

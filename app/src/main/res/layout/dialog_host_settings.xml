@@ -19,6 +19,7 @@
             android:layout_height="wrap_content"
             android:text="@string/host_addr_label"
             android:layout_gravity="center_vertical"
+            android:textStyle="bold"
             />
 
 <!--        <EditText-->
@@ -85,6 +86,7 @@
         android:text="@string/src_type_label"
         android:minWidth="@dimen/min_label_width"
         android:layout_gravity="center_vertical"
+        android:textStyle="bold"
         />
     <RadioGroup
         android:id="@+id/source_type_selector"
@@ -123,6 +125,7 @@
         android:text="@string/rating_label"
         android:layout_gravity="center_vertical"
         android:minWidth="@dimen/min_label_width"
+        android:textStyle="bold"
         />
     <com.google.android.material.button.MaterialButtonToggleGroup
         android:id="@+id/rating_selector"
@@ -181,6 +184,7 @@
         android:text="@string/mark_label"
         android:layout_gravity="center_vertical"
         android:minWidth="@dimen/min_label_width"
+        android:textStyle="bold"
         />
 
     <com.google.android.material.button.MaterialButtonToggleGroup
@@ -227,6 +231,7 @@
         android:text="@string/category_label"
         android:layout_gravity="center_vertical"
         android:minWidth="@dimen/min_label_width"
+        android:textStyle="bold"
         />
     <Button
         android:id="@+id/category_button"
@@ -240,12 +245,12 @@
         tools:text="All"
         />
 
-    <CheckBox
-        android:id="@+id/show_title_checkbox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/show_title_on_screen"
-        />
+<!--    <CheckBox-->
+<!--        android:id="@+id/show_title_checkbox"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="@string/show_title_on_screen"-->
+<!--        />-->
 
 </LinearLayout>
 

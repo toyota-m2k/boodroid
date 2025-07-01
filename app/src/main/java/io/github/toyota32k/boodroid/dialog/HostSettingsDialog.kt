@@ -8,7 +8,6 @@ import androidx.appcompat.widget.ListPopupWindow
 import androidx.lifecycle.lifecycleScope
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.VisibilityBinding
-import io.github.toyota32k.binder.checkBinding
 import io.github.toyota32k.binder.command.LiteCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.enableBinding
@@ -19,9 +18,9 @@ import io.github.toyota32k.binder.textBinding
 import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.data.*
-import io.github.toyota32k.boodroid.databinding.DialogSettingsBinding
+import io.github.toyota32k.boodroid.databinding.DialogHostSettingsBinding
 import io.github.toyota32k.boodroid.databinding.ListItemHostBinding
-import io.github.toyota32k.boodroid.viewmodel.SettingViewModel
+import io.github.toyota32k.boodroid.viewmodel.HostSettingsViewModel
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialogEx
 import io.github.toyota32k.dialog.task.getViewModel
@@ -30,8 +29,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
-class SettingsDialog : UtDialogEx() {
-    private val viewModel by lazy { getViewModel<SettingViewModel>() }
+class HostSettingsDialog : UtDialogEx() {
+    private val viewModel by lazy { getViewModel<HostSettingsViewModel>() }
 
     override fun preCreateBodyView() {
         isDialog = true
@@ -54,14 +53,14 @@ class SettingsDialog : UtDialogEx() {
     }
 
     private val binderWithCapability = Binder()
-    private lateinit var controls: DialogSettingsBinding
+    private lateinit var controls: DialogHostSettingsBinding
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
 //        binderWithCapability = Binder() // binder.dispose()で disposeされるので、毎回作成
         val owner = requireActivity()
         binder.owner(owner)
         binderWithCapability.owner(owner)
 
-        controls = DialogSettingsBinding.inflate(inflater.layoutInflater).apply {
+        controls = DialogHostSettingsBinding.inflate(inflater.layoutInflater).apply {
             viewModel.capability.onEach {cap->
                 binderWithCapability.reset()
                 if(cap!=null) {
@@ -81,9 +80,8 @@ class SettingsDialog : UtDialogEx() {
                 .multiVisibilityBinding(arrayOf(ratingSelector,ratingLabel), combine(viewModel.sourceType,viewModel.capability) { st,cap-> st == SourceType.DB && cap?.hasRating == true }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
                 .multiVisibilityBinding(arrayOf(markSelector,markLabel), combine(viewModel.sourceType, viewModel.capability) { st,cap->st == SourceType.DB && cap?.hasMark == true }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
                 .multiVisibilityBinding(arrayOf(categoryButton,categoryLabel), combine(viewModel.sourceType, viewModel.capability) {st,cap-> st == SourceType.DB && cap?.hasCategory == true}, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
-                .checkBinding(showTitleCheckbox, viewModel.showTitleOnScreen)
                 .bindCommand(viewModel.commandAddToList, addToListButton)
-                .bindCommand(viewModel.commandCategory, categoryButton, callback=this@SettingsDialog::selectCategory)
+                .bindCommand(viewModel.commandCategory, categoryButton, callback=this@HostSettingsDialog::selectCategory)
 //                .multiEnableBinding(arrayOf(colorVariationSelector, chkColorPink, chkColorBlue, chkColorGreen, chkColorPurple), viewModel.useDynamicColor, BoolConvert.Inverse)
                 .enableBinding(rightButton, viewModel.capability.map { it!=null }, alphaOnDisabled = 0.4f)
                 .recyclerViewBindingEx(hostList) {

@@ -28,6 +28,7 @@ import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.clickBinding
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.multiVisibilityBinding
+import io.github.toyota32k.binder.textBinding
 import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.boodroid.common.compatGetParcelableExtra
 import io.github.toyota32k.boodroid.common.compatRegisterReceiver
@@ -53,6 +54,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -132,6 +134,8 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             .visibilityBinding(panel.syncButton, combine(appViewModel.offlineModeFlow,viewModel.syncCommandAvailable) {off,av-> !off && av })
             // オンラインボタン、再生アイテム選択ボタンは、オフラインモードの場合のみ表示する。
             .multiVisibilityBinding(arrayOf(panel.onlineButton,panel.selectButton), appViewModel.offlineModeFlow)
+            .visibilityBinding(controls.titleText, appViewModel.showTitleOnScreen)
+            .textBinding(controls.titleText, playerModel.currentSource.map { it?.name ?: ""})
 
         controls.videoViewer.bindViewModel(controlPanelModel, binder)
 

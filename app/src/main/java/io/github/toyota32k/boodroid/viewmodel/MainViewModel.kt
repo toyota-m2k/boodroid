@@ -202,7 +202,7 @@ class MainViewModel : ViewModel() {
             refreshVideoListFromLocal()
         } else {
             if(!serverAvailable && settingIfNotServerAvailable) {
-                AppViewModel.instance.settingCommand.invoke()
+                AppViewModel.instance.hostSettingsCommand.invoke()
             } else {
                 refreshVideoListFromServer()
             }

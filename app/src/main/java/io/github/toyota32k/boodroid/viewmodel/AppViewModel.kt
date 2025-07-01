@@ -23,9 +23,9 @@ import io.github.toyota32k.boodroid.data.ServerCapability
 import io.github.toyota32k.boodroid.data.Settings
 import io.github.toyota32k.boodroid.data.VideoItemFilter
 import io.github.toyota32k.boodroid.data.VideoListSource
-import io.github.toyota32k.boodroid.dialog.ColorVariationDialog
+import io.github.toyota32k.boodroid.dialog.PreferencesDialog
 import io.github.toyota32k.boodroid.dialog.SaveImageDialog
-import io.github.toyota32k.boodroid.dialog.SettingsDialog
+import io.github.toyota32k.boodroid.dialog.HostSettingsDialog
 import io.github.toyota32k.boodroid.offline.CachedVideoItem
 import io.github.toyota32k.boodroid.view.MenuCommand
 import io.github.toyota32k.boodroid.view.PopupCommandMenu
@@ -46,7 +46,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import okhttp3.Request
-import java.io.File
 import kotlin.time.Duration.Companion.seconds
 
 interface IURLResolver {
@@ -207,7 +206,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                             .supportSnapshot(::saveBitmap)
                             .enableSeekMedium(5000,15000)
                             .enableVolumeController(true)
-                            .enablePhotoViewer(5.seconds, ::getPhoto)
+                            .enablePhotoViewer(settings.slideInterval.seconds, resolver = ::getPhoto)
                             .enableRotateRight()
                             .build()
                     refCount = 0
@@ -286,21 +285,21 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
     /**
      * 設定ダイアログを開く
      */
-    val settingCommand = LiteUnitCommand {
+    val hostSettingsCommand = LiteUnitCommand {
         UtImmortalTask.launchTask("settings") {
-            createViewModel<SettingViewModel> { prepare() }
-            this.showDialog(taskName) { SettingsDialog() }
+            createViewModel<HostSettingsViewModel> { prepare() }
+            this.showDialog(taskName) { HostSettingsDialog() }
         }
     }
 
-    val colorVariationCommand = LiteUnitCommand {
-        ColorVariationDialog.show()
+    val preferencesCommand = LiteUnitCommand {
+        PreferencesDialog.show()
     }
 
     val settingMenu:PopupCommandMenu by lazy {
         PopupCommandMenu()
-            .add(MenuCommand(BooApplication.instance.getString(R.string.host_setting), settingCommand))
-            .add(MenuCommand(BooApplication.instance.getString(R.string.color_variation), colorVariationCommand))
+            .add(MenuCommand(BooApplication.instance.getString(R.string.host_setting), hostSettingsCommand))
+            .add(MenuCommand(BooApplication.instance.getString(R.string.preferences), preferencesCommand))
     }
 
     /**
@@ -323,17 +322,18 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
             if (urlChanged || o.offlineMode != v.offlineMode) {
                 offlineMode = if (urlChanged) false else v.offlineMode
             }
+            showTitleOnScreen.mutable.value = v.showTitleOnScreen
+            controlPanelModelSource.withModel { vm->
+                vm.playerModel.photoSlideShowDuration = v.slideInterval.seconds
+            }
             refreshCommand.invoke(false)
-//            if (v.themeId != o.themeId) {
-//                UtImmortalTask.launchTask {
-//                    withOwner {
-//                        val activity = it.asActivity() as? MainActivity ?: return@withOwner
-//                        activity.restartActivityToUpdateTheme()
-//                    }
-//                    true
-//                }
-//            }
         }
+
+    /**
+     * タイトルを表示するモード
+     */
+    val showTitleOnScreen: StateFlow<Boolean> = MutableStateFlow(settings.showTitleOnScreen)
+
 
     /**
      * オフラインモード
