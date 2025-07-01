@@ -81,6 +81,7 @@ class VideoListSource(val list:List<IMediaSourceWithChapter>, val modifiedDate:L
         val empty:VideoListSource = VideoListSource(emptyList(), 0)
 
         suspend fun getChapters(item:VideoItem): List<IChapter> {
+            if(item.isPhoto) return emptyList()
             return try {
                 val url = AppViewModel.url.chapter(item.id) ?: return emptyList()
                 val req = Request.Builder()
@@ -108,7 +109,7 @@ class VideoListSource(val list:List<IMediaSourceWithChapter>, val modifiedDate:L
                 val lastUpdate = json.getString("date").toLong()
                 val jsonList = json.getJSONArray("list")
                     ?: throw IllegalStateException("Server Response Null List.")
-                VideoListSource( jsonList.toIterable().filter { (it as JSONObject).optString("media", "")!="p" }.map { j -> VideoItem(j as JSONObject, ::getChapters) }, lastUpdate )
+                VideoListSource( jsonList.toIterable().map { j -> VideoItem(j as JSONObject, ::getChapters) }, lastUpdate )
             } catch (e: Throwable) {
                 NetClient.logger.stackTrace(e)
                 return null

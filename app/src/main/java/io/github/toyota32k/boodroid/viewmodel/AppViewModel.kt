@@ -4,6 +4,7 @@ package io.github.toyota32k.boodroid.viewmodel
 
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -16,6 +17,7 @@ import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.WallpaperActivity
 import io.github.toyota32k.boodroid.auth.Authentication
 import io.github.toyota32k.boodroid.common.IUtPropertyHost
+import io.github.toyota32k.boodroid.data.NetClient.executeAsync
 import io.github.toyota32k.boodroid.data.QueryBuilder
 import io.github.toyota32k.boodroid.data.ServerCapability
 import io.github.toyota32k.boodroid.data.Settings
@@ -24,6 +26,7 @@ import io.github.toyota32k.boodroid.data.VideoListSource
 import io.github.toyota32k.boodroid.dialog.ColorVariationDialog
 import io.github.toyota32k.boodroid.dialog.SaveImageDialog
 import io.github.toyota32k.boodroid.dialog.SettingsDialog
+import io.github.toyota32k.boodroid.offline.CachedVideoItem
 import io.github.toyota32k.boodroid.view.MenuCommand
 import io.github.toyota32k.boodroid.view.PopupCommandMenu
 import io.github.toyota32k.dialog.task.UtImmortalTask
@@ -35,11 +38,16 @@ import io.github.toyota32k.lib.player.model.PlayerControllerModel
 import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.IUtPropOwner
 import io.github.toyota32k.utils.UtResetableValue
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withContext
+import okhttp3.Request
+import java.io.File
+import kotlin.time.Duration.Companion.seconds
 
 interface IURLResolver {
     val auth:String
@@ -199,6 +207,8 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                             .supportSnapshot(::saveBitmap)
                             .enableSeekMedium(5000,15000)
                             .enableVolumeController(true)
+                            .enablePhotoViewer(5.seconds, ::getPhoto)
+                            .enableRotateRight()
                             .build()
                     refCount = 0
                 }
@@ -230,6 +240,44 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
     }
 
     val controlPanelModelSource = RefCounteredControlPanelModel()
+
+    suspend fun getPhoto(item:IMediaSource): Bitmap? {
+        if(!item.isPhoto) return null
+        if (item is CachedVideoItem) {
+            return try {
+                BitmapFactory.decodeStream(item.file.inputStream())
+            } catch(e:Throwable) {
+                logger.error(e)
+                null
+            }
+        }
+
+        if(!authentication.authentication()) return null
+//        val address = Settings.SecureArchive.address
+//        if(address.isEmpty()) return null
+        return withContext(Dispatchers.IO) {
+            val request = Request.Builder()
+                .url(item.uri)
+                .build()
+            try {
+                executeAsync(request).use { response ->
+                    if (response.isSuccessful) {
+                        response.body?.use { body ->
+                            body.byteStream().use { inStream ->
+                                BitmapFactory.decodeStream(inStream)
+                            }
+                        }
+                    } else {
+                        logger.error(response.message)
+                        null
+                    }
+                }
+            } catch (e:Throwable) {
+                logger.error(e)
+                null
+            }
+        }
+    }
 
     // endregion
 

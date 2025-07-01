@@ -80,7 +80,7 @@ object VideoItemFilter {
         if(authToken!=null) {
             qb.add("auth", authToken)
         }
-        qb.add("f", "va")    // Video|Audio
+        qb.add("f", "vap")    // Video|Audio
         if(settings.sourceType!=SourceType.DB) {
             qb.add("s", settings.sourceType.v)
         } else {

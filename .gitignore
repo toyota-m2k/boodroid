@@ -24,3 +24,4 @@ local.properties
 .idea/other.xml
 .idea/runConfigurations.xml
 .idea/AndroidProjectSystem.xml
+.idea/deviceManager.xml
