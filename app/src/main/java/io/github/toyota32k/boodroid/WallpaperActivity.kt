@@ -66,8 +66,9 @@ class WallpaperActivity : UtMortalActivity() {
             var value: Bitmap?
                 get() = flow.value
                 set(v) {
-                    flow.value?.recycle()
+                    val old = flow.value
                     flow.value = v
+                    old?.recycle()
                 }
         }
 
@@ -189,7 +190,7 @@ class WallpaperActivity : UtMortalActivity() {
                 UtImmortalTask.launchTask("Set Wallpaper") {
                     val vm = createViewModel<WallpaperDialog.WallpaperViewModel>()
                     if (showDialog(taskName) { WallpaperDialog() }.status.ok) {
-                        cropBitmap(source, !vm.useCropHint.value)?.use { cropInfo->
+                        cropBitmap(source, !vm.useCropHint.value).use { cropInfo->
                             if(cropInfo.croppedBitmap!=null) {
                                 setWallpaper(cropInfo.croppedBitmap, vm.lockScreen.value, vm.homeScreen.value, null)
                             } else {
@@ -222,17 +223,17 @@ class WallpaperActivity : UtMortalActivity() {
             croppedBitmap?.recycle()
         }
     }
-    private fun cropBitmap(bitmap: Bitmap, generateCroppedBitmap:Boolean) : CropInfo? {
+    private fun cropBitmap(bitmap: Bitmap, generateCroppedBitmap:Boolean) : CropInfo {
         val scale = controls.imageView.scaleX               // x,y 方向のscaleは同じ
         val rtx = controls.imageView.translationX
         val rty = controls.imageView.translationY
-        if (scale ==1f && rtx==0f && rty==0f) return null
+        val bw = bitmap.width                               // bitmap のサイズ
+        val bh = bitmap.height
+        if (scale ==1f && rtx==0f && rty==0f) return CropInfo(Rect(0,0,bw,bh), null)
         //viewModel.cropParams = PlayerViewModel.CropParams(rtx, rty, scale)
         val tx = rtx / scale
         val ty = rty / scale
 
-        val bw = bitmap.width                               // bitmap のサイズ
-        val bh = bitmap.height
         val vw = controls.imageView.width                   // imageView のサイズ
         val vh = controls.imageView.height
         val fitter = UtFitter(FitMode.Inside, vw, vh)
