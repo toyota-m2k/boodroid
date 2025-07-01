@@ -163,7 +163,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 //        hideStatusBar()
 
         // Gesture / Scaling
-        gestureManager = UtScaleGestureManager(this.applicationContext, true, controls.videoViewer.manipulationTarget)
+        gestureManager = UtScaleGestureManager(this.applicationContext, enableDoubleTap = true, controls.videoViewer.manipulationTarget, minScale = 1f)
             .setup(this) {
                 onTap {
                     playerModel.togglePlay()
@@ -404,7 +404,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         enterPinP()
    }
 
-    private val exceptPlayerViews:Array<View> get() = arrayOf(controls.videoListPanel, controls.splitter)
+    private val exceptPlayerViews:Array<View> get() = arrayOf(controls.videoListPanel)
 
     private fun layoutForFullscreen() {
 //        appViewModel.keepAlive(true)

@@ -14,15 +14,10 @@
         android:layout_width="match_parent"
         android:layout_height="240dp"
         android:orientation="vertical"
+        android:background="?attr/colorPrimary"
         >
         <include layout="@layout/panel_video_list"/>
     </LinearLayout>
-    <View
-        android:id="@+id/splitter"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="?attr/colorPrimary"
-        />
 
     <FrameLayout
         android:layout_width="match_parent"
