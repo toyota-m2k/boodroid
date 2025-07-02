@@ -42,14 +42,12 @@ import io.github.toyota32k.utils.android.FitMode
 import io.github.toyota32k.utils.android.UtFitter
 import io.github.toyota32k.utils.android.hideActionBar
 import io.github.toyota32k.utils.android.hideStatusBar
-import io.github.toyota32k.utils.gesture.IUtManipulationTarget
 import io.github.toyota32k.utils.gesture.UtScaleGestureManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.CancellationException
@@ -76,13 +74,20 @@ class WallpaperActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 
         class RecyclingBitmapFlow private constructor(val flow:MutableStateFlow<Bitmap?>) : Flow<Bitmap?> by flow {
             constructor(bitmap: Bitmap?) : this(MutableStateFlow(bitmap))
+            var doNotRecycle:Boolean = false
             var value: Bitmap?
                 get() = flow.value
                 set(v) {
                     val old = flow.value
                     flow.value = v
-                    old?.recycle()
+                    if(!doNotRecycle) {
+                        old?.recycle()
+                    }
                 }
+            fun setButDoNotRecycle(img:Bitmap) {
+                value = img
+                doNotRecycle = true
+            }
         }
 
         var fileName: String? = null
@@ -136,7 +141,7 @@ class WallpaperActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 
     private fun prepareSourceBitmap():Boolean {
         if(viewModel.sourceBitmap.value!=null) return true
-        val sourceBitmap = if (intent?.action == Intent.ACTION_SEND) {
+        if (intent?.action == Intent.ACTION_SEND) {
             // 外部アプリから「送る」られた
             if (intent.type?.startsWith("image/") == false) return false
             val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -149,17 +154,16 @@ class WallpaperActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             try {
                 // URIから画像を読み込む
                 val inputStream = contentResolver.openInputStream(uri)
-                BitmapFactory.decodeStream(inputStream)
+                viewModel.sourceBitmap.value = BitmapFactory.decodeStream(inputStream)
             } catch (e: Throwable) {
                 logger.error(e)
                 return false
             }
         } else {
             viewModel.fileName = intent.extras?.getString(Intent.EXTRA_TEXT)
-            AppViewModel.instance.wallpaperSourceBitmap ?: return false
+            viewModel.sourceBitmap.setButDoNotRecycle(AppViewModel.instance.wallpaperSourceBitmap ?: return false)
+            AppViewModel.instance.wallpaperSourceBitmap = null
         }
-        AppViewModel.instance.wallpaperSourceBitmap = null
-        viewModel.sourceBitmap.value = sourceBitmap
         return true
     }
 
