@@ -32,7 +32,7 @@ class BooApplication : Application(), ViewModelStoreOwner {
         UtDialogConfig.apply {
             solidBackgroundOnPhone = false
             showDialogImmediately = UtDialogConfig.ShowDialogMode.Commit
-            showInDialogModeAsDefault = true
+            showInDialogModeAsDefault = false
             hideStatusBarOnDialogMode = false
 //            useLegacyTheme()
         }

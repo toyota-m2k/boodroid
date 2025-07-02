@@ -78,5 +78,6 @@
     <string name="color_variation_title">Color Variation</string>
     <string name="slide_interval_title">Slide Interval (sec.)</string>
     <string name="display_text">Display</string>
+    <string name="file">File</string>
 
 </resources>

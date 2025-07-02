@@ -23,9 +23,8 @@ import io.github.toyota32k.boodroid.data.ServerCapability
 import io.github.toyota32k.boodroid.data.Settings
 import io.github.toyota32k.boodroid.data.VideoItemFilter
 import io.github.toyota32k.boodroid.data.VideoListSource
-import io.github.toyota32k.boodroid.dialog.PreferencesDialog
-import io.github.toyota32k.boodroid.dialog.SaveImageDialog
 import io.github.toyota32k.boodroid.dialog.HostSettingsDialog
+import io.github.toyota32k.boodroid.dialog.PreferencesDialog
 import io.github.toyota32k.boodroid.offline.CachedVideoItem
 import io.github.toyota32k.boodroid.view.MenuCommand
 import io.github.toyota32k.boodroid.view.PopupCommandMenu
@@ -80,6 +79,10 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
 
     fun setCapability(cap:ServerCapability) {
         capability.mutable.value = cap
+        controlPanelModelSource.withModel {
+            // 認証が必要な秘密のファイルは保存を禁止する
+            it.permitSnapshot(!cap.needAuth)
+        }
     }
 
 
@@ -163,29 +166,43 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
     var wallpaperSourceBitmap:Bitmap? = null
 
     private fun saveBitmap(position:Long, bitmap:Bitmap) {
-        val name = currentSource.value?.name ?: return
-        val fileName = "${name}_${position}.jpg"
+        val item = currentSource.value ?: return
+        val name = item.name
+        val fileName = if (item.isPhoto) "${name}.jpg" else "${name}_${position}.jpg"
+        controlPanelModelSource.withModel {
+            it.playerModel.pause()
+        }
         UtImmortalTask.launchTask("snapshot") {
-            val vm = createViewModel<SaveImageDialog.SaveImageViewModel>()
-            if(showDialog(taskName) { SaveImageDialog() }.status.ok) {
-                if (vm.saveAsFile.value) {
-                    withOwner {
-                        val activity = it.asActivity() as? MainActivity ?: return@withOwner
-                        saveImageAsFile(activity, bitmap, fileName)
-                    }
-                }
-                if (vm.setWallpaper.value) {
-                    withOwner {
-                        controlPanelModelSource.withModel {
-                            it.playerModel.pause()
-                        }
-                        val context = it.asContext()
-                        wallpaperSourceBitmap = bitmap
-                        context.startActivity(Intent(context, WallpaperActivity::class.java))
-                    }
-                }
+            wallpaperSourceBitmap = bitmap
+            withOwner {
+                val activity = it.asActivity() as? MainActivity ?: return@withOwner
+                activity.startActivity(
+                    Intent(activity, WallpaperActivity::class.java).putExtra(Intent.EXTRA_TEXT,fileName)
+                )
             }
         }
+
+//        UtImmortalTask.launchTask("snapshot") {
+//            val vm = createViewModel<SaveImageDialog.SaveImageViewModel>()
+//            if(showDialog(taskName) { SaveImageDialog() }.status.ok) {
+//                if (vm.saveAsFile.value) {
+//                    withOwner {
+//                        val activity = it.asActivity() as? MainActivity ?: return@withOwner
+//                        saveImageAsFile(activity, bitmap, fileName)
+//                    }
+//                }
+//                if (vm.setWallpaper.value) {
+//                    withOwner {
+//                        controlPanelModelSource.withModel {
+//                            it.playerModel.pause()
+//                        }
+//                        val context = it.asContext()
+//                        wallpaperSourceBitmap = bitmap
+//                        context.startActivity(Intent(context, WallpaperActivity::class.java).putExtra(Intent.EXTRA_TEXT, fileName))
+//                    }
+//                }
+//            }
+//        }
     }
     // region Player/ControlPanel ViewModel
 
@@ -206,7 +223,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                             .supportSnapshot(::saveBitmap)
                             .enableSeekMedium(5000,15000)
                             .enableVolumeController(true)
-                            .enablePhotoViewer(settings.slideInterval.seconds, resolver = ::getPhoto)
+                            .enablePhotoViewer(settings.slideInterval.seconds) { getPhoto(it) }
                             .enableRotateRight()
                             .build()
                     refCount = 0

@@ -21,6 +21,7 @@ import io.github.toyota32k.binder.BaseBinding
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.BindingMode
 import io.github.toyota32k.binder.BoolConvert
+import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.binder.command.LiteCommand
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
@@ -28,24 +29,35 @@ import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.boodroid.databinding.ActivityWallpaperBinding
 import io.github.toyota32k.boodroid.dialog.WallpaperDialog
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
+import io.github.toyota32k.dialog.broker.IUtActivityBrokerStoreProvider
+import io.github.toyota32k.dialog.broker.UtActivityBrokerStore
+import io.github.toyota32k.dialog.broker.pickers.UtCreateFilePicker
 import io.github.toyota32k.dialog.mortal.UtMortalActivity
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
-import io.github.toyota32k.lib.player.view.VideoPlayerView.SimpleManipulationTarget
+import io.github.toyota32k.dialog.task.showConfirmMessageBox
+import io.github.toyota32k.lib.player.view.ExoPlayerHost.SimpleManipulationTarget
 import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.android.FitMode
 import io.github.toyota32k.utils.android.UtFitter
 import io.github.toyota32k.utils.android.hideActionBar
 import io.github.toyota32k.utils.android.hideStatusBar
+import io.github.toyota32k.utils.gesture.IUtManipulationTarget
 import io.github.toyota32k.utils.gesture.UtScaleGestureManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.concurrent.CancellationException
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-class WallpaperActivity : UtMortalActivity() {
+class WallpaperActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     class WallpaperViewModel : ViewModel() {
         companion object {
             fun instanceFor(owner: WallpaperActivity): WallpaperViewModel {
@@ -53,6 +65,7 @@ class WallpaperActivity : UtMortalActivity() {
             }
         }
 
+        val busy = MutableStateFlow(false)
         val toggleToolbarCommand = LiteUnitCommand {
             showToolbar.value = !showToolbar.value
         }
@@ -72,6 +85,7 @@ class WallpaperActivity : UtMortalActivity() {
                 }
         }
 
+        var fileName: String? = null
         val sourceBitmap = RecyclingBitmapFlow(null)
         val rotatedBitmap = RecyclingBitmapFlow(null)
 //        val croppedBitmap = RecyclingBitmapFlow(null)
@@ -110,9 +124,11 @@ class WallpaperActivity : UtMortalActivity() {
             sourceBitmap.value = null
             rotatedBitmap.value = null
             showToolbar.value = false
+            busy.value = false
         }
     }
 
+    override val activityBrokers = UtActivityBrokerStore(this, UtCreateFilePicker())
     private lateinit var controls: ActivityWallpaperBinding
     private lateinit var gestureManager: UtScaleGestureManager
     private val viewModel: WallpaperViewModel by lazy { WallpaperViewModel.instanceFor(this) }
@@ -139,6 +155,7 @@ class WallpaperActivity : UtMortalActivity() {
                 return false
             }
         } else {
+            viewModel.fileName = intent.extras?.getString(Intent.EXTRA_TEXT)
             AppViewModel.instance.wallpaperSourceBitmap ?: return false
         }
         AppViewModel.instance.wallpaperSourceBitmap = null
@@ -164,7 +181,7 @@ class WallpaperActivity : UtMortalActivity() {
         }
         hideStatusBar()
         hideActionBar()
-        gestureManager = UtScaleGestureManager(applicationContext, enableDoubleTap=false, SimpleManipulationTarget(controls.bitmapContainer, controls.imageView), minScale=1f)
+        gestureManager = UtScaleGestureManager(applicationContext, enableDoubleTap=false, manipulationTarget=SimpleManipulationTarget(controls.bitmapContainer, controls.imageView), minScale=1f)
             .setup(this) {
                 onTap {
                     viewModel.toggleToolbarCommand.invoke()
@@ -184,20 +201,50 @@ class WallpaperActivity : UtMortalActivity() {
             .bindCommand(viewModel.toggleToolbarCommand, controls.foldToolbarButton, controls.unfoldToolbarButton)
             .visibilityBinding(controls.toolbar, viewModel.showToolbar)
             .visibilityBinding(controls.unfoldToolbarButton, viewModel.showToolbar, BoolConvert.Inverse)
+            .visibilityBinding(controls.guardView, viewModel.busy, hiddenMode=VisibilityBinding.HiddenMode.HideByGone)
             .imageBinding(controls.imageView, viewModel.currentBitmap)
             .bindCommand(viewModel.okCommand, controls.okButton) {
                 val source = viewModel.currentBitmapValue?:return@bindCommand
                 UtImmortalTask.launchTask("Set Wallpaper") {
                     val vm = createViewModel<WallpaperDialog.WallpaperViewModel>()
                     if (showDialog(taskName) { WallpaperDialog() }.status.ok) {
-                        cropBitmap(source, !vm.useCropHint.value).use { cropInfo->
-                            if(cropInfo.croppedBitmap!=null) {
-                                setWallpaper(cropInfo.croppedBitmap, vm.lockScreen.value, vm.homeScreen.value, null)
-                            } else {
+                        // デバッグ用（cropしてビューに表示する。壁紙には設定しない。）
+//                        val crop = cropBitmap(source, true)
+//                        if(crop!=null) {
+//                            viewModel.sourceBitmap.value = crop.croppedBitmap
+//                            gestureManager.agent.resetScrollAndScale()
+//                        }
+//                        return@launchTask
+
+                        if (vm.saveFile.value) {
+                            val cropInfo = cropBitmap(source, true)
+                            val bitmap = cropInfo?.croppedBitmap ?: source
+                            withOwner {
+                                saveImageAsFile(bitmap, viewModel.fileName)
+                            }
+                            cropInfo?.close()
+                        } else {
+                            viewModel.busy.value = true
+                            delay(100)  // これを入れないとぐるぐるの表示が更新されない
+                            val cropInfo = cropBitmap(source, !vm.useCropHint.value)
+                            val error = if (cropInfo == null) {
+                                // トリミングなし
+                                setWallpaper(source, vm.lockScreen.value, vm.homeScreen.value, null)
+                            } else if (cropInfo.croppedBitmap == null) {
+                                // トリミングあり（ただし、cropHint として指定する）
                                 setWallpaper(source, vm.lockScreen.value, vm.homeScreen.value, cropInfo.rect)
+                            } else {
+                                // トリミングした画像を生成した
+                                setWallpaper(cropInfo.croppedBitmap,vm.lockScreen.value,vm.homeScreen.value,null)
+                            }
+                            cropInfo?.close()
+                            viewModel.busy.value = false
+                            if (error != null) {
+                                showConfirmMessageBox(null, error.message)
+                            } else {
+                                finish()
                             }
                         }
-                        finish()
                     }
                 }
             }
@@ -206,15 +253,17 @@ class WallpaperActivity : UtMortalActivity() {
             }
     }
 
-    fun setWallpaper(bitmap: Bitmap, setLockScreen: Boolean, setHomeScreen: Boolean, hintRect:Rect?) {
-        val wallpaperManager = WallpaperManager.getInstance(this)
+    fun setWallpaper(bitmap: Bitmap, setLockScreen: Boolean, setHomeScreen: Boolean, hintRect:Rect?):Throwable? {
         try {
+            val wallpaperManager = WallpaperManager.getInstance(this)
             val flags = (if (setLockScreen) WallpaperManager.FLAG_LOCK else 0) or
                     (if (setHomeScreen) WallpaperManager.FLAG_SYSTEM else 0)
-            if(flags == 0) return
+            if(flags == 0) return CancellationException("no flags")
             wallpaperManager.setBitmap(bitmap, hintRect, true, flags)
+            return null
         } catch (e: Throwable) {
             logger.error(e)
+            return e
         }
     }
 
@@ -223,13 +272,13 @@ class WallpaperActivity : UtMortalActivity() {
             croppedBitmap?.recycle()
         }
     }
-    private fun cropBitmap(bitmap: Bitmap, generateCroppedBitmap:Boolean) : CropInfo {
+    private fun cropBitmap(bitmap: Bitmap, generateCroppedBitmap:Boolean) : CropInfo? {
         val scale = controls.imageView.scaleX               // x,y 方向のscaleは同じ
         val rtx = controls.imageView.translationX
         val rty = controls.imageView.translationY
         val bw = bitmap.width                               // bitmap のサイズ
         val bh = bitmap.height
-        if (scale ==1f && rtx==0f && rty==0f) return CropInfo(Rect(0,0,bw,bh), null)
+        if (scale ==1f && rtx==0f && rty==0f) return null
         //viewModel.cropParams = PlayerViewModel.CropParams(rtx, rty, scale)
         val tx = rtx / scale
         val ty = rty / scale
@@ -270,6 +319,27 @@ class WallpaperActivity : UtMortalActivity() {
 //        logger.debug("bitmap ${newBitmap.width}x${newBitmap.height} / screen ${screenSize.x}x${screenSize.y}")
 
         return CropInfo(Rect(x.roundToInt(), y.roundToInt(), (x+w).roundToInt(), (y+h).roundToInt()), newBitmap )
+    }
+
+    val dateFormatForFilename = SimpleDateFormat("yyyy.MM.dd-HH.mm.ss",Locale.US)
+    private fun defaultFileName(prefix: String, extension: String, date:Date?=null): String {
+        return "$prefix${dateFormatForFilename.format(date?:Date())}$extension"
+    }
+
+    private suspend fun saveImageAsFile(bitmap:Bitmap, reqFileName:String?) {
+        val fileName = if (reqFileName.isNullOrEmpty()) defaultFileName("img-", ".jpg", null) else reqFileName
+        val uri = activityBrokers.createFilePicker.selectFile(fileName, "image/jpeg")
+        if(uri!=null) {
+            try {
+                contentResolver.openOutputStream(uri)?.use {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
+                    it.flush()
+                }
+                finish()
+            } catch(e:Exception) {
+                AppViewModel.Companion.logger.error(e)
+            }
+        }
     }
 
     override val logger = UtLog("WP")

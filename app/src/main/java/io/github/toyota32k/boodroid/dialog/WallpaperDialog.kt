@@ -2,7 +2,10 @@ package io.github.toyota32k.boodroid.dialog
 
 import android.os.Bundle
 import android.view.View
+import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.checkBinding
+import io.github.toyota32k.binder.enableBinding
+import io.github.toyota32k.binder.multiEnableBinding
 import io.github.toyota32k.boodroid.databinding.DialogWallpaperBinding
 import io.github.toyota32k.dialog.UtDialogEx
 import io.github.toyota32k.dialog.task.UtDialogViewModel
@@ -12,10 +15,11 @@ import kotlinx.coroutines.flow.combine
 
 class WallpaperDialog : UtDialogEx() {
     class WallpaperViewModel : UtDialogViewModel() {
-        val useCropHint = MutableStateFlow(true)
+        val saveFile = MutableStateFlow<Boolean>(false)
+        val useCropHint = MutableStateFlow(false)
         val lockScreen = MutableStateFlow(false)
         val homeScreen = MutableStateFlow(false)
-        val isReady = combine(lockScreen, homeScreen) { lock, home -> lock || home }
+        val isReady = combine(lockScreen, homeScreen, saveFile) { lock, home, save -> lock || home || save }
     }
     private lateinit var controls: DialogWallpaperBinding
     private val viewModel: WallpaperViewModel by lazy { getViewModel() }
@@ -36,6 +40,8 @@ class WallpaperDialog : UtDialogEx() {
             .checkBinding(controls.lockScreen, viewModel.lockScreen)
             .checkBinding(controls.homeScreen, viewModel.homeScreen)
             .checkBinding(controls.useCropHint, viewModel.useCropHint)
+            .checkBinding(controls.saveFile, viewModel.saveFile)
+            .multiEnableBinding(arrayOf(controls.lockScreen, controls.homeScreen, controls.useCropHint), viewModel.saveFile, BoolConvert.Inverse)
             .dialogRightButtonEnable(viewModel.isReady)
         return controls.root
     }

@@ -89,4 +89,21 @@
         app:tint="?attr/colorPrimary"
         android:background="?attr/selectableItemBackground"
         />
+    <FrameLayout
+        android:id="@+id/guard_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#6000"
+        android:visibility="gone"
+        >
+        <ProgressBar
+            tools:visibility="visible"
+            style="?android:attr/progressBarStyleLarge"
+            android:id="@+id/progress_ring"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:background="@null"
+            />
+    </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
