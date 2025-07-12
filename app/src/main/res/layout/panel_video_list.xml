@@ -58,18 +58,18 @@
                 android:background="?attr/selectableItemBackground"
                 />
             <ImageButton
-                android:id="@+id/sync_button"
-                android:layout_width="@dimen/media_button_width"
-                android:layout_height="@dimen/media_button_height"
-                app:srcCompat="@drawable/ic_up_down"
-                app:tint="?attr/colorOnPrimary"
-                android:background="?attr/selectableItemBackground"
-                />
-            <ImageButton
                 android:id="@+id/refresh_button"
                 android:layout_width="@dimen/media_button_width"
                 android:layout_height="@dimen/media_button_height"
                 app:srcCompat="@drawable/ic_refresh"
+                app:tint="?attr/colorOnPrimary"
+                android:background="?attr/selectableItemBackground"
+                />
+            <ImageButton
+                android:id="@+id/host_button"
+                android:layout_width="@dimen/media_button_width"
+                android:layout_height="@dimen/media_button_height"
+                app:srcCompat="@drawable/ic_wifi"
                 app:tint="?attr/colorOnPrimary"
                 android:background="?attr/selectableItemBackground"
                 />

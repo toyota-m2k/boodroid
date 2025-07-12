@@ -13,10 +13,10 @@ import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
-import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.WallpaperActivity
 import io.github.toyota32k.boodroid.auth.Authentication
 import io.github.toyota32k.boodroid.common.IUtPropertyHost
+import io.github.toyota32k.boodroid.data.NetClient
 import io.github.toyota32k.boodroid.data.NetClient.executeAsync
 import io.github.toyota32k.boodroid.data.QueryBuilder
 import io.github.toyota32k.boodroid.data.ServerCapability
@@ -26,8 +26,6 @@ import io.github.toyota32k.boodroid.data.VideoListSource
 import io.github.toyota32k.boodroid.dialog.HostSettingsDialog
 import io.github.toyota32k.boodroid.dialog.PreferencesDialog
 import io.github.toyota32k.boodroid.offline.CachedVideoItem
-import io.github.toyota32k.boodroid.view.MenuCommand
-import io.github.toyota32k.boodroid.view.PopupCommandMenu
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.lib.player.model.IMediaFeed
@@ -37,14 +35,19 @@ import io.github.toyota32k.lib.player.model.PlayerControllerModel
 import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.IUtPropOwner
 import io.github.toyota32k.utils.UtResetableValue
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 import kotlin.time.Duration.Companion.seconds
 
 interface IURLResolver {
@@ -85,6 +88,14 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         }
     }
 
+    val supportSyncItemSelection: Boolean
+        get() = capability.value.hasView && !offlineMode
+    val supportRating: Boolean
+        get() = capability.value.hasRating
+    val supportCategory: Boolean
+        get() = capability.value.hasCategory
+    val supportMark: Boolean
+        get() = capability.value.hasMark
 
     private var prepared:Boolean = false
     private fun prepare():AppViewModel {
@@ -149,6 +160,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
 
 
     // endregion
+
     private suspend fun saveImageAsFile(activity:MainActivity, bitmap:Bitmap, fileName:String) {
         val uri = activity.activityBrokers.createFilePicker.selectFile(fileName, "image/jpeg")
         if(uri!=null) {
@@ -204,6 +216,61 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
 //            }
 //        }
     }
+
+    /**
+     * BooRemote で再生中の動画をBooTubeの動画リスト上で選択する
+     */
+    fun syncToServer() {
+        controlPanelModelSource.withModel { controlPanelModel ->
+            val current = controlPanelModel.playerModel.currentSource.value ?: return
+            val url = AppViewModel.url.current ?: return
+            val json = JSONObject()
+                .put("id", current.id)
+                .toString()
+            val req = Request.Builder()
+                .url(url)
+                .put(json.toRequestBody("application/json".toMediaType()))
+                .build()
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    NetClient.executeAsync(req).close()
+                } catch (e: Throwable) {
+                    MainViewModel.Companion.logger.stackTrace(e)
+                }
+            }
+        }
+    }
+
+    /**
+     * BooTube上で選択（フォーカス）されている動画をBooRemote上で再生する。
+     */
+    fun syncFromServer() {
+        fun tryPlayAt(id: String) {
+            val listSource = videoListSource ?: return
+            val index = listSource.list.indexOfFirst { it.id == id }
+            if(index>=0) {
+                listSource.setCurrentSource(index, 0)
+            }
+        }
+
+        val url = AppViewModel.url.current ?: return
+        val req = Request.Builder()
+            .url(url)
+            .get()
+            .build()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val json = NetClient.executeAndGetJsonAsync(req)
+                withContext(Dispatchers.Main) {
+                    tryPlayAt(json.getString("id"))
+                }
+            } catch (e: Throwable) {
+                MainViewModel.Companion.logger.stackTrace(e)
+            }
+        }
+    }
+
+
     // region Player/ControlPanel ViewModel
 
     inner class RefCounteredControlPanelModel {
@@ -311,12 +378,6 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
 
     val preferencesCommand = LiteUnitCommand {
         PreferencesDialog.show()
-    }
-
-    val settingMenu:PopupCommandMenu by lazy {
-        PopupCommandMenu()
-            .add(MenuCommand(BooApplication.instance.getString(R.string.host_setting), hostSettingsCommand))
-            .add(MenuCommand(BooApplication.instance.getString(R.string.preferences), preferencesCommand))
     }
 
     /**

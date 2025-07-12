@@ -4,8 +4,10 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import androidx.appcompat.widget.ListPopupWindow
+import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
+import io.github.toyota32k.binder.multiVisibilityBinding
 import io.github.toyota32k.binder.observe
 import io.github.toyota32k.binder.textBinding
 import io.github.toyota32k.binder.visibilityBinding
@@ -21,6 +23,8 @@ import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.dialog.task.getViewModel
 import io.github.toyota32k.dialog.task.showConfirmMessageBox
+import io.github.toyota32k.utils.lifecycle.asConstantLiveData
+import kotlinx.coroutines.flow.combine
 
 class RatingDialog : UtDialogEx() {
     private lateinit var controls: DialogRatingBinding
@@ -49,7 +53,13 @@ class RatingDialog : UtDialogEx() {
                 .textBinding(itemName, viewModel.name)
                 .textBinding(categoryButton, viewModel.category)
                 .visibilityBinding(busyPanel, viewModel.busy)
+                .multiVisibilityBinding(arrayOf(syncSelectionLabel, syncSelectionButtons), viewModel.supportSyncItemSelection.asConstantLiveData(), hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+                .multiVisibilityBinding(arrayOf(ratingSelector, ratingLabel), viewModel.supportRating.asConstantLiveData(), hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+                .multiVisibilityBinding(arrayOf(markSelector, markLabel), viewModel.supportMark.asConstantLiveData(), hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+                .multiVisibilityBinding(arrayOf(categoryButton, categoryLabel), viewModel.supportCategory.asConstantLiveData(), hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
                 .bindCommand(LiteUnitCommand(this@RatingDialog::selectCategory), categoryButton)
+                .bindCommand(LiteUnitCommand(this@RatingDialog::syncUp), syncUpButton)
+                .bindCommand(LiteUnitCommand(this@RatingDialog::syncDown), syncDownButton)
                 .observe(viewModel.hasError) {error->
                     if(error) {
                         onError()
@@ -79,6 +89,15 @@ class RatingDialog : UtDialogEx() {
                     listPopup.dismiss()
                 }
         listPopup.show()
+    }
+
+    private fun syncUp() {
+        AppViewModel.instance.syncToServer()
+        onPositive()
+    }
+    private fun syncDown() {
+        AppViewModel.instance.syncFromServer()
+        onPositive()
     }
 
     override fun onDestroyView() {

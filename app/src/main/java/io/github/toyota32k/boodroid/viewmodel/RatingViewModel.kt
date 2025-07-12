@@ -1,5 +1,6 @@
 package io.github.toyota32k.boodroid.viewmodel
 
+import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.common.safeGetInt
 import io.github.toyota32k.boodroid.common.safeGetNullableString
@@ -24,6 +25,10 @@ class RatingViewModel : UtDialogViewModel() {
     val rating = MutableStateFlow(0)
     val mark = MutableStateFlow(0)
     val category = MutableStateFlow("")
+    var supportSyncItemSelection: Boolean = false
+    var supportRating: Boolean = false
+    var supportMark: Boolean = false
+    var supportCategory: Boolean = false
     val busy = MutableStateFlow(true)
     val hasError = MutableStateFlow(false)
 
@@ -31,12 +36,15 @@ class RatingViewModel : UtDialogViewModel() {
     private var ratingOrg:Int = 0
     private var markOrg:Int = 0
 
-
     fun prepare(item: VideoItem, scope: CoroutineScope) {
         current = item
         name.value = item.name
         busy.value = true
         hasError.value = false
+        this.supportSyncItemSelection = AppViewModel.instance.supportSyncItemSelection
+        this.supportRating = AppViewModel.instance.supportRating
+        this.supportMark = AppViewModel.instance.supportMark
+        this.supportCategory = AppViewModel.instance.supportCategory
 
         scope.launch {
             try {

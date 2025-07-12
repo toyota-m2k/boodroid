@@ -119,19 +119,18 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             .owner(this)
             .bindCommand(viewModel.selectOfflineVideoCommand, panel.selectButton)
             .bindCommand(viewModel.setupOfflineModeCommand, panel.onlineButton,panel.offlineButton)
-            .bindCommand(viewModel.syncWithServerCommand, panel.syncButton)
+//            .bindCommand(viewModel.syncWithServerCommand, panel.syncButton)
             .bindCommand(appViewModel.refreshCommand, panel.refreshButton, true)
 //            .bindCommand(appViewModel.settingCommand, panel.settingButton)
-            .clickBinding(panel.settingButton) {
-                appViewModel.settingMenu.showMenu(it, dp2px(200))
-            }
+            .bindCommand(appViewModel.hostSettingsCommand, panel.hostButton)
+            .bindCommand(appViewModel.preferencesCommand, panel.settingButton)
 //            .bindCommand(controlPanelModel.commandPlayerTapped, this::onPlayerTapped)
             // リロードボタンは オンラインモードのときだけ表示する
             .visibilityBinding(panel.refreshButton, appViewModel.offlineModeFlow, BoolConvert.Inverse)
             // オフラインボタンは、オンラインモードで、オフラインモード対応サーバーの場合だけ表示する。
             .visibilityBinding(panel.offlineButton, combine(appViewModel.offlineModeFlow,viewModel.offlineModeAvailable) {off,av-> !off && av })
             // 選択アイテム同期ボタンは、オンラインモードで、サーバーがアイテム選択に対応している場合だけ表示する。
-            .visibilityBinding(panel.syncButton, combine(appViewModel.offlineModeFlow,viewModel.syncCommandAvailable) {off,av-> !off && av })
+//            .visibilityBinding(panel.syncButton, combine(appViewModel.offlineModeFlow,viewModel.syncCommandAvailable) {off,av-> !off && av })
             // オンラインボタン、再生アイテム選択ボタンは、オフラインモードの場合のみ表示する。
             .multiVisibilityBinding(arrayOf(panel.onlineButton,panel.selectButton), appViewModel.offlineModeFlow)
             .visibilityBinding(controls.titleText, appViewModel.showTitleOnScreen)

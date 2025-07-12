@@ -17,6 +17,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             tools:text="hoge hoge hoge hoge hoge hoge hoge hoge hoge hoge hoge hoge"
+            android:background="?attr/colorPrimary"
+            android:textColor="?attr/colorOnPrimary"
+            android:padding="2dp"
             />
 
         <TextView
@@ -29,6 +32,8 @@
             android:text="@string/rating_label"
             android:layout_gravity="center_vertical"
             android:minWidth="@dimen/min_label_width"
+            android:textStyle="bold"
+            android:textSize="16sp"
             />
         <com.google.android.material.button.MaterialButtonToggleGroup
             android:id="@+id/rating_selector"
@@ -37,6 +42,7 @@
             app:singleSelection="true"
             app:selectionRequired="true"
             android:orientation="horizontal"
+            android:layout_gravity="center_horizontal"
             >
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/tg_rating_dreadful"
@@ -88,6 +94,8 @@
             android:text="@string/mark_label"
             android:layout_gravity="center_vertical"
             android:minWidth="@dimen/min_label_width"
+            android:textStyle="bold"
+            android:textSize="16sp"
             />
 
         <com.google.android.material.button.MaterialButtonToggleGroup
@@ -95,6 +103,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:layout_gravity="center_horizontal"
             >
             <Button
                 android:id="@+id/tg_mark_star"
@@ -135,18 +144,70 @@
             android:layout_gravity="center_vertical"
             android:minWidth="@dimen/min_label_width"
             app:singleSelection="true"
+            android:textStyle="bold"
+            android:textSize="16sp"
             />
         <Button
             android:id="@+id/category_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:minEms="10"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="?attr/materialButtonOutlinedStyle"
             android:textAllCaps="false"
             android:textAlignment="center"
-            android:textColor="?attr/colorPrimaryDark"
+            android:textColor="?attr/colorPrimary"
             tools:text="All"
             />
+
+
+        <TextView
+            android:id="@+id/sync_selection_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/mark_selector"
+            android:layout_marginTop="@dimen/setting_spacing"
+            android:text="@string/sync_selection_label"
+            android:layout_gravity="center_vertical"
+            android:minWidth="@dimen/min_label_width"
+            app:singleSelection="true"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            />
+        <LinearLayout
+            android:id="@+id/sync_selection_buttons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_horizontal"
+            >
+
+            <Button
+                android:id="@+id/sync_up_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:icon="@drawable/ic_up"
+                app:iconSize="24dp"
+                app:iconPadding="0dp"
+                app:iconGravity="textStart"
+                app:tint="?attr/colorPrimary"
+                style="?attr/materialButtonOutlinedStyle"/>
+            <Space
+                android:layout_width="5dp"
+                android:layout_height="0dp"/>
+            <Button
+                android:id="@+id/sync_down_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:icon="@drawable/ic_down"
+                app:iconSize="24dp"
+                app:iconPadding="0dp"
+                app:iconGravity="textStart"
+                app:tint="?attr/colorPrimary"
+                style="?attr/materialButtonOutlinedStyle"/>
+        </LinearLayout>
+
     </LinearLayout>
 
     <FrameLayout
