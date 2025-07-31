@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withContext
 import okhttp3.Request
-import okhttp3.internal.headersContentLength
 import java.io.File
 import java.lang.Integer.max
 import java.lang.Integer.min
@@ -96,7 +95,7 @@ class OfflineManager(context: Context) {
                     response.body?.byteStream()?.use { inStream ->
                         createLocalFile(videoItem.type)?.let { file ->
                             try {
-                                val totalLength = response.headersContentLength()
+                                val totalLength = response.headers["Content-Length"]?.toLongOrNull() ?: 0L
                                 file.outputStream().use { outStream ->
 //                                    inStream.copyTo(outStream)
                                     var bytesCopied: Long = 0
@@ -124,7 +123,7 @@ class OfflineManager(context: Context) {
 
             if(videoFile!=null) {
                 database.dataTable().insert(OfflineData(url, videoFile.path, videoItem.name, videoItem.trimming.start, videoItem.trimming.end, videoItem.type, 0, 0, videoItem.size, videoItem.duration))
-                val list = videoItem.chapterList
+                val list = videoItem.getChapterList()
                 if(!list.isEmpty) {
                     database.chapters().insert(* list.chapters.map {
                         ChapterCache(url, it.position, it.label, it.skip)

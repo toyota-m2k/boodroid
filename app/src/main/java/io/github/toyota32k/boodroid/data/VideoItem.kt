@@ -11,6 +11,7 @@ import io.github.toyota32k.lib.player.model.chapter.MutableChapterList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicLong
 
@@ -31,18 +32,17 @@ class VideoItem private constructor (j: JSONObject, val chapterRetriever: (suspe
     override val size:Long
     override val duration: Long
     override var startPosition:AtomicLong = AtomicLong(0L)
-    private var chapterListLoaded:Boolean = false
 
-    override val chapterList: IChapterList
-        get() {
-            if(!chapterListLoaded&&chapterRetriever!=null) {
-                chapterListLoaded = true
-                CoroutineScope(Dispatchers.IO).launch {
-                    mutableChapterList.initChapters(chapterRetriever(this@VideoItem))
-                }
-            }
-            return mutableChapterList
+    override suspend fun getChapterList(): IChapterList {
+        if (chapterRetriever == null) {
+            return IChapterList.Empty
         }
+        return withContext(Dispatchers.IO) {
+            mutableChapterList.apply {
+                initChapters(chapterRetriever(this@VideoItem))
+            }
+        }
+    }
 
     init {
         id = j.getString("id")

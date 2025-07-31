@@ -128,7 +128,6 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         override val hasNext: StateFlow<Boolean> = listSource.flatMapLatest { it.hasNext }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Eagerly, false)
         override val hasPrevious: StateFlow<Boolean> = listSource.flatMapLatest { it.hasPrevious }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Eagerly, false)
         override val currentSource: StateFlow<IMediaSource?> = listSource.flatMapLatest { it.currentSource }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Eagerly, null)
-//        val currentSourceIndex: StateFlow<Int> = listSource.flatMapLatest { it.currentSourceIndex }.stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Eagerly, -1)
         override fun next() {
             listSource.mutable.value.next()
         }
@@ -154,10 +153,6 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         set(v) { mediaFeed.setVideoListSource(v) }
     val currentSource:StateFlow<IMediaSource?>
         get() = mediaFeed.currentSource
-
-//    val videoListSourceFlow: StateFlow<VideoListSource?>
-//        get() = mediaFeed.listSource
-
 
     // endregion
 
@@ -193,28 +188,6 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                 )
             }
         }
-
-//        UtImmortalTask.launchTask("snapshot") {
-//            val vm = createViewModel<SaveImageDialog.SaveImageViewModel>()
-//            if(showDialog(taskName) { SaveImageDialog() }.status.ok) {
-//                if (vm.saveAsFile.value) {
-//                    withOwner {
-//                        val activity = it.asActivity() as? MainActivity ?: return@withOwner
-//                        saveImageAsFile(activity, bitmap, fileName)
-//                    }
-//                }
-//                if (vm.setWallpaper.value) {
-//                    withOwner {
-//                        controlPanelModelSource.withModel {
-//                            it.playerModel.pause()
-//                        }
-//                        val context = it.asContext()
-//                        wallpaperSourceBitmap = bitmap
-//                        context.startActivity(Intent(context, WallpaperActivity::class.java).putExtra(Intent.EXTRA_TEXT, fileName))
-//                    }
-//                }
-//            }
-//        }
     }
 
     /**
@@ -290,7 +263,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                             .supportSnapshot(::saveBitmap)
                             .enableSeekMedium(5000,15000)
                             .enableVolumeController(true)
-                            .enablePhotoViewer(settings.slideInterval.seconds) { getPhoto(it) }
+                            .enablePhotoViewer(settings.slideInterval.seconds)
                             .enableRotateRight()
                             .build()
                     refCount = 0
@@ -323,44 +296,6 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
     }
 
     val controlPanelModelSource = RefCounteredControlPanelModel()
-
-    suspend fun getPhoto(item:IMediaSource): Bitmap? {
-        if(!item.isPhoto) return null
-        if (item is CachedVideoItem) {
-            return try {
-                BitmapFactory.decodeStream(item.file.inputStream())
-            } catch(e:Throwable) {
-                logger.error(e)
-                null
-            }
-        }
-
-        if(!authentication.authentication()) return null
-//        val address = Settings.SecureArchive.address
-//        if(address.isEmpty()) return null
-        return withContext(Dispatchers.IO) {
-            val request = Request.Builder()
-                .url(item.uri)
-                .build()
-            try {
-                executeAsync(request).use { response ->
-                    if (response.isSuccessful) {
-                        response.body?.use { body ->
-                            body.byteStream().use { inStream ->
-                                BitmapFactory.decodeStream(inStream)
-                            }
-                        }
-                    } else {
-                        logger.error(response.message)
-                        null
-                    }
-                }
-            } catch (e:Throwable) {
-                logger.error(e)
-                null
-            }
-        }
-    }
 
     // endregion
 

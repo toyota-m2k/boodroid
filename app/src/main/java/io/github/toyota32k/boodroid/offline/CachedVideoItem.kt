@@ -28,12 +28,5 @@ class CachedVideoItem(
         get() = file.toUri().toString()
     override var startPosition =  AtomicLong(0L)
 
-//        get() {
-//            val g = idRegex.find(uri)?.groups
-//            return if(g!=null && g.size>1) {
-//                g[1]?.value ?: throw IllegalStateException("regex error?")
-//            } else throw InvalidParameterException("no id in url")
-//        }
-
-    override val chapterList = ChapterList(OfflineManager.instance.database.chapters().getForOwner(id).map { Chapter(it.position, it.label ?: "", it.skip) }.toMutableList())
+    override suspend fun getChapterList() =  ChapterList(OfflineManager.instance.database.chapters().getForOwner(id).map { Chapter(it.position, it.label ?: "", it.skip) }.toMutableList())
 }

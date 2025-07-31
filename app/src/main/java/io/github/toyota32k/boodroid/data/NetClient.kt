@@ -3,6 +3,7 @@ package io.github.toyota32k.boodroid.data
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.logger.UtLog
 import okhttp3.*
+import okhttp3.coroutines.executeAsync
 import org.json.JSONObject
 import java.io.IOException
 import kotlin.coroutines.resume
@@ -24,7 +25,7 @@ object NetClient {
     suspend fun executeAndGetJsonAsync(req:Request):JSONObject {
         return executeAsync(req).use { res ->
             if (res.code != 200) throw IllegalStateException("Server Response Error (${res.code})")
-            val body = res.body?.use { it.string() } ?: throw IllegalStateException("Server Response No Data.")
+            val body = res.body.use { it.string() }
             JSONObject(body)
         }
     }
@@ -39,25 +40,25 @@ object NetClient {
      * Coroutineを利用し、スレッドをブロックしないで同期的な通信を可能にする拡張メソッド
      * OkHttpのnewCall().execute()を置き換えるだけで使える。
      */
-    private suspend fun Call.executeAsync() : Response {
-        return suspendCoroutine {cont ->
-            try {
-                enqueue(object : Callback {
-                    override fun onFailure(call: Call, e: IOException) {
-                        logger.error("NetClient: error: ${e.localizedMessage}")
-                        cont.resumeWithException(e)
-                    }
-
-                    override fun onResponse(call: Call, response: Response) {
-                        logger.debug("NetClient: completed (${response.code}): ${call.request().url}")
-                        cont.resume(response)
-                    }
-                })
-            } catch(e:Throwable) {
-                logger.error("NetClient: exception: ${e.localizedMessage}")
-                cont.resumeWithException(e)
-            }
-        }
-    }
+//    private suspend fun Call.executeAsync() : Response {
+//        return suspendCoroutine {cont ->
+//            try {
+//                enqueue(object : Callback {
+//                    override fun onFailure(call: Call, e: IOException) {
+//                        logger.error("NetClient: error: ${e.localizedMessage}")
+//                        cont.resumeWithException(e)
+//                    }
+//
+//                    override fun onResponse(call: Call, response: Response) {
+//                        logger.debug("NetClient: completed (${response.code}): ${call.request().url}")
+//                        cont.resume(response)
+//                    }
+//                })
+//            } catch(e:Throwable) {
+//                logger.error("NetClient: exception: ${e.localizedMessage}")
+//                cont.resumeWithException(e)
+//            }
+//        }
+//    }
 
 }
