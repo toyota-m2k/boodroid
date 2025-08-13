@@ -32,8 +32,9 @@ class VideoItem private constructor (j: JSONObject, val chapterRetriever: (suspe
     override val size:Long
     override val duration: Long
     override var startPosition:AtomicLong = AtomicLong(0L)
+    private var chapterList : IChapterList? = null
 
-    override suspend fun getChapterList(): IChapterList {
+    private suspend fun retrieveChapterList(): IChapterList {
         if (chapterRetriever == null) {
             return IChapterList.Empty
         }
@@ -41,6 +42,11 @@ class VideoItem private constructor (j: JSONObject, val chapterRetriever: (suspe
             mutableChapterList.apply {
                 initChapters(chapterRetriever(this@VideoItem))
             }
+        }
+    }
+    override suspend fun getChapterList(): IChapterList {
+        return chapterList ?: retrieveChapterList().apply {
+            chapterList = this
         }
     }
 
