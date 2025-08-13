@@ -8,6 +8,7 @@ import io.github.toyota32k.binder.editTextBinding
 import io.github.toyota32k.binder.exposedDropdownMenuBinding
 import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.R
+import io.github.toyota32k.boodroid.common.PackageUtil
 import io.github.toyota32k.boodroid.data.Settings
 import io.github.toyota32k.boodroid.data.ThemeSelector
 import io.github.toyota32k.boodroid.databinding.DialogPreferencesBinding
@@ -42,7 +43,8 @@ class PreferencesDialog : UtDialogEx() {
     private lateinit var controls: DialogPreferencesBinding
 
     override fun preCreateBodyView() {
-        title = getString(R.string.preferences)
+        val context = requireContext()
+        title = "${PackageUtil.appName(context)} v${PackageUtil.getVersion(context)}"
         heightOption = HeightOption.AUTO_SCROLL
         widthOption = WidthOption.LIMIT(400)
         leftButtonType = ButtonType.CANCEL

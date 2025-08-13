@@ -391,7 +391,8 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                 qb.add("auth", token)
             }
             qb.add("id", id)
-            val cmd = if( capability.value.version >= 2) "item" else "video"   // 新バージョンなら item / 旧バージョン互換: video
+            // val cmd = if( capability.value.version >= 2) "item" else "video"   // 新バージョンなら item / 旧バージョン互換: video
+            val cmd = "item"
             return "${baseUrl}${cmd}?${qb.queryString}"
         }
         override fun chapter(id:String):String? {

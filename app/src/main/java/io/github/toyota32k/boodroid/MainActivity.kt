@@ -19,13 +19,10 @@ import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
 import androidx.core.net.toUri
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.BoolConvert
-import io.github.toyota32k.binder.clickBinding
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.multiVisibilityBinding
 import io.github.toyota32k.binder.textBinding
@@ -47,7 +44,6 @@ import io.github.toyota32k.lib.player.model.PlayerControllerModel.WindowMode
 import io.github.toyota32k.lib.player.model.PlaylistPlayerModel
 import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.android.CompatBackKeyDispatcher
-import io.github.toyota32k.utils.android.dp2px
 import io.github.toyota32k.utils.gesture.Direction
 import io.github.toyota32k.utils.gesture.UtScaleGestureManager
 import kotlinx.coroutines.CoroutineScope
@@ -156,14 +152,21 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 //            appViewModel.settingCommand.invoke()
 //        }
 
+
         // 最近(2024/3/28現在)のAndroid Studioのテンプレートが書き出すコード（２）
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-//        hideActionBar()
-//        hideStatusBar()
+//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+//            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+//            insets
+//        }
+        setupWindowInsetsListener(controls.root, SupportInsetsType.WIDE)
+//        {
+//            if (controlPanelModel.windowMode.value == WindowMode.FULLSCREEN) {
+//                SupportInsetsType.SYS_IME
+//            } else {
+//                SupportInsetsType.ALL
+//            }
+//        }
 
         // Gesture / Scaling
         gestureManager = UtScaleGestureManager(this.applicationContext, enableDoubleTap = true, controls.videoViewer.manipulationTarget, minScale = 1f)
