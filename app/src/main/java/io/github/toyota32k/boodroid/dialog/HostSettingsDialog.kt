@@ -33,7 +33,6 @@ class HostSettingsDialog : UtDialogEx() {
     private val viewModel by lazy { getViewModel<HostSettingsViewModel>() }
 
     override fun preCreateBodyView() {
-        isDialog = true
         scrollable = true
         cancellable = false
         draggable = true

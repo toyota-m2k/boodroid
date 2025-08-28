@@ -4,7 +4,6 @@ package io.github.toyota32k.boodroid.viewmodel
 
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -17,7 +16,6 @@ import io.github.toyota32k.boodroid.WallpaperActivity
 import io.github.toyota32k.boodroid.auth.Authentication
 import io.github.toyota32k.boodroid.common.IUtPropertyHost
 import io.github.toyota32k.boodroid.data.NetClient
-import io.github.toyota32k.boodroid.data.NetClient.executeAsync
 import io.github.toyota32k.boodroid.data.QueryBuilder
 import io.github.toyota32k.boodroid.data.ServerCapability
 import io.github.toyota32k.boodroid.data.Settings
@@ -25,7 +23,6 @@ import io.github.toyota32k.boodroid.data.VideoItemFilter
 import io.github.toyota32k.boodroid.data.VideoListSource
 import io.github.toyota32k.boodroid.dialog.HostSettingsDialog
 import io.github.toyota32k.boodroid.dialog.PreferencesDialog
-import io.github.toyota32k.boodroid.offline.CachedVideoItem
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.lib.player.model.IMediaFeed
@@ -307,7 +304,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
     val hostSettingsCommand = LiteUnitCommand {
         UtImmortalTask.launchTask("settings") {
             createViewModel<HostSettingsViewModel> { prepare() }
-            this.showDialog(taskName) { HostSettingsDialog() }
+            showDialog(taskName) { HostSettingsDialog() }
         }
     }
 

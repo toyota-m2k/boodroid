@@ -39,7 +39,7 @@ class HostAddressDialog : UtDialogEx() {
     private lateinit var controls: DialogHostAddressBinding
 
     override fun preCreateBodyView() {
-        parentVisibilityOption = ParentVisibilityOption.NONE
+//        parentVisibilityOption = ParentVisibilityOption.NONE
         draggable = true
         guardColor = GuardColor.DIM
         widthOption = WidthOption.LIMIT(400)

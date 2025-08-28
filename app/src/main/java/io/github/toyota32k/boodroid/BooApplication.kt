@@ -1,6 +1,7 @@
 package io.github.toyota32k.boodroid
 
 import android.app.Application
+import android.graphics.Rect
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import io.github.toyota32k.boodroid.offline.OfflineManager
@@ -32,8 +33,10 @@ class BooApplication : Application(), ViewModelStoreOwner {
         UtDialogConfig.apply {
             solidBackgroundOnPhone = false
             showDialogImmediately = UtDialogConfig.ShowDialogMode.Commit
-            showInDialogModeAsDefault = true
-            hideStatusBarOnDialogMode = false
+            showInDialogModeAsDefault = false
+            draggable = true
+//            systemZoneOption = UtDialogConfig.SystemZoneOption.HIDE_ACTION_BAR
+//            dialogMarginOnLandscape = null
 //            useLegacyTheme()
         }
 

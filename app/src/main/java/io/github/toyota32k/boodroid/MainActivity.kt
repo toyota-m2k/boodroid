@@ -33,6 +33,8 @@ import io.github.toyota32k.boodroid.databinding.ActivityMainBinding
 import io.github.toyota32k.boodroid.databinding.PanelVideoListBinding
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.boodroid.viewmodel.MainViewModel
+import io.github.toyota32k.dialog.UtDialogConfig
+import io.github.toyota32k.dialog.UtDialogHelper
 import io.github.toyota32k.dialog.broker.IUtActivityBrokerStoreProvider
 import io.github.toyota32k.dialog.broker.UtActivityBrokerStore
 import io.github.toyota32k.dialog.broker.pickers.UtCreateFilePicker
@@ -159,7 +161,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 //            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
 //            insets
 //        }
-        setupWindowInsetsListener(controls.root, SupportInsetsType.WIDE)
+        setupWindowInsetsListener(controls.root, UtDialogConfig.SystemZone.SYSTEM_BARS)
 //        {
 //            if (controlPanelModel.windowMode.value == WindowMode.FULLSCREEN) {
 //                SupportInsetsType.SYS_IME
@@ -349,7 +351,9 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             newConfig.isLandscape.also { land ->
                 if (land != landscape) {
                     landscape = land
+                    val refuge  = UtDialogHelper.refugeAll(this)
                     initViews()
+                    refuge?.restore(this)
                 }
             }
         }
