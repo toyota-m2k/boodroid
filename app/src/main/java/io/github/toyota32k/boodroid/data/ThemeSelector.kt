@@ -10,9 +10,9 @@ import kotlin.collections.firstOrNull
 
 data class ThemeInfo(
     val label: String,
-    @StyleRes val id: Int,
-    @StyleRes val overlayMedium: Int?,
-    @StyleRes val overlayHigh: Int?,
+    @param:StyleRes val id: Int,
+    @param:StyleRes val overlayMedium: Int?,
+    @param:StyleRes val overlayHigh: Int?,
 )
 
 interface IThemeList {

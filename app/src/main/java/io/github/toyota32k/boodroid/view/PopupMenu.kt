@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class PopupMenu(@LayoutRes val itemLayoutId:Int = com.google.android.material.R.layout.support_simple_spinner_dropdown_item, val dropdownWidth:Int?=null) {
+class PopupMenu(@param:LayoutRes val itemLayoutId:Int = androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, val dropdownWidth:Int?=null) {
     /**
      * ListPopupWindow の ポップアップメニューの幅に、WRAP_CONTENT が指定されると anchorView の幅になってしまう。
      * それが適切な場合もあるが、アイコンボタンをAnchorにすると、幅が小さくなって使えない。
@@ -56,8 +56,8 @@ class PopupMenu(@LayoutRes val itemLayoutId:Int = com.google.android.material.R.
 }
 
 class PopupMenuEx<T>(
-    val itemList:List<T>, @LayoutRes
-    val itemLayoutId:Int = com.google.android.material.R.layout.support_simple_spinner_dropdown_item,
+    val itemList:List<T>, @param:LayoutRes
+    val itemLayoutId:Int = androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,
     resolver:(ILabelResolverCreator<T>.()->Unit)?=null,
     ) : ILabelResolverCreator<T> {
     private var toLabel = { it: T -> it.toString() }
@@ -85,7 +85,7 @@ class PopupMenuEx<T>(
 data class MenuCommand(val label:String, val command:IUnitCommand)
 
 class PopupCommandMenu(
-    @LayoutRes val itemLayoutId:Int = com.google.android.material.R.layout.support_simple_spinner_dropdown_item,
+    @param:LayoutRes val itemLayoutId:Int = androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,
     ) {
     private val commands = mutableListOf<MenuCommand>()
     operator fun plus(cmd: MenuCommand): PopupCommandMenu {
