@@ -1,10 +1,8 @@
 package io.github.toyota32k.boodroid.data
 
-import android.view.View
 import androidx.annotation.IdRes
 import io.github.toyota32k.binder.IIDValueResolver
 import io.github.toyota32k.boodroid.R
-import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 
 //enum class Rating(val v:Int, @IdRes val id:Int) {
 //    DREADFUL(1, R.id.tg_rating_dreadful),
@@ -51,7 +49,7 @@ import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 //    }
 //}
 
-enum class SourceType(@IdRes val v:Int, val id:Int) {
+enum class SourceType(@param:IdRes val v:Int, val id:Int) {
     DB(0, R.id.chk_src_db),
     LISTED(1, R.id.chk_src_listed),
     SELECTED(2, R.id.chk_src_selected);
@@ -63,10 +61,10 @@ enum class SourceType(@IdRes val v:Int, val id:Int) {
 
     companion object {
         fun id2value(@IdRes id: Int, def: SourceType = DB): SourceType {
-            return values().find { it.id == id } ?: def
+            return entries.find { it.id == id } ?: def
         }
         fun valueOf(v: Int, def: SourceType = DB): SourceType {
-            return values().find { it.v == v } ?: def
+            return entries.find { it.v == v } ?: def
         }
 
         val idResolver:IIDValueResolver<SourceType> by lazy { IDResolver() }
