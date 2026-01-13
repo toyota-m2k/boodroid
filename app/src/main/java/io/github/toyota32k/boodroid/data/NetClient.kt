@@ -29,10 +29,10 @@ object NetClient {
             JSONObject(body)
         }
     }
-    suspend fun executeAndGetStringAsync(req:Request):String? {
+    suspend fun executeAndGetStringAsync(req:Request):String {
         return executeAsync(req).use { res ->
             if (res.code != 200) throw IllegalStateException("Server Response Error (${res.code})")
-            res.body?.use { it.string() }
+            res.body.use { it.string() }
         }
     }
 

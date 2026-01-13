@@ -32,6 +32,8 @@ import io.github.toyota32k.lib.player.model.PlayerControllerModel
 import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.IUtPropOwner
 import io.github.toyota32k.utils.UtResetableValue
+import io.github.toyota32k.utils.android.RefBitmap
+import io.github.toyota32k.utils.android.RefBitmapHolder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -167,9 +169,9 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         }
     }
 
-    var wallpaperSourceBitmap:Bitmap? = null
+    var wallpaperSourceBitmap:RefBitmap? by RefBitmapHolder()
 
-    private fun saveBitmap(position:Long, bitmap:Bitmap) {
+    private fun saveBitmap(position:Long, bitmap: RefBitmap) {
         val item = currentSource.value ?: return
         val name = item.name
         val fileName = if (item.isPhoto) "${name}.jpg" else "${name}_${position}.jpg"

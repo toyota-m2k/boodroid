@@ -22,6 +22,7 @@ import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.BindingMode
 import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.VisibilityBinding
+import io.github.toyota32k.binder.bitmapBinding
 import io.github.toyota32k.binder.command.LiteCommand
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
@@ -39,6 +40,10 @@ import io.github.toyota32k.dialog.task.showConfirmMessageBox
 import io.github.toyota32k.lib.player.view.ExoPlayerHost.SimpleManipulationTarget
 import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.android.FitMode
+import io.github.toyota32k.utils.android.RefBitmap
+import io.github.toyota32k.utils.android.RefBitmap.Companion.toRef
+import io.github.toyota32k.utils.android.RefBitmapFlow
+import io.github.toyota32k.utils.android.RefBitmapHolder
 import io.github.toyota32k.utils.android.UtFitter
 import io.github.toyota32k.utils.android.hideActionBar
 import io.github.toyota32k.utils.android.hideStatusBar
@@ -47,6 +52,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import java.lang.IllegalStateException
+import java.sql.Ref
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -72,43 +79,47 @@ class WallpaperActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         val okCommand = LiteUnitCommand()
         val cancelCommand = LiteUnitCommand()
 
-        class RecyclingBitmapFlow private constructor(val flow:MutableStateFlow<Bitmap?>) : Flow<Bitmap?> by flow {
-            constructor(bitmap: Bitmap?) : this(MutableStateFlow(bitmap))
-            var doNotRecycle:Boolean = false
-            var value: Bitmap?
-                get() = flow.value
-                set(v) {
-                    val old = flow.value
-                    flow.value = v
-                    if(!doNotRecycle) {
-                        old?.recycle()
-                    }
-                }
-            fun setButDoNotRecycle(img:Bitmap) {
-                value = img
-                doNotRecycle = true
-            }
-        }
+//        class RecyclingBitmapFlow private constructor(val flow:MutableStateFlow<Bitmap?>) : Flow<Bitmap?> by flow {
+//            constructor(bitmap: Bitmap?) : this(MutableStateFlow(bitmap))
+//            var doNotRecycle:Boolean = false
+//            var value: Bitmap?
+//                get() = flow.value
+//                set(v) {
+//                    val old = flow.value
+//                    flow.value = v
+//                    if(!doNotRecycle) {
+//                        old?.recycle()
+//                    }
+//                }
+//            fun setButDoNotRecycle(img:Bitmap) {
+//                value = img
+//                doNotRecycle = true
+//            }
+//        }
 
         var fileName: String? = null
-        val sourceBitmap = RecyclingBitmapFlow(null)
-        val rotatedBitmap = RecyclingBitmapFlow(null)
+        val sourceBitmap = RefBitmapFlow()
+        val rotatedBitmap = RefBitmapFlow()
 //        val croppedBitmap = RecyclingBitmapFlow(null)
-        val currentBitmap: Flow<Bitmap?> = combine(sourceBitmap, rotatedBitmap) {s,r-> r ?: s }
+        val currentBitmap: Flow<RefBitmap?> = combine(sourceBitmap, rotatedBitmap) { s, r->
+            if (r?.hasBitmap == true) r else s
+        }
         val currentBitmapValue get() = rotatedBitmap.value ?: sourceBitmap.value
 
         var rotation: Int = 0   // degree
         val showToolbar = MutableStateFlow(true)
 
         private fun rotate(degree:Int) {
-            val source = sourceBitmap.value ?: throw IllegalStateException("no source bitmap")
+            val source = sourceBitmap.value?.takeIf {it.hasBitmap} ?: throw IllegalStateException("sourceBitmap is not available.")
             if(rotation!=degree) {
                 rotation = degree
                 if(degree == 0) {
                     rotatedBitmap.value = null
                     return
                 }
-                rotatedBitmap.value = Bitmap.createBitmap(source, 0, 0, source.width, source.height, Matrix().apply { postRotate(degree.toFloat()) }, true)
+                rotatedBitmap.value = source.use { bitmap->
+                    Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, Matrix().apply { postRotate(degree.toFloat()) }, true).toRef()
+                }
             }
         }
 
@@ -154,14 +165,15 @@ class WallpaperActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             try {
                 // URIから画像を読み込む
                 val inputStream = contentResolver.openInputStream(uri)
-                viewModel.sourceBitmap.value = BitmapFactory.decodeStream(inputStream)
+                viewModel.sourceBitmap.value = BitmapFactory.decodeStream(inputStream).toRef()
             } catch (e: Throwable) {
                 logger.error(e)
                 return false
             }
         } else {
             viewModel.fileName = intent.extras?.getString(Intent.EXTRA_TEXT)
-            viewModel.sourceBitmap.setButDoNotRecycle(AppViewModel.instance.wallpaperSourceBitmap ?: return false)
+            val source = AppViewModel.instance.wallpaperSourceBitmap?.takeIf {it.hasBitmap} ?: return false
+            viewModel.sourceBitmap.value = source
             AppViewModel.instance.wallpaperSourceBitmap = null
         }
         return true
@@ -206,7 +218,7 @@ class WallpaperActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             .visibilityBinding(controls.toolbar, viewModel.showToolbar)
             .visibilityBinding(controls.unfoldToolbarButton, viewModel.showToolbar, BoolConvert.Inverse)
             .visibilityBinding(controls.guardView, viewModel.busy, hiddenMode=VisibilityBinding.HiddenMode.HideByGone)
-            .imageBinding(controls.imageView, viewModel.currentBitmap)
+            .bitmapBinding(controls.imageView, viewModel.currentBitmap)
             .bindCommand(viewModel.okCommand, controls.okButton) {
                 val source = viewModel.currentBitmapValue?:return@bindCommand
                 UtImmortalTask.launchTask("Set Wallpaper") {
@@ -221,32 +233,33 @@ class WallpaperActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 //                        return@launchTask
 
                         if (vm.saveFile.value) {
-                            val cropInfo = cropBitmap(source, true)
-                            val bitmap = cropInfo?.croppedBitmap ?: source
-                            withOwner {
-                                saveImageAsFile(bitmap, viewModel.fileName)
+                            cropBitmap(source, true).use { cropInfo ->
+                                val bitmap = cropInfo?.croppedBitmap ?: source
+                                withOwner {
+                                    saveImageAsFile(bitmap, viewModel.fileName)
+                                }
                             }
-                            cropInfo?.close()
                         } else {
                             viewModel.busy.value = true
                             delay(100)  // これを入れないとぐるぐるの表示が更新されない
-                            val cropInfo = cropBitmap(source, !vm.useCropHint.value)
-                            val error = if (cropInfo == null) {
-                                // トリミングなし
-                                setWallpaper(source, vm.lockScreen.value, vm.homeScreen.value, null)
-                            } else if (cropInfo.croppedBitmap == null) {
-                                // トリミングあり（ただし、cropHint として指定する）
-                                setWallpaper(source, vm.lockScreen.value, vm.homeScreen.value, cropInfo.rect)
-                            } else {
-                                // トリミングした画像を生成した
-                                setWallpaper(cropInfo.croppedBitmap,vm.lockScreen.value,vm.homeScreen.value,null)
-                            }
-                            cropInfo?.close()
-                            viewModel.busy.value = false
-                            if (error != null) {
-                                showConfirmMessageBox(null, error.message)
-                            } else {
-                                finish()
+                            cropBitmap(source, !vm.useCropHint.value).use { cropInfo ->
+                                val croppedBitmap = cropInfo?.croppedBitmap
+                                val error = if (cropInfo == null) {
+                                    // トリミングなし
+                                    setWallpaper(source,vm.lockScreen.value,vm.homeScreen.value,null)
+                                } else if (croppedBitmap == null) {
+                                    // トリミングあり（ただし、cropHint として指定する）
+                                    setWallpaper(source,vm.lockScreen.value,vm.homeScreen.value,cropInfo.rect)
+                                } else {
+                                    // トリミングした画像を生成した
+                                    setWallpaper(croppedBitmap,vm.lockScreen.value,vm.homeScreen.value,null)
+                                }
+                                viewModel.busy.value = false
+                                if (error != null) {
+                                    showConfirmMessageBox(null, error.message)
+                                } else {
+                                    finish()
+                                }
                             }
                         }
                     }
@@ -257,13 +270,15 @@ class WallpaperActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             }
     }
 
-    fun setWallpaper(bitmap: Bitmap, setLockScreen: Boolean, setHomeScreen: Boolean, hintRect:Rect?):Throwable? {
+    fun setWallpaper(refBitmap: RefBitmap, setLockScreen: Boolean, setHomeScreen: Boolean, hintRect:Rect?):Throwable? {
         try {
             val wallpaperManager = WallpaperManager.getInstance(this)
             val flags = (if (setLockScreen) WallpaperManager.FLAG_LOCK else 0) or
                     (if (setHomeScreen) WallpaperManager.FLAG_SYSTEM else 0)
             if(flags == 0) return CancellationException("no flags")
-            wallpaperManager.setBitmap(bitmap, hintRect, true, flags)
+            refBitmap.use { bitmap ->
+                wallpaperManager.setBitmap(bitmap, hintRect, true, flags)
+            }
             return null
         } catch (e: Throwable) {
             logger.error(e)
@@ -271,12 +286,13 @@ class WallpaperActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         }
     }
 
-    data class CropInfo(val rect:Rect, val croppedBitmap:Bitmap?) : AutoCloseable {
+    class CropInfo(val rect:Rect, croppedBitmap:RefBitmap?) : AutoCloseable {
+        var croppedBitmap:RefBitmap? by RefBitmapHolder(croppedBitmap)
         override fun close() {
-            croppedBitmap?.recycle()
+            croppedBitmap = null
         }
     }
-    private fun cropBitmap(bitmap: Bitmap, generateCroppedBitmap:Boolean) : CropInfo? {
+    private fun cropBitmap(bitmap: RefBitmap, generateCroppedBitmap:Boolean) : CropInfo? {
         val scale = controls.imageView.scaleX               // x,y 方向のscaleは同じ
         val rtx = controls.imageView.translationX
         val rty = controls.imageView.translationY
@@ -317,7 +333,7 @@ class WallpaperActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         val w = (ex - sx) * bs
         val h = (ey - sy) * bs
 
-        val newBitmap = if(generateCroppedBitmap) Bitmap.createBitmap(bitmap, x.roundToInt(), y.roundToInt(), w.roundToInt(), h.roundToInt()) else null
+        val newBitmap = if(generateCroppedBitmap) bitmap.crop( x.roundToInt(), y.roundToInt(), w.roundToInt(), h.roundToInt()) else null
 
 //        val screenSize = getScreenSize()
 //        logger.debug("bitmap ${newBitmap.width}x${newBitmap.height} / screen ${screenSize.x}x${screenSize.y}")
@@ -330,18 +346,20 @@ class WallpaperActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         return "$prefix${dateFormatForFilename.format(date?:Date())}$extension"
     }
 
-    private suspend fun saveImageAsFile(bitmap:Bitmap, reqFileName:String?) {
-        val fileName = if (reqFileName.isNullOrEmpty()) defaultFileName("img-", ".jpg", null) else reqFileName
-        val uri = activityBrokers.createFilePicker.selectFile(fileName, "image/jpeg")
-        if(uri!=null) {
-            try {
-                contentResolver.openOutputStream(uri)?.use {
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
-                    it.flush()
+    private suspend fun saveImageAsFile(refBitmap: RefBitmap, reqFileName:String?) {
+        refBitmap.takeIf {it.hasBitmap}?.use { bitmap ->
+            val fileName = if (reqFileName.isNullOrEmpty()) defaultFileName("img-",".jpg",null) else reqFileName
+            val uri = activityBrokers.createFilePicker.selectFile(fileName, "image/jpeg")
+            if (uri != null) {
+                try {
+                    contentResolver.openOutputStream(uri)?.use {
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
+                        it.flush()
+                    }
+                    finish()
+                } catch (e: Exception) {
+                    AppViewModel.Companion.logger.error(e)
                 }
-                finish()
-            } catch(e:Exception) {
-                AppViewModel.Companion.logger.error(e)
             }
         }
     }

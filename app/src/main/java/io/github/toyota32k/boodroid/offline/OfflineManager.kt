@@ -92,7 +92,7 @@ class OfflineManager(context: Context) {
             val videoFile = NetClient.executeAsync(req).use { response ->
                 if (response.isSuccessful) {
                     logger.debug("ok: ${videoItem.name}")
-                    response.body?.byteStream()?.use { inStream ->
+                    response.body.byteStream().use { inStream ->
                         createLocalFile(videoItem.type)?.let { file ->
                             try {
                                 val totalLength = response.headers["Content-Length"]?.toLongOrNull() ?: 0L
