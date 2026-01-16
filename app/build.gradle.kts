@@ -1,13 +1,12 @@
 import java.util.Properties
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import com.android.build.api.dsl.ApplicationExtension
 
 plugins {
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)         // for room compiler
 }
 
-android {
+configure<ApplicationExtension> {
     namespace = "io.github.toyota32k.boodroid"
     compileSdk = 36
 
@@ -52,14 +51,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-//    kotlinOptions {
-//        jvmTarget = "17"
-//    }
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-        }
     }
     buildFeatures {
         buildConfig = true
