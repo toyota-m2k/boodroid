@@ -1,6 +1,7 @@
 package io.github.toyota32k.boodroid.data
 
 import android.content.Context
+import android.drm.DrmStore
 import androidx.core.content.edit
 import androidx.fragment.app.FragmentActivity
 import androidx.preference.PreferenceManager
@@ -78,6 +79,7 @@ class Settings(
 
     val showTitleOnScreen:Boolean,
     val slideInterval:Int = 5,  // sec
+    val loopPlayback: Boolean,
 
     val settingsOnServer: Map<String,SettingsOnServer>,
     var themeInfo:ThemeInfo,
@@ -96,12 +98,13 @@ class Settings(
         offlineMode:Boolean = src.offlineMode,
         offlineFilter:Boolean = src.offlineFilter,
         showTitleOnScreen: Boolean = src.showTitleOnScreen,
+        loopPlayback: Boolean = src.loopPlayback,
         slideInterval: Int = src.slideInterval,
         settingsOnServer: Map<String,SettingsOnServer> = src.settingsOnServer,
         themeInfo:ThemeInfo = src.themeInfo,
         contrastLevel: ThemeSelector.ContrastLevel = src.contrastLevel,
         nightMode: ThemeSelector.NightMode = src.nightMode,
-    ) : this(activeHostIndex, hostList, sourceType, offlineMode, offlineFilter, showTitleOnScreen, slideInterval, settingsOnServer, themeInfo, contrastLevel, nightMode)
+    ) : this(activeHostIndex, hostList, sourceType, offlineMode, offlineFilter, showTitleOnScreen, slideInterval, loopPlayback, settingsOnServer, themeInfo, contrastLevel, nightMode)
 
     private val activeHost:HostAddressEntity?
         get() = if(0<=activeHostIndex&&activeHostIndex<hostList.size) hostList.get(activeHostIndex) else null
@@ -134,6 +137,7 @@ class Settings(
             putBoolean(KEY_OFFLINE, offlineMode)
             putBoolean(KEY_OFFLINE_FILTER, offlineFilter)
             putBoolean(KEY_SHOW_TITLE_ON_SCREEN, showTitleOnScreen)
+            putBoolean(KEY_LOOP_PLAYBACK, loopPlayback)
             putInt(KEY_SLIDE_INTERVAL, slideInterval)
             putStringSet(KEY_SETTINGS_ON_SERVER, serializeSettingsOnServer(settingsOnServer))
             putString(KEY_THEME_NAME, themeInfo.label)
@@ -169,6 +173,7 @@ class Settings(
         const val KEY_OFFLINE = "offline"
         const val KEY_OFFLINE_FILTER = "offlineFilter"
         const val KEY_SHOW_TITLE_ON_SCREEN = "showTitleOnScreen"
+        const val KEY_LOOP_PLAYBACK = "loopPlayback"
         const val KEY_SLIDE_INTERVAL = "slideInterval"
         const val KEY_SETTINGS_ON_SERVER = "settingsOnServer"
         const val KEY_THEME_NAME = "themeName"
@@ -184,6 +189,7 @@ class Settings(
                 offlineMode = pref.getBoolean(KEY_OFFLINE, false),
                 offlineFilter = pref.getBoolean(KEY_OFFLINE_FILTER,false),
                 showTitleOnScreen = pref.getBoolean(KEY_SHOW_TITLE_ON_SCREEN, false),
+                loopPlayback = pref.getBoolean(KEY_LOOP_PLAYBACK, true),
                 slideInterval = pref.getInt(KEY_SLIDE_INTERVAL, 5),
                 settingsOnServer = deserializeSettingsOnServer(pref.getStringSet(KEY_SETTINGS_ON_SERVER, null)),
                 themeInfo = ThemeList.themeOf(pref.getString(KEY_THEME_NAME,null) ?: "Default"),
@@ -260,6 +266,7 @@ class Settings(
             showTitleOnScreen = false,
             slideInterval = 5,
             settingsOnServer = emptyMap(),
+            loopPlayback = true,
             themeInfo = ThemeList.themes[0],
             contrastLevel = ThemeSelector.ContrastLevel.System,
             nightMode = ThemeSelector.NightMode.System,
