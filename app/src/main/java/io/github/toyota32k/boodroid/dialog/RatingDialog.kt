@@ -4,9 +4,11 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import androidx.appcompat.widget.ListPopupWindow
+import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
+import io.github.toyota32k.binder.multiEnableBinding
 import io.github.toyota32k.binder.multiVisibilityBinding
 import io.github.toyota32k.binder.observe
 import io.github.toyota32k.binder.textBinding
@@ -38,6 +40,7 @@ class RatingDialog : UtDialogEx() {
         leftButtonType = ButtonType.CANCEL
         rightButtonType = ButtonType.OK
         noHeader = true
+        noFooter = true
     }
 
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
@@ -56,6 +59,7 @@ class RatingDialog : UtDialogEx() {
                 .multiVisibilityBinding(arrayOf(ratingSelector, ratingLabel), viewModel.supportRating.asConstantLiveData(), hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
                 .multiVisibilityBinding(arrayOf(markSelector, markLabel), viewModel.supportMark.asConstantLiveData(), hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
                 .multiVisibilityBinding(arrayOf(categoryButton, categoryLabel), viewModel.supportCategory.asConstantLiveData(), hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+//                .multiEnableBinding(arrayOf(syncUpButton, syncDownButton, ratingSelector, markSelector,categoryButton), viewModel.busy, boolConvert = BoolConvert.Inverse)
                 .bindCommand(LiteUnitCommand(this@RatingDialog::selectCategory), categoryButton)
                 .bindCommand(LiteUnitCommand(this@RatingDialog::syncUp), syncUpButton)
                 .bindCommand(LiteUnitCommand(this@RatingDialog::syncDown), syncDownButton)
@@ -106,7 +110,6 @@ class RatingDialog : UtDialogEx() {
 
     override fun onPositive() {
         super.onPositive()
-        viewModel.putToServer()
     }
 
     companion object {

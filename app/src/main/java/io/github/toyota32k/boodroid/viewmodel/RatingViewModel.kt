@@ -11,6 +11,9 @@ import io.github.toyota32k.logger.UtLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -60,6 +63,28 @@ class RatingViewModel : UtDialogViewModel() {
                 rating.value = ratingOrg
                 mark.value = markOrg
                 category.value = categoryOrg
+
+                rating.onEach { r->
+                    if(r!=ratingOrg) {
+                        putToServer()
+                    }
+                }.onCompletion {
+                    logger.debug("rating.onCompletion")
+                }.launchIn(scope)
+                mark.onEach { m ->
+                    if (m != markOrg) {
+                        putToServer()
+                    }
+                }.onCompletion {
+                    logger.debug("mark.onCompletion")
+                }.launchIn(scope)
+                category.onEach { c ->
+                    if (c != categoryOrg) {
+                        putToServer()
+                    }
+                }.onCompletion {
+                    logger.debug("category.onCompletion")
+                }.launchIn(scope)
             } catch (e:Throwable) {
                 logger.stackTrace(e)
                 hasError.value = true
@@ -69,7 +94,7 @@ class RatingViewModel : UtDialogViewModel() {
         }
     }
 
-    fun putToServer() {
+    private suspend fun putToServer() {
         if(hasError.value) return
         val url = AppViewModel.url.reputation ?: return
         val json = JSONObject()
@@ -77,28 +102,33 @@ class RatingViewModel : UtDialogViewModel() {
         var modified = false
         if(rating.value!=ratingOrg) {
             modified = true
+            ratingOrg = rating.value
             json.put("rating", rating.value)
         }
         if(mark.value!=markOrg) {
             modified = true
+            markOrg = mark.value
             json.put("mark", mark.value)
         }
         if(category.value!=categoryOrg) {
             modified = true
+            categoryOrg = category.value
             json.put("category", category.value)
         }
         if(!modified) return
+        busy.value = true
         val req = Request.Builder()
             .url(url)
             .put(json.toString().toRequestBody("application/json".toMediaType()))
             .build()
-        CoroutineScope(Dispatchers.IO).launch {
+        withContext(Dispatchers.IO) {
             try {
                 NetClient.executeAsync(req).close()
             } catch (e:Throwable) {
                 logger.stackTrace(e)
             }
         }
+        busy.value = false
     }
 
     companion object {
