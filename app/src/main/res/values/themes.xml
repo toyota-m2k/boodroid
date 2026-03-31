@@ -4,11 +4,13 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:colorControlHighlight">?attr/colorPrimaryVariant</item>
+        <item name="ampPanelBackgroundColor">@color/surface_70</item>
     </style>
 
     <style name="DefaultTheme" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:colorControlHighlight">?attr/colorPrimaryVariant</item>
+        <item name="ampPanelBackgroundColor">@color/surface_70</item>
     </style>
 </resources>
