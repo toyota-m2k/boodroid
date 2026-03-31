@@ -243,7 +243,6 @@ class OfflineDialog : UtDialogEx() {
     private lateinit var selectedColor: Drawable
 
     override fun preCreateBodyView() {
-        isDialog = true
         context.theme!!.apply {
             normalColor = getAttrColorAsDrawable(com.google.android.material.R.attr.colorSurface, Color.WHITE)
             normalTextColor = getAttrColor(com.google.android.material.R.attr.colorOnSurface, Color.BLACK)

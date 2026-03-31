@@ -31,10 +31,9 @@ class RatingDialog : UtDialogEx() {
     private val viewModel by lazy { getViewModel<RatingViewModel>() }
 
     override fun preCreateBodyView() {
-        isDialog = true
         draggable = true
         widthOption = WidthOption.COMPACT
-        heightOption = HeightOption.COMPACT
+        heightOption = HeightOption.AUTO_SCROLL
         gravityOption = GravityOption.CENTER
         leftButtonType = ButtonType.CANCEL
         rightButtonType = ButtonType.OK
@@ -112,10 +111,9 @@ class RatingDialog : UtDialogEx() {
 
     companion object {
         fun show(item: VideoItem) {
-            UtImmortalTask.launchTask("rating") {
+            UtImmortalTask.launchTask(RatingDialog::class.java.name) {
                 createViewModel<RatingViewModel> { prepare(item, immortalCoroutineScope) }
                 showDialog(taskName) { RatingDialog() }
-                true
             }
         }
     }
