@@ -24,7 +24,7 @@ class OfflineManager(context: Context) {
         val instance:OfflineManager get() = BooApplication.instance.offlineManager
         const val DIR_NAME = "offline"
 
-        private fun IMediaSource.keyUrl() : String?
+        fun IMediaSource.keyUrl() : String?
                 = when(this) {
             is VideoItem -> uri
             is CachedVideoItem -> id
@@ -74,12 +74,11 @@ class OfflineManager(context: Context) {
     private fun isRegistered(keyUrl:String) : Boolean {
         return getOfflineData(keyUrl) != null
     }
-    @Suppress("unused")
-    private fun isRegistered(videoItem: IMediaSource):Boolean {
+    fun isRegistered(videoItem: IMediaSource):Boolean {
         return isRegistered(videoItem.keyUrl()?: return false)
     }
 
-    private suspend fun registerVideo(videoItem: VideoItem, progress: DownloadProgress?):Boolean {
+    private suspend fun registerVideo(videoItem: VideoItem, progress: IDownloadProgress?):Boolean {
         logger.debug(videoItem.name)
         val url = videoItem.keyUrl() ?: return false
         if(isRegistered(url)) return false
@@ -135,7 +134,7 @@ class OfflineManager(context: Context) {
         }
     }
 
-    private suspend fun registerVideos(list:List<VideoItem>, progress:DownloadProgress?) {
+    private suspend fun registerVideos(list:List<VideoItem>, progress:IDownloadProgress?) {
         withContext(Dispatchers.IO) {
             progress?.setCountProgress(list.size, 0)
             list.forEachIndexed {index, item ->
@@ -177,7 +176,7 @@ class OfflineManager(context: Context) {
         }
     }
 
-    private fun unregisterVideos(list:List<IMediaSource>, progress: DownloadProgress?) {
+    private fun unregisterVideos(list:List<IMediaSource>, progress: IDownloadProgress?) {
         if(list.isEmpty()) return
         progress?.setMessage("Deleting ...")
         database.runInTransaction {
@@ -185,7 +184,7 @@ class OfflineManager(context: Context) {
         }
     }
 
-    private fun updateSortOrder(list:List<IMediaSource>, progress: DownloadProgress?) {
+    private fun updateSortOrder(list:List<IMediaSource>, progress: IDownloadProgress?) {
         if(list.isEmpty()) return
         progress?.setMessage("Sorting ...")
         database.runInTransaction {
@@ -238,7 +237,7 @@ class OfflineManager(context: Context) {
         }
     }
 
-    open class DownloadProgress {
+    open class DownloadProgress : IDownloadProgress {
         val showProgressBar = MutableStateFlow(false)
         val message = MutableStateFlow<String>("")
         val count = MutableStateFlow<Int>(0)
@@ -257,7 +256,7 @@ class OfflineManager(context: Context) {
             } else 0
         }
 
-        fun reset() {
+        override fun reset() {
             showProgressBar.value = false
             count.value = 0
             index.value = 0
@@ -265,10 +264,10 @@ class OfflineManager(context: Context) {
             received.value = 0
         }
 
-        fun setMessage(msg:String) {
+        override fun setMessage(msg:String) {
             message.value = msg
         }
-        fun setCountProgress(totalCount:Int, currentIndex:Int) {
+        override fun setCountProgress(totalCount:Int, currentIndex:Int) {
             count.value = totalCount
             index.value = currentIndex
             if(totalCount>0) {
@@ -279,13 +278,21 @@ class OfflineManager(context: Context) {
                 }
             }
         }
-        fun setBytesProgress(contentLength:Long, receivedBytes:Long) {
+
+        override fun setBytesProgress(contentLength:Long, receivedBytes:Long) {
             length.value = contentLength
             received.value = receivedBytes
         }
     }
 
-    suspend fun setOfflineVideos(newList: List<IMediaSource>, progress:DownloadProgress?) : List<CachedVideoItem>? {
+    interface IDownloadProgress {
+        fun reset()
+        fun setMessage(msg:String)
+        fun setCountProgress(totalCount:Int, currentIndex:Int)
+        fun setBytesProgress(contentLength:Long, receivedBytes:Long)
+    }
+
+    suspend fun setOfflineVideos(newList: List<IMediaSource>, progress:IDownloadProgress?) : List<CachedVideoItem>? {
         progress?.reset()
         return busy.closeableTrySetIfNot()?.use {
             withContext(Dispatchers.IO) {
@@ -298,6 +305,7 @@ class OfflineManager(context: Context) {
             }
         }
     }
+
 
     suspend fun updateFilter(list:List<CachedVideoItem>) {
         withContext(Dispatchers.IO) {

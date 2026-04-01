@@ -6,7 +6,10 @@ import io.github.toyota32k.boodroid.common.safeGetInt
 import io.github.toyota32k.boodroid.common.safeGetNullableString
 import io.github.toyota32k.boodroid.data.NetClient
 import io.github.toyota32k.boodroid.data.VideoItem
+import io.github.toyota32k.boodroid.offline.OfflineManager
+import io.github.toyota32k.boodroid.offline.OfflineManager.Companion.keyUrl
 import io.github.toyota32k.dialog.task.UtDialogViewModel
+import io.github.toyota32k.lib.player.model.IMediaSource
 import io.github.toyota32k.logger.UtLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,19 +24,24 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
-class RatingViewModel : UtDialogViewModel() {
+class RatingViewModel : UtDialogViewModel(), OfflineManager.IDownloadProgress {
     private lateinit var current:VideoItem
     private val id:String get() = current.id
     val name = MutableStateFlow("")
     val rating = MutableStateFlow(0)
     val mark = MutableStateFlow(0)
     val category = MutableStateFlow("")
+    val offline = MutableStateFlow(false)
     var supportSyncItemSelection: Boolean = false
     var supportRating: Boolean = false
     var supportMark: Boolean = false
     var supportCategory: Boolean = false
     val busy = MutableStateFlow(true)
+    val prepared = MutableStateFlow(false)
     val hasError = MutableStateFlow(false)
+
+    val offlineDataHandling = MutableStateFlow(false)
+    val uploadProgress = MutableStateFlow<Int>(0)
 
     private lateinit var categoryOrg:String
     private var ratingOrg:Int = 0
@@ -42,7 +50,6 @@ class RatingViewModel : UtDialogViewModel() {
     fun prepare(item: VideoItem, scope: CoroutineScope) {
         current = item
         name.value = item.name
-        busy.value = true
         hasError.value = false
         this.supportSyncItemSelection = AppViewModel.instance.supportSyncItemSelection
         this.supportRating = AppViewModel.instance.supportRating
@@ -63,33 +70,50 @@ class RatingViewModel : UtDialogViewModel() {
                 rating.value = ratingOrg
                 mark.value = markOrg
                 category.value = categoryOrg
+                offline.value = OfflineManager.instance.isRegistered(item)
 
                 rating.onEach { r->
                     if(r!=ratingOrg) {
                         putToServer()
                     }
-                }.onCompletion {
-                    logger.debug("rating.onCompletion")
                 }.launchIn(scope)
                 mark.onEach { m ->
                     if (m != markOrg) {
                         putToServer()
                     }
-                }.onCompletion {
-                    logger.debug("mark.onCompletion")
                 }.launchIn(scope)
                 category.onEach { c ->
                     if (c != categoryOrg) {
                         putToServer()
                     }
-                }.onCompletion {
-                    logger.debug("category.onCompletion")
+                }.launchIn(scope)
+                offline.onEach { o ->
+                    offlineDataHandling.value = true
+                    busy.value = true
+                    try {
+                        val offlineList = mutableListOf<IMediaSource>(
+                            *OfflineManager.instance.getOfflineVideos().toTypedArray()
+                        )
+                        val index = offlineList.indexOfFirst { it.keyUrl() == current.keyUrl() }
+                        if (o && index < 0) {
+                            offlineList.add(current)
+                        } else if (!o && index >= 0) {
+                            offlineList.removeAt(index)
+                        } else {
+                            return@onEach
+                        }
+                        OfflineManager.instance.setOfflineVideos(offlineList, this@RatingViewModel)
+                    } finally {
+                        offlineDataHandling.value = false
+                        busy.value = false
+                    }
                 }.launchIn(scope)
             } catch (e:Throwable) {
                 logger.stackTrace(e)
                 hasError.value = true
             } finally {
                 busy.value = false
+                prepared.value = true
             }
         }
     }
@@ -130,6 +154,25 @@ class RatingViewModel : UtDialogViewModel() {
         }
         busy.value = false
     }
+
+    // region IDownloadProgress
+
+    override fun reset() {
+        uploadProgress.value = 0
+    }
+
+    override fun setMessage(msg: String) {
+        logger.debug(msg)
+    }
+
+    override fun setCountProgress(totalCount: Int, currentIndex: Int) {
+        logger.debug {"count: $totalCount, index: $currentIndex" }
+    }
+
+    override fun setBytesProgress(contentLength: Long, receivedBytes: Long) {
+        uploadProgress.value = if (contentLength!=0L) (receivedBytes*100/contentLength).toInt() else 0
+    }
+    // endregion
 
     companion object {
         val logger = UtLog("RD", BooApplication.logger)

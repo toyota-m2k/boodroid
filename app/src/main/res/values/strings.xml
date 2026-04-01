@@ -79,5 +79,7 @@
     <string name="file">File</string>
     <string name="sync_selection_label">Sync Item Selection</string>
     <string name="loop_playback">Loop Playback</string>
+    <string name="offline">Offline</string>
+    <string name="offline_label">Offline</string>
 
 </resources>
