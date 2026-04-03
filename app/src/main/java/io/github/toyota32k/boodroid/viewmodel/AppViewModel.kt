@@ -28,6 +28,7 @@ import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.lib.player.model.IMediaFeed
 import io.github.toyota32k.lib.player.model.IMediaSource
 import io.github.toyota32k.lib.player.model.IMediaSourceWithChapter
+import io.github.toyota32k.lib.player.model.PhotoSizeOption
 import io.github.toyota32k.lib.player.model.PlayerControllerModel
 import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.IUtPropOwner
@@ -262,7 +263,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                             .supportSnapshot(::saveBitmap)
                             .enableSeekMedium(5000,15000)
                             .enableVolumeController(true)
-                            .enablePhotoViewer(settings.slideInterval.seconds)
+                            .enablePhotoViewer(settings.slideInterval.seconds, photoSizeOption = PhotoSizeOption.LimitByScreen)
                             .enableRotateRight()
                             .build()
                     refCount = 0
@@ -336,7 +337,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
             }
             showTitleOnScreen.mutable.value = v.showTitleOnScreen
             controlPanelModelSource.withModel { vm->
-                vm.playerModel.photoSlideShowDuration = v.slideInterval.seconds
+                vm.playerModel.enablePhotoViewer(true, v.slideInterval.seconds, photoSizeOption = PhotoSizeOption.LimitByScreen)
             }
             refreshCommand.invoke(false)
         }
