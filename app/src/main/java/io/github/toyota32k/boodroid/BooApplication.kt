@@ -2,6 +2,7 @@ package io.github.toyota32k.boodroid
 
 import android.app.Application
 import android.graphics.Rect
+import android.util.Log
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import io.github.toyota32k.boodroid.offline.OfflineManager
@@ -9,6 +10,7 @@ import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.UtStandardString
 import io.github.toyota32k.logger.UtLog
+import io.github.toyota32k.logger.UtLogConfig
 import io.github.toyota32k.utils.UtLazyResetableValue
 
 class BooApplication : Application(), ViewModelStoreOwner {
@@ -39,6 +41,12 @@ class BooApplication : Application(), ViewModelStoreOwner {
 //            dialogMarginOnLandscape = null
 //            useLegacyTheme()
         }
+        UtLogConfig.logLevel =
+            if (BuildConfig.DEBUG) {
+                Log.DEBUG
+            } else {
+                Log.INFO
+            }
 
         val appViewModel = AppViewModel.instance
         if (!AppViewModel.instance.settings.isValid) {

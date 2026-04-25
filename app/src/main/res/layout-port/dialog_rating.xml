@@ -140,8 +140,8 @@
         android:id="@+id/category_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/rating_selector"
-        app:layout_constraintStart_toEndOf="@+id/mark_selector"
+        app:layout_constraintTop_toBottomOf="@+id/mark_selector"
+        app:layout_constraintStart_toStartOf="parent"
         android:layout_marginTop="@dimen/setting_spacing"
         android:text="@string/category_label"
         android:layout_gravity="center_vertical"
@@ -149,7 +149,6 @@
         app:singleSelection="true"
         android:textStyle="bold"
         android:textSize="16sp"
-        android:layout_marginStart="16dp"
         />
     <Button
         android:id="@+id/category_button"
@@ -168,10 +167,44 @@
         />
 
     <TextView
-        android:id="@+id/sync_selection_label"
+        android:id="@+id/offline_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@id/category_button"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="@dimen/setting_spacing"
+        android:text="@string/offline_label"
+        app:singleSelection="true"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        />
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/offline_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/offline_label"
+        app:layout_constraintStart_toStartOf="@+id/category_button"
+        />
+
+    <io.github.toyota32k.viewex.library.CircularProgressBar
+        android:id="@+id/upload_progress_ring"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        app:layout_constraintStart_toEndOf="@+id/offline_switch"
+        app:layout_constraintTop_toTopOf="@+id/offline_switch"
+        app:layout_constraintBottom_toBottomOf="@+id/offline_switch"
+        android:layout_marginStart="28dp"
+        app:ringBaseColor="?attr/colorSurfaceBright"
+        app:progressColor="?attr/colorTertiary"
+        app:insideRingColor="?attr/colorSurface"
+        app:textColor="?attr/colorOnSurface"
+        />
+
+    <TextView
+        android:id="@+id/sync_selection_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/offline_switch"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginTop="@dimen/setting_spacing"
         android:text="@string/sync_selection_label"
@@ -215,41 +248,6 @@
             app:tint="?attr/colorPrimary"
             style="?attr/materialButtonOutlinedStyle"/>
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/offline_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/category_button"
-        app:layout_constraintStart_toStartOf="@+id/category_label"
-        android:layout_marginTop="@dimen/setting_spacing"
-        android:text="@string/offline_label"
-        app:singleSelection="true"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        />
-    <com.google.android.material.materialswitch.MaterialSwitch
-        android:id="@+id/offline_switch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="@+id/sync_selection_buttons"
-        app:layout_constraintBottom_toBottomOf="@+id/sync_selection_buttons"
-        app:layout_constraintStart_toStartOf="@+id/category_button"
-        />
-
-    <io.github.toyota32k.viewex.library.CircularProgressBar
-        android:id="@+id/upload_progress_ring"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        app:layout_constraintStart_toEndOf="@+id/offline_switch"
-        app:layout_constraintTop_toTopOf="@+id/offline_switch"
-        app:layout_constraintBottom_toBottomOf="@+id/offline_switch"
-        android:layout_marginStart="28dp"
-        app:ringBaseColor="?attr/colorSurfaceBright"
-        app:progressColor="?attr/colorTertiary"
-        app:insideRingColor="?attr/colorSurface"
-        app:textColor="?attr/colorOnSurface"
-        />
 
     <FrameLayout
         android:id="@+id/busy_panel"

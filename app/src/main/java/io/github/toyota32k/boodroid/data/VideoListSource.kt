@@ -33,8 +33,12 @@ class VideoListSource(val list:List<IMediaSourceWithChapter>, val modifiedDate:L
     }
 
     val currentSourceIndex = MutableStateFlow<Int>(-1)
-    val hasNext: Flow<Boolean> = currentSourceIndex.map { it<list.size-1 }
-    val hasPrevious : Flow<Boolean> = currentSourceIndex.map { it>0 }
+    val hasNext: Flow<Boolean> = currentSourceIndex.map {
+        if (AppViewModel.instance.settings.loopPlayback) list.size>1 else it<list.size-1
+    }
+    val hasPrevious : Flow<Boolean> = currentSourceIndex.map {
+        if (AppViewModel.instance.settings.loopPlayback) list.size>1 else it>0
+    }
     val currentSource : Flow<IMediaSource?> = currentSourceIndex.map { if(it<0||it>=list.size) null else list[it] }
 
     private val authing = AtomicBoolean(false)
@@ -67,6 +71,9 @@ class VideoListSource(val list:List<IMediaSourceWithChapter>, val modifiedDate:L
         if(currentSourceIndex.value<list.size-1) {
             auth()
             currentSourceIndex.value++
+        } else if (AppViewModel.instance.settings.loopPlayback && currentSourceIndex.value!=0) {
+            auth()
+            currentSourceIndex.value = 0
         }
     }
 
@@ -74,6 +81,9 @@ class VideoListSource(val list:List<IMediaSourceWithChapter>, val modifiedDate:L
         if(currentSourceIndex.value>0) {
             auth()
             currentSourceIndex.value--
+        } else if (AppViewModel.instance.settings.loopPlayback && currentSourceIndex.value!=list.size-1) {
+            auth()
+            currentSourceIndex.value = list.size-1
         }
     }
 

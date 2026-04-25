@@ -27,6 +27,7 @@ class PreferencesDialog : UtDialogEx() {
         val themeInfo = MutableStateFlow(AppViewModel.instance.settings.themeInfo)
         val contrastLevel = MutableStateFlow(AppViewModel.instance.settings.contrastLevel)
         val showTitleOnScreen = MutableStateFlow(AppViewModel.instance.settings.showTitleOnScreen)
+        val loopPlayback = MutableStateFlow(AppViewModel.instance.settings.loopPlayback)
         val slideInterval = MutableStateFlow(AppViewModel.instance.settings.slideInterval)
 
         fun save() {
