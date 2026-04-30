@@ -1,22 +1,18 @@
 package io.github.toyota32k.boodroid.dialog
 
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import androidx.appcompat.widget.ListPopupWindow
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.isVisible
-import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.binder.checkBinding
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
-import io.github.toyota32k.binder.drawableBinding
 import io.github.toyota32k.binder.genericBinding
 import io.github.toyota32k.binder.headlessBinding
-import io.github.toyota32k.binder.multiEnableBinding
 import io.github.toyota32k.binder.multiVisibilityBinding
 import io.github.toyota32k.binder.observe
 import io.github.toyota32k.binder.textBinding
@@ -28,15 +24,12 @@ import io.github.toyota32k.boodroid.data.bindRatingList
 import io.github.toyota32k.boodroid.databinding.DialogRatingBinding
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.boodroid.viewmodel.RatingViewModel
-import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialogEx
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.dialog.task.getViewModel
 import io.github.toyota32k.dialog.task.showConfirmMessageBox
-import io.github.toyota32k.utils.android.dp
 import io.github.toyota32k.utils.lifecycle.asConstantLiveData
-import kotlinx.coroutines.flow.combine
 
 class RatingDialog : UtDialogEx() {
     private lateinit var controls: DialogRatingBinding

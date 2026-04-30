@@ -91,7 +91,7 @@ class VideoListView @JvmOverloads constructor(
 
     private fun onItemTapped(videoItem: IMediaSourceWithChapter) {
         if(model.currentSource.value == videoItem) {
-            if(AppViewModel.instance.capability.value.canPutReputation && videoItem is VideoItem) {
+            if(/*AppViewModel.instance.capability.value.canPutReputation &&*/ videoItem is VideoItem) {
                 RatingDialog.show(videoItem)
             }
         } else {

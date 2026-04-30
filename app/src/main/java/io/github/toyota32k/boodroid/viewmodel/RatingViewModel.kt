@@ -1,6 +1,5 @@
 package io.github.toyota32k.boodroid.viewmodel
 
-import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.common.safeGetInt
 import io.github.toyota32k.boodroid.common.safeGetNullableString
@@ -15,7 +14,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
