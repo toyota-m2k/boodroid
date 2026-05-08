@@ -81,5 +81,6 @@
     <string name="loop_playback">Loop Playback</string>
     <string name="offline">Offline</string>
     <string name="offline_label">Offline</string>
+    <string name="prefer_audio">Prefer Audio</string>
 
 </resources>

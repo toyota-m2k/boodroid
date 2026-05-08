@@ -61,5 +61,10 @@ class VideoItem private constructor (j: JSONObject, val chapterRetriever: (suspe
 
     override val uri:String
         get() = AppViewModel.url.item(id)
+    val uriPreferAudio: String
+        get() = if (!isPhoto && AppViewModel.instance.run {capability.value.canExtractAudio && preferAudioOnOfflineMode})
+                    AppViewModel.url.audio(id)
+                else uri
+
 }
 

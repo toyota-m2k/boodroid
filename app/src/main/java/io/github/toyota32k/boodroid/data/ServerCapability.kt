@@ -25,6 +25,7 @@ interface ICapability {
     val supportedTypes: String     // v/a/p
     val canGetReputation:Boolean get() = reputation>0
     val canPutReputation:Boolean get() = reputation>1
+    val canExtractAudio:Boolean get() = supportedTypes.contains("x")
 }
 data class Capability(
     override val hostAddress: String,
