@@ -59,6 +59,7 @@ interface IURLResolver {
     fun list(date:Long):String
     fun check(date:Long):String?
     fun item(id:String):String
+    fun audio(id:String):String
     fun chapter(id:String):String?
 
     fun register(param:String):String?
@@ -366,14 +367,16 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         private set(v) { offlineModeFlow.value = v }
     val offlineFilter:Boolean
         get() = settings.offlineFilter
+    val preferAudioOnOfflineMode:Boolean
+        get() = settings.preferAudioOnOfflineMode
 
     /**
      * オフラインモードを変更する
      */
-    fun updateOfflineMode(mode:Boolean, filter:Boolean, updateList:Boolean) {
-        if(settings.offlineMode != mode || settings.offlineFilter != filter) {
+    fun updateOfflineMode(mode:Boolean, filter:Boolean, updateList:Boolean, preferAudio:Boolean) {
+        if(settings.offlineMode != mode || settings.offlineFilter != filter || settings.preferAudioOnOfflineMode != preferAudio) {
             // モードが変更になった場合、Settings.save() --> AppViewModel#settings のセッターで refresh コマンドが呼ばれる
-            Settings(settings, offlineMode = mode, offlineFilter = filter).save(BooApplication.instance.applicationContext)
+            Settings(settings, offlineMode = mode, offlineFilter = filter, preferAudioOnOfflineMode = preferAudio).save(BooApplication.instance.applicationContext)
         } else if(mode && updateList) {
             // オフラインモードのまま変わらない場合、リストが更新された時は、明示的にrefreshする
             refreshCommand.invoke(false)
@@ -402,6 +405,17 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
             qb.add("id", id)
             // val cmd = if( capability.value.version >= 2) "item" else "video"   // 新バージョンなら item / 旧バージョン互換: video
             val cmd = "item"
+            return "${baseUrl}${cmd}?${qb.queryString}"
+        }
+
+        override fun audio(id: String): String {
+            val qb = QueryBuilder()
+            authToken?.also { token->
+                qb.add("auth", token)
+            }
+            qb.add("id", id)
+            // val cmd = if( capability.value.version >= 2) "item" else "video"   // 新バージョンなら item / 旧バージョン互換: video
+            val cmd = "audio"
             return "${baseUrl}${cmd}?${qb.queryString}"
         }
         override fun chapter(id:String):String? {

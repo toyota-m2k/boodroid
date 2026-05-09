@@ -25,8 +25,14 @@ class OfflineManager(context: Context) {
         const val DIR_NAME = "offline"
 
         fun IMediaSource.keyUrl() : String?
-                = when(this) {
+            = when(this) {
             is VideoItem -> uri
+            is CachedVideoItem -> id
+            else -> null
+        }
+        fun IMediaSource.keyUrlPreferAudio() : String?
+            = when(this) {
+            is VideoItem -> uriPreferAudio
             is CachedVideoItem -> id
             else -> null
         }
@@ -78,13 +84,13 @@ class OfflineManager(context: Context) {
         return isRegistered(videoItem.keyUrl()?: return false)
     }
 
-    private suspend fun registerVideo(videoItem: VideoItem, progress: IDownloadProgress?):Boolean {
+    private suspend fun registerVideo(videoItem: VideoItem, preferAudio: Boolean, progress: IDownloadProgress?):Boolean {
         logger.debug(videoItem.name)
         val url = videoItem.keyUrl() ?: return false
-        if(isRegistered(url)) return false
+2        if(isRegistered(url)) return false
 
         val req = Request.Builder()
-            .url(url)
+            .url(videoItem.keyUrlPreferAudio()?:url)
             .get()
             .build()
         return withContext(Dispatchers.IO) {
@@ -134,13 +140,13 @@ class OfflineManager(context: Context) {
         }
     }
 
-    private suspend fun registerVideos(list:List<VideoItem>, progress:IDownloadProgress?) {
+    private suspend fun registerVideos(list:List<VideoItem>, preferAudio: Boolean, progress:IDownloadProgress?) {
         withContext(Dispatchers.IO) {
             progress?.setCountProgress(list.size, 0)
             list.forEachIndexed {index, item ->
                 val result = try {
                     progress?.setMessage("Downloading: ${item.name}")
-                    registerVideo(item, progress)
+                    registerVideo(item, preferAudio, progress)
                 } catch (e: Throwable) {
                     logger.stackTrace(e)
                     false
@@ -292,13 +298,13 @@ class OfflineManager(context: Context) {
         fun setBytesProgress(contentLength:Long, receivedBytes:Long)
     }
 
-    suspend fun setOfflineVideos(newList: List<IMediaSource>, progress:IDownloadProgress?) : List<CachedVideoItem>? {
+    suspend fun setOfflineVideos(newList: List<IMediaSource>, preferAudio:Boolean, progress:IDownloadProgress?) : List<CachedVideoItem>? {
         progress?.reset()
         return busy.closeableTrySetIfNot()?.use {
             withContext(Dispatchers.IO) {
                 val updater = ListUpdater(getOfflineVideos(), newList)
                 unregisterVideos(updater.remove, progress)
-                registerVideos(updater.append, progress)
+                registerVideos(updater.append, preferAudio, progress)
                 updateSortOrder(newList, progress)
                 cleanup()
                 getOfflineVideos()

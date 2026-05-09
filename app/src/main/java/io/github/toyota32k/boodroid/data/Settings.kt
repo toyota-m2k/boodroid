@@ -93,6 +93,7 @@ class Settings(
 
     val offlineMode:Boolean,
     val offlineFilter:Boolean,
+    val preferAudioOnOfflineMode:Boolean,
 
     val showTitleOnScreen:Boolean,
     val slideInterval:Int = 5,  // sec
@@ -114,6 +115,7 @@ class Settings(
 //        colorVariation: ColorVariation = src.colorVariation,
         offlineMode:Boolean = src.offlineMode,
         offlineFilter:Boolean = src.offlineFilter,
+        preferAudioOnOfflineMode:Boolean = src.preferAudioOnOfflineMode,
         showTitleOnScreen: Boolean = src.showTitleOnScreen,
         loopPlayback: Boolean = src.loopPlayback,
         slideInterval: Int = src.slideInterval,
@@ -121,7 +123,7 @@ class Settings(
         themeInfo:ThemeInfo = src.themeInfo,
         contrastLevel: ThemeSelector.ContrastLevel = src.contrastLevel,
         nightMode: ThemeSelector.NightMode = src.nightMode,
-    ) : this(activeHostIndex, hostList, sourceType, offlineMode, offlineFilter, showTitleOnScreen, slideInterval, loopPlayback, settingsOnServer, themeInfo, contrastLevel, nightMode)
+    ) : this(activeHostIndex, hostList, sourceType, offlineMode, offlineFilter, preferAudioOnOfflineMode, showTitleOnScreen, slideInterval, loopPlayback, settingsOnServer, themeInfo, contrastLevel, nightMode)
 
     val activeHost:HostAddressEntity?
         get() = if(0<=activeHostIndex&&activeHostIndex<hostList.size) hostList.get(activeHostIndex) else null
@@ -154,6 +156,7 @@ class Settings(
             putInt(KEY_SOURCE_TYPE, sourceType.v)
             putBoolean(KEY_OFFLINE, offlineMode)
             putBoolean(KEY_OFFLINE_FILTER, offlineFilter)
+            putBoolean(KEY_PREFER_AUDIO_ON_OFFLINE_MODE, preferAudioOnOfflineMode)
             putBoolean(KEY_SHOW_TITLE_ON_SCREEN, showTitleOnScreen)
             putBoolean(KEY_LOOP_PLAYBACK, loopPlayback)
             putInt(KEY_SLIDE_INTERVAL, slideInterval)
@@ -190,6 +193,7 @@ class Settings(
         const val KEY_SOURCE_TYPE = "sourceType"
         const val KEY_OFFLINE = "offline"
         const val KEY_OFFLINE_FILTER = "offlineFilter"
+        const val KEY_PREFER_AUDIO_ON_OFFLINE_MODE = "preferAudioOnOfflineMode"
         const val KEY_SHOW_TITLE_ON_SCREEN = "showTitleOnScreen"
         const val KEY_LOOP_PLAYBACK = "loopPlayback"
         const val KEY_SLIDE_INTERVAL = "slideInterval"
@@ -206,6 +210,7 @@ class Settings(
                 sourceType = SourceType.valueOf(pref.getInt(KEY_SOURCE_TYPE, -1)),
                 offlineMode = pref.getBoolean(KEY_OFFLINE, false),
                 offlineFilter = pref.getBoolean(KEY_OFFLINE_FILTER,false),
+                preferAudioOnOfflineMode = pref.getBoolean(KEY_PREFER_AUDIO_ON_OFFLINE_MODE, false),
                 showTitleOnScreen = pref.getBoolean(KEY_SHOW_TITLE_ON_SCREEN, false),
                 loopPlayback = pref.getBoolean(KEY_LOOP_PLAYBACK, true),
                 slideInterval = pref.getInt(KEY_SLIDE_INTERVAL, 5),
@@ -288,6 +293,7 @@ class Settings(
 //            colorVariation =  ColorVariation.PINK,
             offlineMode = false,
             offlineFilter = false,
+            preferAudioOnOfflineMode = false,
             showTitleOnScreen = false,
             slideInterval = 5,
             settingsOnServer = emptyMap(),

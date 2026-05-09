@@ -100,7 +100,7 @@ class RatingViewModel : UtDialogViewModel(), OfflineManager.IDownloadProgress {
                         } else {
                             return@onEach
                         }
-                        OfflineManager.instance.setOfflineVideos(offlineList, this@RatingViewModel)
+                        OfflineManager.instance.setOfflineVideos(offlineList, AppViewModel.instance.preferAudioOnOfflineMode,this@RatingViewModel)
                     } finally {
                         offlineDataHandling.value = false
                         busy.value = false

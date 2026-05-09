@@ -100,7 +100,7 @@ class VideoSelectDialog : UtDialogEx() {
                             true
                         }
                     }
-                    AppViewModel.instance.updateOfflineMode(true, enableFilter.value, updateList = true)
+                    AppViewModel.instance.updateOfflineMode(true, enableFilter.value, preferAudio = AppViewModel.instance.preferAudioOnOfflineMode, updateList = true)
                 } finally { busy.set(false) }
                 true
             } else false

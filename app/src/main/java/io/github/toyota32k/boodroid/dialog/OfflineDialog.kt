@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.BoolConvert
+import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.binder.checkBinding
 import io.github.toyota32k.binder.command.Command
 import io.github.toyota32k.binder.command.LiteUnitCommand
@@ -69,6 +70,9 @@ class OfflineDialog : UtDialogEx() {
         val sourceTotalTime:Flow<Long> = MutableStateFlow(0L)
         val targetTotalSize:Flow<Long> = MutableStateFlow(0L)
         val targetTotalTime:Flow<Long> = MutableStateFlow(0L)
+
+        val preferAudio:MutableStateFlow<Boolean> = MutableStateFlow(AppViewModel.instance.preferAudioOnOfflineMode)
+        val supportExtractAudio:Flow<Boolean> = AppViewModel.instance.capability.map { it.canExtractAudio }
 
         val selectedSources:List<VideoItem>
             get() = sourceList.mapNotNull { if(it.selected) it.value else null }
@@ -206,7 +210,7 @@ class OfflineDialog : UtDialogEx() {
         suspend fun complete():Boolean {
             if(loadingSources.flagged) return false
 
-            val newList = OfflineManager.instance.setOfflineVideos(targetList.map { it.value }, downloadProgress) ?: return false
+            val newList = OfflineManager.instance.setOfflineVideos(targetList.map { it.value }, preferAudio.value, downloadProgress) ?: return false
 //            AppViewModel.instance.settings = Settings(AppViewModel.instance.settings, offlineMode = offlineMode.value)
             val oldMode = AppViewModel.instance.offlineMode
             val newMode = if(!oldMode && !offlineMode.value && newList.isNotEmpty()) {
@@ -214,7 +218,7 @@ class OfflineDialog : UtDialogEx() {
                     showYesNoMessageBox(getStringOrNull(R.string.app_name), getStringOrNull(R.string.query_enter_offline_mode))
                 }
             } else offlineMode.value
-            AppViewModel.instance.updateOfflineMode(newMode, filter = false, updateList = true)
+            AppViewModel.instance.updateOfflineMode(newMode, filter = false, updateList = true, preferAudio = preferAudio.value)
             return true
         }
 
@@ -313,10 +317,12 @@ class OfflineDialog : UtDialogEx() {
         controls = DialogOfflineModeBinding.inflate(inflater.layoutInflater).apply {
             binder
                 .checkBinding(enableOfflineMode, viewModel.offlineMode)
+                .checkBinding(preferAudio, viewModel.preferAudio)
                 .enableBinding(addButton, viewModel.isSourceSelected)
                 .enableBinding(delButton, viewModel.isTargetSelected)
                 .enableBinding(resetSelectionButton, combine(viewModel.isSourceSelected, viewModel.isTargetSelected){s,t->s||t})
                 .enableBinding(clearTargetButton, viewModel.hasTarget)
+                .visibilityBinding(preferAudio, viewModel.supportExtractAudio, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
                 .textBinding(targetTotalSize, viewModel.targetTotalSize.map { formatSize(it) })
                 .textBinding(targetTotalTime, viewModel.targetTotalTime.map { formatTime(it*1000,it*1000) })
                 .textBinding(sourceTotalSize, viewModel.sourceTotalSize.map { formatSize(it) })
