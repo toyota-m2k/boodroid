@@ -303,6 +303,7 @@ class HostSettingsViewModel : UtDialogViewModel() {
             address = newAddr,
             fingerprint = resolved.fingerprint ?: host.fingerprint,
             httpsOnly = resolved.isHttps || host.httpsOnly,
+            hostname = resolved.hostname ?: host.hostname,
         )
         hostList.removeAt(idx)
         hostList.add(idx, updated)

@@ -89,7 +89,11 @@ class HostSettingsDialog : UtDialogEx() {
                         inflater = ListItemHostBinding::inflate,
                         bindView = { itemControls, itemBinder, view, host->
                             itemControls.nameText.text = if(host.name.isBlank()) "no name" else host.name
-                            itemControls.addressText.text = host.address
+                            itemControls.addressText.text =
+                                if (!host.hostname.isNullOrEmpty())
+                                    "${host.hostname} (${host.address})"
+                                else
+                                    host.address
                             itemBinder.reset()
                             itemBinder
                                 .owner(owner)

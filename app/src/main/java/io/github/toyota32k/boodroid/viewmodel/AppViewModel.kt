@@ -17,6 +17,7 @@ import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.WallpaperActivity
 import io.github.toyota32k.boodroid.auth.Authentication
 import io.github.toyota32k.boodroid.common.IUtPropertyHost
+import io.github.toyota32k.boodroid.data.ActiveHostTracker
 import io.github.toyota32k.boodroid.data.NetClient
 import io.github.toyota32k.boodroid.data.QueryBuilder
 import io.github.toyota32k.boodroid.data.ServerCapability
@@ -109,12 +110,16 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
 //            if(AppCompatDelegate.getDefaultNightMode()!=mode) {
 //                AppCompatDelegate.setDefaultNightMode(mode)
 //            }
+            // active host (mDNS 経由で発見されたエントリ) の IP/port 変動を常時追跡する。
+            // viewModelScope はアプリ存続中ずっと生きるので、実質アプリ起動中のバックグラウンド常駐。
+            ActiveHostTracker.start(viewModelScope)
         }
         return this
     }
 
     override fun onCleared() {
         logger.debug()
+        ActiveHostTracker.stop()
         super.onCleared()
     }
 

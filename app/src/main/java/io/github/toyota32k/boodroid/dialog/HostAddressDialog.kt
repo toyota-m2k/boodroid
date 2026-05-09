@@ -34,6 +34,7 @@ class HostAddressDialog : UtDialogEx() {
         var serviceName: String? = null
         var fingerprint: String? = null
         var httpsOnly: Boolean = false
+        var hostname: String? = null
 
         // RecyclerView 用の発見リスト本体
         val discoveredServers = ObservableList<BooTubeDiscovery.DiscoveredServer>()
@@ -68,6 +69,7 @@ class HostAddressDialog : UtDialogEx() {
             serviceName = server.serviceName
             fingerprint = server.fingerprint
             httpsOnly = server.isHttps
+            hostname = server.hostname
         }
 
         /** 手入力で address を編集された場合は mDNS メタ情報を持ち越さない。 */
@@ -75,6 +77,7 @@ class HostAddressDialog : UtDialogEx() {
             serviceName = null
             fingerprint = null
             httpsOnly = false
+            hostname = null
         }
 
         override fun onCleared() {
@@ -93,6 +96,7 @@ class HostAddressDialog : UtDialogEx() {
                         serviceName = initialHost.serviceName
                         fingerprint = initialHost.fingerprint
                         httpsOnly = initialHost.httpsOnly
+                        hostname = initialHost.hostname
                     }
                 }
                 if (showDialog(taskName) { HostAddressDialog() }.status.ok) {
@@ -102,6 +106,7 @@ class HostAddressDialog : UtDialogEx() {
                         serviceName = vm.serviceName,
                         fingerprint = vm.fingerprint,
                         httpsOnly = vm.httpsOnly,
+                        hostname = vm.hostname,
                     )
                 } else null
             }
@@ -151,7 +156,12 @@ class HostAddressDialog : UtDialogEx() {
                         inflater = ListItemDiscoveredServerBinding::inflate,
                         bindView = { itemControls, itemBinder, _, server ->
                             itemControls.discoveredNameText.text = server.serviceName
-                            itemControls.discoveredAddressText.text = "${server.host}:${server.port}"
+                            // hostname があれば「TOYOTA-PC.local (192.168.0.153:3501)」形式
+                            itemControls.discoveredAddressText.text =
+                                if (!server.hostname.isNullOrEmpty())
+                                    "${server.hostname} (${server.host}:${server.port})"
+                                else
+                                    "${server.host}:${server.port}"
                             itemControls.httpsBadge.text = if (server.isHttps) "HTTPS" else "HTTP"
                             itemBinder.reset()
                             itemBinder.owner(owner)

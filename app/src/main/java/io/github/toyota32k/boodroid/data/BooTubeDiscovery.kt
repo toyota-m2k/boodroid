@@ -44,6 +44,7 @@ class BooTubeDiscovery(ctx: Context) {
         val isHttps: Boolean,
         val fingerprint: String?,   // SHA-256 ("AB:CD:..." 形式) or null
         val app: String?,           // TXT app= の値 ("bootube" / "archive" 等)。アプリ識別 / 表示ラベル用
+        val hostname: String?,      // TXT hostname= の値 ("TOYOTA-PC.local" 等)。表示用
     )
 
     private val appCtx = ctx.applicationContext
@@ -190,6 +191,7 @@ class BooTubeDiscovery(ctx: Context) {
         val isHttps = attrs[TXT_HTTPS]?.toUtf8() == "1"
         val fp = attrs[TXT_FINGERPRINT]?.toUtf8()
         val app = attrs[TXT_APP]?.toUtf8()
+        val hostname = attrs[TXT_HOSTNAME]?.toUtf8()
         val server = DiscoveredServer(
             serviceName = serviceName,
             host = host,
@@ -197,6 +199,7 @@ class BooTubeDiscovery(ctx: Context) {
             isHttps = isHttps,
             fingerprint = fp,
             app = app,
+            hostname = hostname,
         )
         logger.debug("Resolved: $server")
         _services.update { list ->
@@ -211,6 +214,7 @@ class BooTubeDiscovery(ctx: Context) {
         const val TXT_HTTPS = "https"
         const val TXT_FINGERPRINT = "fp"
         const val TXT_APP = "app"
+        const val TXT_HOSTNAME = "hostname"
         private const val MULTICAST_LOCK_TAG = "booapi-discovery"
         private const val MAX_RESOLVE_RETRY = 5
 

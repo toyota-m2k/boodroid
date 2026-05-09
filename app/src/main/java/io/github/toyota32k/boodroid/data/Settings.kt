@@ -74,6 +74,8 @@ data class HostAddressEntity(
     val serviceName: String? = null,
     val fingerprint: String? = null,
     val httpsOnly: Boolean = false,
+    /** mDNS TXT hostname= から取得 (例 "TOYOTA-PC.local")。表示用。接続には [address] を使う。 */
+    val hostname: String? = null,
 )
 
 data class SettingsOnServer(val minRating:Int, val marks:List<Int>, val category:String) {
@@ -259,6 +261,7 @@ class Settings(
                     if (!v.serviceName.isNullOrEmpty()) put("svc", v.serviceName)
                     if (!v.fingerprint.isNullOrEmpty()) put("fp", v.fingerprint)
                     if (v.httpsOnly) put("https", true)
+                    if (!v.hostname.isNullOrEmpty()) put("hn", v.hostname)
                 })
                 json
             }.toString().apply { logger.debug(this) }
@@ -275,6 +278,7 @@ class Settings(
                             serviceName = optString("svc", "").ifEmpty { null },
                             fingerprint = optString("fp", "").ifEmpty { null },
                             httpsOnly   = optBoolean("https", false),
+                            hostname    = optString("hn", "").ifEmpty { null },
                         )
                     }
                 }
