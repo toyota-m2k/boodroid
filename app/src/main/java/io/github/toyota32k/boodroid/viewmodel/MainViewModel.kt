@@ -121,7 +121,10 @@ class MainViewModel : ViewModel() {
             val src = try {
                 loading.value = true
                 withContext(Dispatchers.IO) {
-                    val cap = ServerCapability.get(appViewModel.settings.hostAddress)
+                    val cap = ServerCapability.get(
+                        appViewModel.settings.hostAddress,
+                        appViewModel.settings.activeHost?.httpsOnly == true,
+                    )
                     serverAvailable = cap!=null
                     appViewModel.setCapability(cap ?: ServerCapability.empty)
                     VideoListSource.retrieve()

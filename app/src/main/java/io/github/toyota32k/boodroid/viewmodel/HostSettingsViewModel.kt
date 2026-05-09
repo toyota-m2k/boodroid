@@ -8,6 +8,7 @@ import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.PackageUtil
+import io.github.toyota32k.boodroid.data.BooTubeDiscovery
 import io.github.toyota32k.boodroid.data.HostAddressEntity
 import io.github.toyota32k.boodroid.data.ServerCapability
 import io.github.toyota32k.boodroid.data.Settings
@@ -244,27 +245,25 @@ class HostSettingsViewModel : UtDialogViewModel() {
         }.launchIn(viewModelScope)
 
         activeHost.onEach {
-            updateOnHostSelection(it?.address)
+            updateOnHostSelection(it)
         }.launchIn(viewModelScope)
 
-        updateOnHostSelection(s.hostAddress)
+        updateOnHostSelection(activeHost.value)
     }
 
-    private fun updateOnHostSelection(address:String?) {
+    private fun updateOnHostSelection(host: HostAddressEntity?) {
         rating.value = 0
         marks.value = emptyList()
         category.value = "All"
         capability.value = null
-        if(address==null) {
-            return
-        }
-        loadServerCapability(address)
+        if (host == null) return
+        loadServerCapability(host)
     }
-    private fun loadServerCapability(address:String) {
+    private fun loadServerCapability(host: HostAddressEntity) {
         viewModelScope.launch {
-            val cap = ServerCapability.get(address) ?: return@launch
-            val sos = settingsOnServer[address] ?: SettingsOnServer.clean
-            if(address != activeHost.value?.address) return@launch
+            val cap = ServerCapability.get(host.address, host.httpsOnly) ?: return@launch
+            val sos = settingsOnServer[host.address] ?: SettingsOnServer.clean
+            if (host.address != activeHost.value?.address) return@launch
 
             if (cap.ratingList.isValidRating(sos.minRating)) {
                 rating.value = sos.minRating
@@ -282,10 +281,32 @@ class HostSettingsViewModel : UtDialogViewModel() {
         if(activeHost.value != host) {
             // host changed
             activeHost.value = host
+            // mDNS-SD で発見済みのエントリは、現在の IP/port を再解決して保存値を更新する。
+            // PC が DHCP リース更新等で IP を変えた場合に追従する。
+            if (!host.serviceName.isNullOrEmpty()) {
+                viewModelScope.launch { refreshHostAddress(host) }
+            }
         } else if(capability.value == null) {
             // capability not loaded
-            loadServerCapability(host.address)
+            loadServerCapability(host)
         }
+    }
+
+    private suspend fun refreshHostAddress(host: HostAddressEntity) {
+        val svc = host.serviceName ?: return
+        val resolved = BooTubeDiscovery.resolveOnce(context, svc) ?: return
+        val newAddr = "${resolved.host}:${resolved.port}"
+        if (newAddr == host.address) return
+        val idx = hostList.indexOf(host)
+        if (idx < 0) return
+        val updated = host.copy(
+            address = newAddr,
+            fingerprint = resolved.fingerprint ?: host.fingerprint,
+            httpsOnly = resolved.isHttps || host.httpsOnly,
+        )
+        hostList.removeAt(idx)
+        hostList.add(idx, updated)
+        if (activeHost.value == host) activeHost.value = updated
     }
 
 

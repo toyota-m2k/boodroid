@@ -81,5 +81,7 @@
     <string name="loop_playback">Loop Playback</string>
     <string name="offline">Offline</string>
     <string name="offline_label">Offline</string>
+    <string name="discovered_servers_label">Discovered on this network</string>
+    <string name="no_servers_discovered">Searching…</string>
 
 </resources>

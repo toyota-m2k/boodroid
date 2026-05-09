@@ -85,6 +85,7 @@ dependencies {
 
     implementation(libs.media3.ui)
     implementation(libs.androidx.media3.common)
+    implementation(libs.media3.datasource.okhttp)
 
     implementation(libs.android.utilities)
     implementation(libs.android.binding)

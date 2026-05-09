@@ -56,7 +56,25 @@ import org.json.JSONObject
 //    }
 //}
 
-data class HostAddressEntity(val name:String, val address:String)
+/**
+ * BooDroid 側で記憶している BooTube サーバ情報。
+ *
+ * - [name]/[address] は従来どおり、UI の表示名と "host:port" 文字列。
+ * - [serviceName] は mDNS-SD で発見されたエントリの Service Instance 名。非 null ならアクセス時に
+ *   [BooTubeDiscovery.resolveOnce] で IP/port を再解決して DHCP 変動に追従する。
+ * - [fingerprint] は HTTPS 証明書 SHA-256 ("AB:CD:..." 形式)。非 null なら OkHttp の
+ *   CertificatePinner で照合する (mDNS 発見時の TXT レコード fp= から取り込む)。
+ * - [httpsOnly] true なら接続時のスキームを https にする。
+ *
+ * 旧 JSON との互換のために 3 つの新フィールドはすべてデフォルト値を持つ。
+ */
+data class HostAddressEntity(
+    val name: String,
+    val address: String,
+    val serviceName: String? = null,
+    val fingerprint: String? = null,
+    val httpsOnly: Boolean = false,
+)
 
 data class SettingsOnServer(val minRating:Int, val marks:List<Int>, val category:String) {
     companion object {
@@ -105,22 +123,23 @@ class Settings(
         nightMode: ThemeSelector.NightMode = src.nightMode,
     ) : this(activeHostIndex, hostList, sourceType, offlineMode, offlineFilter, showTitleOnScreen, slideInterval, loopPlayback, settingsOnServer, themeInfo, contrastLevel, nightMode)
 
-    private val activeHost:HostAddressEntity?
+    val activeHost:HostAddressEntity?
         get() = if(0<=activeHostIndex&&activeHostIndex<hostList.size) hostList.get(activeHostIndex) else null
     val isValid get() = !activeHost?.address.isNullOrBlank()
     val hostAddress:String?
-        get() = activeHost?.address?.let { host ->
-            return if(host.contains(":")) {
-                host
-            } else {
-                "${host}:3500"
-            }
+        get() = activeHost?.let { host ->
+            val addr = host.address
+            return if (addr.contains(":")) addr
+            else "${addr}:${if (host.httpsOnly) 3501 else 3500}"
         }
     val settingsOnActiveHost : SettingsOnServer
         get() = settingsOnServer[hostAddress ?: ""] ?: SettingsOnServer.clean
 
     private val restCommandBase:String get() = AppViewModel.instance.capability.value.root
-    val baseUrl : String get() = "http://${hostAddress}${restCommandBase}"
+    val baseUrl : String get() {
+        val scheme = if (activeHost?.httpsOnly == true) "https" else "http"
+        return "${scheme}://${hostAddress}${restCommandBase}"
+    }
 
 //    val themeId: Int get() = if(useDynamicColor) R.style.Theme_Boodroid_Dynamic else colorVariation.themeId
 
@@ -231,6 +250,10 @@ class Settings(
                 json.put(JSONObject().apply  {
                     put("n", v.name)
                     put("a", v.address)
+                    // 新フィールド (旧バージョンとの互換のため null/false は省略)
+                    if (!v.serviceName.isNullOrEmpty()) put("svc", v.serviceName)
+                    if (!v.fingerprint.isNullOrEmpty()) put("fp", v.fingerprint)
+                    if (v.httpsOnly) put("https", true)
                 })
                 json
             }.toString().apply { logger.debug(this) }
@@ -242,8 +265,11 @@ class Settings(
                 json.toIterable().mapNotNull {
                     (it as? JSONObject)?.run {
                         HostAddressEntity(
-                            safeGetString("n"),
-                            safeGetString("a")
+                            name        = safeGetString("n"),
+                            address     = safeGetString("a"),
+                            serviceName = optString("svc", "").ifEmpty { null },
+                            fingerprint = optString("fp", "").ifEmpty { null },
+                            httpsOnly   = optBoolean("https", false),
                         )
                     }
                 }

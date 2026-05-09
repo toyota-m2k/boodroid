@@ -27,7 +27,7 @@ androidUtilities = "4.12.1"
 androidBinding = "1.12.2"
 androidDialog = "6.3.5"
 androidViewEx = "1.1.20"
-androidMediaPlayer = "4.4.2"
+androidMediaPlayer = "LOCAL"
 preferenceKtx = "1.2.1"
 recyclerview = "1.4.0"
 roomRuntime = "2.8.4"
@@ -52,6 +52,7 @@ lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-view
 lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycleLiveDataKtx" }
 media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "media3Ui" }
+media3-datasource-okhttp = { group = "androidx.media3", name = "media3-datasource-okhttp", version.ref = "media3Exoplayer" }
 android-utilities = { group = "com.github.toyota-m2k", name = "android-utilities", version.ref = "androidUtilities" }
 android-binding = { group = "com.github.toyota-m2k", name = "android-binding", version.ref = "androidBinding" }
 android-dialog = { group = "com.github.toyota-m2k", name = "android-dialog", version.ref = "androidDialog" }

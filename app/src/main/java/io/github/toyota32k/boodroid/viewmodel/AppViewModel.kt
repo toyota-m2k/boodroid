@@ -7,6 +7,8 @@ import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import io.github.toyota32k.binder.command.LiteCommand
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.list.ObservableList
@@ -253,8 +255,15 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         fun fetch():PlayerControllerModel {
             synchronized(this) {
                 if (!resetable.hasValue) {
+                    val ctx = BooApplication.instance.applicationContext
+                    // ExoPlayer の HTTP/HTTPS 取得を NetClient と同じ OkHttpClient 経由にする。
+                    // これで自己署名 BooTube への HTTPS リクエストが NetClient の TrustManager で
+                    // 検証され、`Trust anchor not found` を回避できる。
+                    val okhttpDataSource = OkHttpDataSource.Factory(NetClient.client)
+                    val mediaDataSourceFactory = DefaultDataSource.Factory(ctx, okhttpDataSource)
                     resetable.value =
-                        PlayerControllerModel.Builder(BooApplication.instance.applicationContext, viewModelScope)
+                        PlayerControllerModel.Builder(ctx, viewModelScope)
+                            .dataSourceFactory(mediaDataSourceFactory)
                             .supportChapter()
                             .supportPlaylist(mediaFeed, true, true)
                             .showNextPreviousButton()
