@@ -19,9 +19,10 @@ import java.net.InetAddress
 import java.util.concurrent.Executor
 
 /**
- * mDNS-SD で BooTube サーバを発見・解決するラッパ。
+ * mDNS-SD で BooTube プロトコル互換サーバを発見・解決するラッパ。
  *
- * BooTube 側は `_bootube._tcp.` サービスを広告する (MdnsAdvertiser.cs)。
+ * サーバ側は `_booapi._tcp.` で広告する (BooTube は MdnsAdvertiser.cs、
+ * winui-secure-archive 等は今後の同パターン実装)。アプリ識別は TXT の `app` キーで行う。
  * 本クラスは Android `NsdManager` でそのサービスを discover し、resolve して
  * IP/port/TXT レコードを取り出して [services] に流す。
  *
@@ -42,6 +43,7 @@ class BooTubeDiscovery(ctx: Context) {
         val port: Int,
         val isHttps: Boolean,
         val fingerprint: String?,   // SHA-256 ("AB:CD:..." 形式) or null
+        val app: String?,           // TXT app= の値 ("bootube" / "archive" 等)。アプリ識別 / 表示ラベル用
     )
 
     private val appCtx = ctx.applicationContext
@@ -187,12 +189,14 @@ class BooTubeDiscovery(ctx: Context) {
         val attrs = attributes ?: emptyMap()
         val isHttps = attrs[TXT_HTTPS]?.toUtf8() == "1"
         val fp = attrs[TXT_FINGERPRINT]?.toUtf8()
+        val app = attrs[TXT_APP]?.toUtf8()
         val server = DiscoveredServer(
             serviceName = serviceName,
             host = host,
             port = port,
             isHttps = isHttps,
             fingerprint = fp,
+            app = app,
         )
         logger.debug("Resolved: $server")
         _services.update { list ->
@@ -201,10 +205,13 @@ class BooTubeDiscovery(ctx: Context) {
     }
 
     companion object {
-        const val SERVICE_TYPE = "_bootube._tcp."
+        // 互換 REST API を提供する全アプリで共有するサービスタイプ。
+        // アプリ識別は TXT の "app" キー (TXT_APP) で行う。
+        const val SERVICE_TYPE = "_booapi._tcp."
         const val TXT_HTTPS = "https"
         const val TXT_FINGERPRINT = "fp"
-        private const val MULTICAST_LOCK_TAG = "bootube-discovery"
+        const val TXT_APP = "app"
+        private const val MULTICAST_LOCK_TAG = "booapi-discovery"
         private const val MAX_RESOLVE_RETRY = 5
 
         private val logger = UtLog("Discovery", BooApplication.logger)
