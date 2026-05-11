@@ -133,22 +133,35 @@ class HostSettingsViewModel : UtDialogViewModel() {
 //        addHost(address = editingHost.value ?: return)
 //    }
 
-    private fun addHost(entity: HostAddressEntity) {
+    private fun isSameHost(e1: HostAddressEntity, e2: HostAddressEntity):Boolean {
+        return e1.address == e2.address && e1.serviceName == e2.serviceName
+    }
+
+    fun checkAndAddHost(entity: HostAddressEntity) {
         if(entity.address.isBlank()) return
-        val org = hostList.find { it.address == entity.address }
-        if(org!=null) {
-            if(entity.name.isBlank() || entity.name == org.name) return
-            hostList.remove(org)
+        var new = entity
+        val org = hostList.find { isSameHost(it, entity) }
+        if (org != entity) {
+            if(org!=null) {
+                // 既存エントリーの更新
+                val index = hostList.indexOf(org)
+                if(entity.name.isBlank() || org.name.isNotBlank()) {
+                    new = HostAddressEntity(entity, name = org.name)
+                }
+                hostList.set(index, new)
+            } else {
+                // 新規エントリー
+                hostList.add(new)
+            }
         }
-        hostList.add(entity)
-        activeHost.value = entity
+        activeHost.value = new
     }
 
     fun addHost() {
         viewModelScope.launch {
             val v = HostAddressDialog.getHostAddress(activeHost.value)
             if(v!=null && v.address.isNotBlank()) {
-                addHost(v)
+                checkAndAddHost(v)
             }
         }
     }
@@ -157,7 +170,7 @@ class HostSettingsViewModel : UtDialogViewModel() {
         viewModelScope.launch {
             if(confirm(R.string.confirm_remove_host)) {
                 val activeHostIndex = hostList.indexOf(activeHost.value)
-                val index = hostList.indexOfFirst { it.address == entity.address }
+                val index = hostList.indexOfFirst { isSameHost(it, entity) }
                 if(index>=0) {
                     hostList.removeAt(index)
                     if(index == activeHostIndex) {

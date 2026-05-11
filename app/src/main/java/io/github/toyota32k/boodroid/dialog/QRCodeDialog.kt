@@ -24,6 +24,7 @@ import io.github.toyota32k.dialog.task.UtAndroidViewModel.Companion.createAndroi
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.getViewModel
 import io.github.toyota32k.utils.lifecycle.ConstantLiveData
+import io.github.toyota32k.utils.utAssert
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -72,13 +73,6 @@ class QRCodeDialog : UtDialogEx() {
                 }
                 return 0 // 見つからなければ0番目を返す
             }
-
-        /**
-         * 現在のカメラ Index in CameraIdList
-         */
-        //private var mCurrentCameraIndex:Int = -1
-
-
 
         /**
          * 初期状態で選択するカメラIDを取得
@@ -133,6 +127,7 @@ class QRCodeDialog : UtDialogEx() {
         savedInstanceState: Bundle?,
         inflater: IViewInflater
     ): View {
+        utAssert(hasCamera(context)) { "check before show this dialog." }
         controls = DialogQrCodeBinding.inflate(inflater.layoutInflater)
         binder
             .owner(this)
@@ -148,9 +143,6 @@ class QRCodeDialog : UtDialogEx() {
         return controls.root
     }
 
-
-//    private var initialized:Boolean = false
-
     enum class ScanType(val code: Int) {
         Straight(0),
         Inverted(1),
@@ -159,12 +151,6 @@ class QRCodeDialog : UtDialogEx() {
 
     private fun initializeQRCodeView() {
         logger.debug()
-//        if(initialized) {
-//            logger.debug("already initialized")
-//            return
-//        }
-//        logger.debug("initializing")
-//        initialized = true
         val formats = listOf(BarcodeFormat.QR_CODE)
         val intent = Intent().apply {
             putExtra(Intents.Scan.PROMPT_MESSAGE, viewModel.promptMessage)
@@ -179,19 +165,25 @@ class QRCodeDialog : UtDialogEx() {
     }
 
     private fun onSwitchCamera() {
-        controls.barcodeScanner.pause()
+        controls.barcodeScanner.pauseAndWait()
         controls.barcodeScanner.barcodeView.cameraSettings.requestedCameraId = viewModel.nextCameraIndex()
+        controls.barcodeScanner.decodeContinuous(viewModel)
         controls.barcodeScanner.resume()
     }
 
     override fun onPause() {
-        super.onPause()
         controls.barcodeScanner.pause()
+        super.onPause()
     }
 
     override fun onResume() {
         super.onResume()
         controls.barcodeScanner.resume()
+    }
+
+    override fun onDestroyView() {
+        controls.barcodeScanner.pauseAndWait()
+        super.onDestroyView()
     }
 }
 

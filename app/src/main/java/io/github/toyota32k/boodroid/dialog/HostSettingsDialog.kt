@@ -131,8 +131,9 @@ class HostSettingsDialog : UtDialogEx() {
                     it.startsWith("bootube:")
                 } ?: return@launch
                 logger.debug { tx }
-                val pairing = PairingUri.parse(tx.toUri())
+                val pairing = PairingUri.parse(tx.toUri()) ?: return@launch
                 logger.debug { pairing.toString() }
+                viewModel.checkAndAddHost(pairing.toEntity())
             }
         }
 

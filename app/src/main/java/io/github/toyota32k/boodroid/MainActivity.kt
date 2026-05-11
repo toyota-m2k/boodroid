@@ -333,15 +333,15 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         if (intent == null) return false
 
         // bootube:// スキーム (PairingQrDialog の QR からの起動)
-        if (intent.action == Intent.ACTION_VIEW) {
-            intent.data?.let { uri ->
-                val pairing = PairingUri.parse(uri)
-                if (pairing != null) {
-                    acceptPairing(pairing)
-                    return true
-                }
-            }
-        }
+//        if (intent.action == Intent.ACTION_VIEW) {
+//            intent.data?.let { uri ->
+//                val pairing = PairingUri.parse(uri)
+//                if (pairing != null) {
+//                    acceptPairing(pairing)
+//                    return true
+//                }
+//            }
+//        }
 
         if(intent.action == Intent.ACTION_SEND) {
             if(intent.type == "text/plain") {
@@ -361,35 +361,35 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
      * QR ペアリングで受け取った情報を確認ダイアログ経由でホストリストに追加する。
      * 同一 address のエントリがあれば差し替え (fingerprint 更新等の運用ケースを救う)。
      */
-    private fun acceptPairing(pairing: PairingUri.Pairing) {
-        UtImmortalTask.launchTask("acceptPairing") {
-            val fpShort = pairing.fingerprint?.take(23)?.let { "$it..." } ?: "(none)"
-            val msg = buildString {
-                appendLine("Add this BooTube server?")
-                appendLine()
-                appendLine("Name: ${pairing.name}")
-                appendLine("Address: ${pairing.host}:${pairing.port}")
-                appendLine("Scheme: ${if (pairing.httpsOnly) "HTTPS" else "HTTP"}")
-                append("Fingerprint: $fpShort")
-            }
-            if (showYesNoMessageBox(getString(R.string.app_name), msg)) {
-                addPairedHost(pairing)
-            }
-        }
-    }
+//    private fun acceptPairing(pairing: PairingUri.Pairing) {
+//        UtImmortalTask.launchTask("acceptPairing") {
+//            val fpShort = pairing.fingerprint?.take(23)?.let { "$it..." } ?: "(none)"
+//            val msg = buildString {
+//                appendLine("Add this BooTube server?")
+//                appendLine()
+//                appendLine("Name: ${pairing.name}")
+//                appendLine("Address: ${pairing.host}:${pairing.port}")
+//                appendLine("Scheme: ${if (pairing.httpsOnly) "HTTPS" else "HTTP"}")
+//                append("Fingerprint: $fpShort")
+//            }
+//            if (showYesNoMessageBox(getString(R.string.app_name), msg)) {
+//                addPairedHost(pairing)
+//            }
+//        }
+//    }
 
-    private fun addPairedHost(pairing: PairingUri.Pairing) {
-        val entity = pairing.toEntity()
-        val cur = AppViewModel.instance.settings
-        val newList = cur.hostList.toMutableList()
-        val idx = newList.indexOfFirst { it.address == entity.address }
-        if (idx >= 0) newList[idx] = entity else newList.add(entity)
-        val activeIdx = newList.indexOfFirst { it.address == entity.address }
-        val newSettings = Settings(cur, hostList = newList, activeHostIndex = activeIdx)
-        newSettings.save(this)
-        // Settings.save 内部で AppViewModel.instance.settings = this の setter が走り、
-        // refreshCommand が走ってリスト再取得される。
-    }
+//    private fun addPairedHost(pairing: PairingUri.Pairing) {
+//        val entity = pairing.toEntity()
+//        val cur = AppViewModel.instance.settings
+//        val newList = cur.hostList.toMutableList()
+//        val idx = newList.indexOfFirst { it.address == entity.address }
+//        if (idx >= 0) newList[idx] = entity else newList.add(entity)
+//        val activeIdx = newList.indexOfFirst { it.address == entity.address }
+//        val newSettings = Settings(cur, hostList = newList, activeHostIndex = activeIdx)
+//        newSettings.save(this)
+//        // Settings.save 内部で AppViewModel.instance.settings = this の setter が走り、
+//        // refreshCommand が走ってリスト再取得される。
+//    }
 
     /**
      * 回転によるレイアウト変更を自力でやる。

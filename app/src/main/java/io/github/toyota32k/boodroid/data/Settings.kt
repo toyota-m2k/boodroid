@@ -76,7 +76,18 @@ data class HostAddressEntity(
     val httpsOnly: Boolean = false,
     /** mDNS TXT hostname= から取得 (例 "TOYOTA-PC.local")。表示用。接続には [address] を使う。 */
     val hostname: String? = null,
-)
+) {
+    constructor(
+        src: HostAddressEntity,
+        name:String?=null,
+        address: String?=null,
+        serviceName: String? = null,
+        fingerprint: String? = null,
+        httpsOnly: Boolean? = null,
+        /** mDNS TXT hostname= から取得 (例 "TOYOTA-PC.local")。表示用。接続には [address] を使う。 */
+        hostname: String? = null,
+        ) : this(name?:src.name, address?:src.address, serviceName?:src.serviceName, fingerprint?:src.fingerprint,httpsOnly?:src.httpsOnly, hostname?:src.hostname)
+}
 
 data class SettingsOnServer(val minRating:Int, val marks:List<Int>, val category:String) {
     companion object {
