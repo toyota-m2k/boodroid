@@ -39,6 +39,7 @@ import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.UtDialogHelper
 import io.github.toyota32k.dialog.broker.IUtActivityBrokerStoreProvider
 import io.github.toyota32k.dialog.broker.UtActivityBrokerStore
+import io.github.toyota32k.dialog.broker.UtPermissionBroker
 import io.github.toyota32k.dialog.broker.pickers.UtCreateFilePicker
 import io.github.toyota32k.dialog.mortal.UtMortalActivity
 import io.github.toyota32k.dialog.task.UtImmortalTask
@@ -61,7 +62,7 @@ import kotlinx.coroutines.flow.onStart
 
 class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     override val logger = UtLog("Main", BooApplication.logger)
-    override val activityBrokers = UtActivityBrokerStore(this, UtCreateFilePicker())
+    override val activityBrokers = UtActivityBrokerStore(this, UtCreateFilePicker(), UtPermissionBroker())
 
     private val binder = Binder()
     private val viewModel :MainViewModel by lazy { MainViewModel.instanceFor(this) }

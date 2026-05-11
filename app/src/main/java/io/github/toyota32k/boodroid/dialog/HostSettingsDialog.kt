@@ -1,14 +1,17 @@
 package io.github.toyota32k.boodroid.dialog
 
 
+import android.Manifest
 import android.os.Bundle
 import android.view.View
 import android.widget.*
 import androidx.appcompat.widget.ListPopupWindow
+import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import io.github.toyota32k.binder.Binder
 import io.github.toyota32k.binder.VisibilityBinding
 import io.github.toyota32k.binder.command.LiteCommand
+import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.enableBinding
 import io.github.toyota32k.binder.multiVisibilityBinding
@@ -23,11 +26,17 @@ import io.github.toyota32k.boodroid.databinding.ListItemHostBinding
 import io.github.toyota32k.boodroid.viewmodel.HostSettingsViewModel
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialogEx
+import io.github.toyota32k.dialog.broker.IUtActivityBrokerStoreProvider
+import io.github.toyota32k.dialog.broker.UtPermissionBroker
 import io.github.toyota32k.dialog.task.getViewModel
+import io.github.toyota32k.utils.lifecycle.ConstantLiveData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 class HostSettingsDialog : UtDialogEx() {
     private val viewModel by lazy { getViewModel<HostSettingsViewModel>() }
@@ -79,7 +88,9 @@ class HostSettingsDialog : UtDialogEx() {
                 .multiVisibilityBinding(arrayOf(ratingSelector,ratingLabel), combine(viewModel.sourceType,viewModel.capability) { st,cap-> st == SourceType.DB && cap?.hasRating == true }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
                 .multiVisibilityBinding(arrayOf(markSelector,markLabel), combine(viewModel.sourceType, viewModel.capability) { st,cap->st == SourceType.DB && cap?.hasMark == true }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
                 .multiVisibilityBinding(arrayOf(categoryButton,categoryLabel), combine(viewModel.sourceType, viewModel.capability) {st,cap-> st == SourceType.DB && cap?.hasCategory == true}, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+                .visibilityBinding(qrCode, ConstantLiveData(QRCodeDialog.hasCamera(context)))
                 .bindCommand(viewModel.commandAddToList, addToListButton)
+                .bindCommand(LiteUnitCommand(::pairingWithQRCode), qrCode)
                 .bindCommand(viewModel.commandCategory, categoryButton, callback=this@HostSettingsDialog::selectCategory)
 //                .multiEnableBinding(arrayOf(colorVariationSelector, chkColorPink, chkColorBlue, chkColorGreen, chkColorPurple), viewModel.useDynamicColor, BoolConvert.Inverse)
                 .enableBinding(rightButton, viewModel.capability.map { it!=null }, alphaOnDisabled = 0.4f)
@@ -109,6 +120,22 @@ class HostSettingsDialog : UtDialogEx() {
                 }
         }
         return controls.root
+    }
+
+    fun pairingWithQRCode() {
+        if (!QRCodeDialog.hasCamera(context)) return
+        val broker = (requireActivity() as? IUtActivityBrokerStoreProvider)?.activityBrokers?.broker<UtPermissionBroker>() ?: return
+        CoroutineScope(Dispatchers.Main).launch {
+            if(broker.requestPermission(Manifest.permission.CAMERA)) {
+                val tx = QRCodeDialog.show("Pairing", "Scan QR Code on your Boo App") {
+                    it.startsWith("bootube:")
+                } ?: return@launch
+                logger.debug { tx }
+                val pairing = PairingUri.parse(tx.toUri())
+                logger.debug { pairing.toString() }
+            }
+        }
+
     }
 
 

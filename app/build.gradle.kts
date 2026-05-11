@@ -92,6 +92,7 @@ dependencies {
     implementation(libs.android.dialog)
     implementation(libs.android.viewex)
     implementation(libs.android.media.player)
+    implementation(libs.zxing.android.embedded)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)

@@ -32,6 +32,7 @@ preferenceKtx = "1.2.1"
 recyclerview = "1.4.0"
 roomRuntime = "2.8.4"
 activity = "1.13.0"
+zxingAndroidEmbedded = "4.3.0"
 
 [libraries]
 androidx-media3-common = { module = "androidx.media3:media3-common", version.ref = "media3Exoplayer" }
@@ -62,6 +63,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+zxing-android-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingAndroidEmbedded" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

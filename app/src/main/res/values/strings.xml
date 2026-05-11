@@ -84,5 +84,6 @@
     <string name="discovered_servers_label">Discovered on this network</string>
     <string name="no_servers_discovered">Searching…</string>
     <string name="prefer_audio">Prefer Audio</string>
+    <string name="flip_camera">Flip Camera</string>
 
 </resources>

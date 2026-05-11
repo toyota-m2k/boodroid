@@ -48,6 +48,19 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/add_button"
             app:tint="?attr/colorPrimaryVariant" />
+        <ImageButton
+            android:id="@+id/qr_code"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:textAllCaps="false"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            android:insetLeft="4dp"
+            android:src="@drawable/ic_qr_code"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="?attr/colorPrimaryVariant" />
+
+
     </LinearLayout>
 
 
