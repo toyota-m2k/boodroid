@@ -64,7 +64,7 @@ import org.json.JSONObject
  *   [BooTubeDiscovery.resolveOnce] で IP/port を再解決して DHCP 変動に追従する。
  * - [fingerprint] は HTTPS 証明書 SHA-256 ("AB:CD:..." 形式)。非 null なら OkHttp の
  *   CertificatePinner で照合する (mDNS 発見時の TXT レコード fp= から取り込む)。
- * - [httpsOnly] true なら接続時のスキームを https にする。
+ * - [isHttps] true なら接続時のスキームを https にする。
  *
  * 旧 JSON との互換のために 3 つの新フィールドはすべてデフォルト値を持つ。
  */
@@ -73,7 +73,7 @@ data class HostAddressEntity(
     val address: String,
     val serviceName: String? = null,
     val fingerprint: String? = null,
-    val httpsOnly: Boolean = false,
+    val isHttps: Boolean = false,
     /** mDNS TXT hostname= から取得 (例 "TOYOTA-PC.local")。表示用。接続には [address] を使う。 */
     val hostname: String? = null,
 ) {
@@ -86,7 +86,7 @@ data class HostAddressEntity(
         httpsOnly: Boolean? = null,
         /** mDNS TXT hostname= から取得 (例 "TOYOTA-PC.local")。表示用。接続には [address] を使う。 */
         hostname: String? = null,
-        ) : this(name?:src.name, address?:src.address, serviceName?:src.serviceName, fingerprint?:src.fingerprint,httpsOnly?:src.httpsOnly, hostname?:src.hostname)
+        ) : this(name?:src.name, address?:src.address, serviceName?:src.serviceName, fingerprint?:src.fingerprint,httpsOnly?:src.isHttps, hostname?:src.hostname)
 }
 
 data class SettingsOnServer(val minRating:Int, val marks:List<Int>, val category:String) {
@@ -145,14 +145,14 @@ class Settings(
         get() = activeHost?.let { host ->
             val addr = host.address
             return if (addr.contains(":")) addr
-            else "${addr}:${if (host.httpsOnly) 3501 else 3500}"
+            else "${addr}:${if (host.isHttps) 3501 else 3500}"
         }
     val settingsOnActiveHost : SettingsOnServer
         get() = settingsOnServer[hostAddress ?: ""] ?: SettingsOnServer.clean
 
     private val restCommandBase:String get() = AppViewModel.instance.capability.value.root
     val baseUrl : String get() {
-        val scheme = if (activeHost?.httpsOnly == true) "https" else "http"
+        val scheme = if (activeHost?.isHttps == true) "https" else "http"
         return "${scheme}://${hostAddress}${restCommandBase}"
     }
 
@@ -271,7 +271,7 @@ class Settings(
                     // 新フィールド (旧バージョンとの互換のため null/false は省略)
                     if (!v.serviceName.isNullOrEmpty()) put("svc", v.serviceName)
                     if (!v.fingerprint.isNullOrEmpty()) put("fp", v.fingerprint)
-                    if (v.httpsOnly) put("https", true)
+                    if (v.isHttps) put("https", true)
                     if (!v.hostname.isNullOrEmpty()) put("hn", v.hostname)
                 })
                 json
@@ -288,7 +288,7 @@ class Settings(
                             address     = safeGetString("a"),
                             serviceName = optString("svc", "").ifEmpty { null },
                             fingerprint = optString("fp", "").ifEmpty { null },
-                            httpsOnly   = optBoolean("https", false),
+                            isHttps   = optBoolean("https", false),
                             hostname    = optString("hn", "").ifEmpty { null },
                         )
                     }

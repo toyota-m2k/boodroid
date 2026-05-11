@@ -5,7 +5,6 @@ import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.logger.UtLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 /**
@@ -78,7 +77,7 @@ object ActiveHostTracker {
             address = newAddr,
             fingerprint = newFp,
             hostname = newHostname,
-            httpsOnly = match.isHttps || active.httpsOnly,
+            isHttps = match.isHttps || active.isHttps,
         )
         val newList = cur.hostList.map { if (it.address == active.address) updated else it }
         val idx = newList.indexOfFirst { it.address == updated.address }

@@ -24,7 +24,7 @@ object PairingUri {
             address = "${host}:${port}",
             serviceName = serviceName,
             fingerprint = fingerprint,
-            httpsOnly = httpsOnly,
+            isHttps = httpsOnly,
         )
     }
 

@@ -145,10 +145,10 @@ class HostSettingsViewModel : UtDialogViewModel() {
             if(org!=null) {
                 // 既存エントリーの更新
                 val index = hostList.indexOf(org)
-                if(entity.name.isBlank() || org.name.isNotBlank()) {
+                if (entity.name.isBlank() && org.name.isNotBlank()) {
                     new = HostAddressEntity(entity, name = org.name)
                 }
-                hostList.set(index, new)
+                hostList[index] = new
             } else {
                 // 新規エントリー
                 hostList.add(new)
@@ -274,7 +274,7 @@ class HostSettingsViewModel : UtDialogViewModel() {
     }
     private fun loadServerCapability(host: HostAddressEntity) {
         viewModelScope.launch {
-            val cap = ServerCapability.get(host.address, host.httpsOnly) ?: return@launch
+            val cap = ServerCapability.get(host.address, host.isHttps) ?: return@launch
             val sos = settingsOnServer[host.address] ?: SettingsOnServer.clean
             if (host.address != activeHost.value?.address) return@launch
 
@@ -315,7 +315,7 @@ class HostSettingsViewModel : UtDialogViewModel() {
         val updated = host.copy(
             address = newAddr,
             fingerprint = resolved.fingerprint ?: host.fingerprint,
-            httpsOnly = resolved.isHttps || host.httpsOnly,
+            isHttps = resolved.isHttps || host.isHttps,
             hostname = resolved.hostname ?: host.hostname,
         )
         hostList.removeAt(idx)

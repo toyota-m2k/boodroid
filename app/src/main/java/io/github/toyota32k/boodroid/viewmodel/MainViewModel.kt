@@ -123,7 +123,7 @@ class MainViewModel : ViewModel() {
                 withContext(Dispatchers.IO) {
                     val cap = ServerCapability.get(
                         appViewModel.settings.hostAddress,
-                        appViewModel.settings.activeHost?.httpsOnly == true,
+                        appViewModel.settings.activeHost?.isHttps == true,
                     )
                     serverAvailable = cap!=null
                     appViewModel.setCapability(cap ?: ServerCapability.empty)

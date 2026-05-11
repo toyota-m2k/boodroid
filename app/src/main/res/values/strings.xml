@@ -82,8 +82,9 @@
     <string name="offline">Offline</string>
     <string name="offline_label">Offline</string>
     <string name="discovered_servers_label">Discovered on this network</string>
-    <string name="no_servers_discovered">Searching…</string>
+    <string name="no_servers_discovered">Not Found</string>
     <string name="prefer_audio">Prefer Audio</string>
     <string name="flip_camera">Flip Camera</string>
+    <string name="discover_servers">Discover</string>
 
 </resources>

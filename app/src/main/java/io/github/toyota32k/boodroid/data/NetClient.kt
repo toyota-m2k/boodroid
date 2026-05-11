@@ -81,7 +81,7 @@ object NetClient {
         val updated = active.copy(
             address = newAddr,
             fingerprint = resolved.fingerprint ?: active.fingerprint,
-            httpsOnly = resolved.isHttps || active.httpsOnly,
+            isHttps = resolved.isHttps || active.isHttps,
             hostname = resolved.hostname ?: active.hostname,
         )
         val newList = cur.hostList.map { if (it.address == active.address) updated else it }
