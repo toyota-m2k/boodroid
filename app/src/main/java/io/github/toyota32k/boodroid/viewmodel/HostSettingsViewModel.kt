@@ -9,6 +9,7 @@ import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.PackageUtil
 import io.github.toyota32k.boodroid.data.BooTubeDiscovery
+import io.github.toyota32k.boodroid.data.FingerprintSourceImpl
 import io.github.toyota32k.boodroid.data.HostAddressEntity
 import io.github.toyota32k.boodroid.data.ServerCapability
 import io.github.toyota32k.boodroid.data.Settings
@@ -104,6 +105,8 @@ class HostSettingsViewModel : UtDialogViewModel() {
 
     var result:Boolean = false
     val commandComplete = LiteUnitCommand()
+
+    val fingerprintSource = FingerprintSourceImpl { hostList }
 
     init {
         hostList.addListenerForever {
@@ -262,6 +265,7 @@ class HostSettingsViewModel : UtDialogViewModel() {
         }.launchIn(viewModelScope)
 
         updateOnHostSelection(activeHost.value)
+        AppViewModel.instance.setTempFingerprintSource(fingerprintSource)
     }
 
     private fun updateOnHostSelection(host: HostAddressEntity?) {
@@ -330,6 +334,10 @@ class HostSettingsViewModel : UtDialogViewModel() {
         return true
     }
 
+    override fun onCleared() {
+        AppViewModel.instance.resetTempFingerprintSource()
+        super.onCleared()
+    }
     companion object {
 //        fun instanceFor(activity: ViewModelStoreOwner):SettingViewModel {
 //            return ViewModelProvider(activity, ViewModelProvider.NewInstanceFactory()).get(SettingViewModel::class.java)

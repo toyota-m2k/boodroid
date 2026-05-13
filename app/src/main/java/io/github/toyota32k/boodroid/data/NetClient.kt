@@ -30,7 +30,7 @@ object NetClient {
      * fingerprint 設定はこの一箇所で完結する (グローバル HttpsURLConnection 設定は不要)。
      */
     val client: OkHttpClient by lazy {
-        val tm = CompositeTrustManager { CompositeTrustManager.fingerprintsFromSettings() }
+        val tm = CompositeTrustManager()
         val sslContext = SSLContext.getInstance("TLS").apply {
             init(null, arrayOf<TrustManager>(tm), SecureRandom())
         }

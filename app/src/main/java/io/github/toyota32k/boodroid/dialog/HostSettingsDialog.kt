@@ -23,6 +23,7 @@ import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.data.*
 import io.github.toyota32k.boodroid.databinding.DialogHostSettingsBinding
 import io.github.toyota32k.boodroid.databinding.ListItemHostBinding
+import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.boodroid.viewmodel.HostSettingsViewModel
 import io.github.toyota32k.dialog.IUtDialog
 import io.github.toyota32k.dialog.UtDialogEx
@@ -174,5 +175,4 @@ class HostSettingsDialog : UtDialogEx() {
     override fun onNegative() {
         viewModel.checkOnClosing(false)
     }
-
 }

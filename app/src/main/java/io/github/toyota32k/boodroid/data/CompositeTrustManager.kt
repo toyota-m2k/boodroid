@@ -11,6 +11,19 @@ import javax.net.ssl.SSLSession
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
+interface IFingerprintSource {
+    val fingerprints: Set<String>
+    val pinnedHosts: Set<String>    // fingerprintを持っているHost一覧（ポート番号なし）
+}
+
+class FingerprintSourceImpl(private val getHostList:()->Collection<HostAddressEntity>) : IFingerprintSource {
+    private val pinnedEntities get() = getHostList().filter { !it.fingerprint.isNullOrBlank() }
+    override val fingerprints: Set<String>
+        get() = pinnedEntities.mapNotNull { it.fingerprint }.toSet()
+    override val pinnedHosts: Set<String>
+        get() = pinnedEntities.map { it.address.substringBefore(":") }.toSet()
+}
+
 /**
  * 「システム CA で検証 → ダメなら登録済 fingerprint との一致を確認」の合成 TrustManager。
  *
@@ -21,10 +34,7 @@ import javax.net.ssl.X509TrustManager
  * ペアリング情報 (fingerprint 一覧) は [AppViewModel.instance.settings.hostList] から動的に
  * 取得するので、設定変更後 (新ホスト追加・削除) も即時反映される。
  */
-class CompositeTrustManager(
-    private val pinnedFingerprintsProvider: () -> Set<String>,
-) : X509TrustManager {
-
+class CompositeTrustManager : X509TrustManager {
     private val systemTm: X509TrustManager by lazy {
         val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
         tmf.init(null as KeyStore?)
@@ -48,7 +58,7 @@ class CompositeTrustManager(
         }
         val sha = MessageDigest.getInstance("SHA-256").digest(chain[0].encoded)
         val actualHex = sha.joinToString("") { "%02X".format(it) }
-        val pinned = pinnedFingerprintsProvider()
+        val pinned = fingerprintSource.fingerprints
             .map { it.replace(":", "").replace("-", "").uppercase() }
             .toSet()
         if (actualHex in pinned) return
@@ -61,20 +71,19 @@ class CompositeTrustManager(
 
     companion object {
         /** Settings から現在 pin されている fingerprint の集合を取り出す。 */
-        fun fingerprintsFromSettings(): Set<String> = runCatching {
-            AppViewModel.instance.settings.hostList
-                .mapNotNull { it.fingerprint }
-                .filter { it.isNotEmpty() }
-                .toSet()
-        }.getOrDefault(emptySet())
+//        fun fingerprintsFromSettings(): Set<String> = runCatching {
+//            AppViewModel.instance.fingerprintSource.fingerprints
+//        }.getOrDefault(emptySet())
+//
+//        /** Settings から現在 pin されているホスト名 (ポートなし) の集合。 */
+//        fun pinnedHostsFromSettings(): Set<String> = runCatching {
+//            AppViewModel.instance.settings.hostList
+//                .filter { !it.fingerprint.isNullOrEmpty() }
+//                .map { it.address.substringBefore(":") }
+//                .toSet()
+//        }.getOrDefault(emptySet())
 
-        /** Settings から現在 pin されているホスト名 (ポートなし) の集合。 */
-        fun pinnedHostsFromSettings(): Set<String> = runCatching {
-            AppViewModel.instance.settings.hostList
-                .filter { !it.fingerprint.isNullOrEmpty() }
-                .map { it.address.substringBefore(":") }
-                .toSet()
-        }.getOrDefault(emptySet())
+        private val fingerprintSource get() = AppViewModel.instance.fingerprintSource
 
         /**
          * pin 済みホストはホスト名検証を省く HostnameVerifier。
@@ -84,7 +93,7 @@ class CompositeTrustManager(
         fun makeHostnameVerifier(): HostnameVerifier {
             val default = HttpsURLConnection.getDefaultHostnameVerifier()
             return HostnameVerifier { hostname: String, session: SSLSession ->
-                if (hostname in pinnedHostsFromSettings()) true
+                if (hostname in fingerprintSource.pinnedHosts) true
                 else default.verify(hostname, session)
             }
         }

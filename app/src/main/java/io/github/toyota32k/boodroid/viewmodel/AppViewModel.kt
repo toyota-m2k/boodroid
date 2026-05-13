@@ -18,6 +18,8 @@ import io.github.toyota32k.boodroid.WallpaperActivity
 import io.github.toyota32k.boodroid.auth.Authentication
 import io.github.toyota32k.boodroid.common.IUtPropertyHost
 import io.github.toyota32k.boodroid.data.ActiveHostTracker
+import io.github.toyota32k.boodroid.data.FingerprintSourceImpl
+import io.github.toyota32k.boodroid.data.IFingerprintSource
 import io.github.toyota32k.boodroid.data.NetClient
 import io.github.toyota32k.boodroid.data.QueryBuilder
 import io.github.toyota32k.boodroid.data.ServerCapability
@@ -356,6 +358,20 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
             }
             refreshCommand.invoke(false)
         }
+
+    private val _defaultFingerprintSource = FingerprintSourceImpl { settings.hostList }
+    private var _temporaryFingerprintSource: IFingerprintSource? = null
+
+    val fingerprintSource: IFingerprintSource
+        get() = _temporaryFingerprintSource ?: _defaultFingerprintSource
+
+    fun setTempFingerprintSource(src: IFingerprintSource) {
+        _temporaryFingerprintSource = src
+    }
+    fun resetTempFingerprintSource() {
+        _temporaryFingerprintSource = null
+    }
+
 
     /**
      * タイトルを表示するモード
