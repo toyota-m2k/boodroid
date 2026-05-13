@@ -272,6 +272,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                     resetable.value =
                         PlayerControllerModel.Builder(ctx, viewModelScope)
                             .dataSourceFactory(mediaDataSourceFactory)
+                            .customOkHttpClient(NetClient.client)
                             .supportChapter()
                             .supportPlaylist(mediaFeed, true, true)
                             .showNextPreviousButton()
