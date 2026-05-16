@@ -29,6 +29,8 @@ interface ICapability {
 }
 data class Capability(
     override val hostAddress: String,
+    /** true なら baseUrl で https スキームを使う */
+    val httpsOnly: Boolean,
     override val serverName:String,
     override val version:Int,                // protocol version
     override val root:String,
@@ -44,8 +46,9 @@ data class Capability(
     override val needAuth:Boolean,
     override val supportedTypes: String
 ) : ICapability {
-    constructor(hostAddress:String, j:JSONObject) : this(
+    constructor(hostAddress:String, httpsOnly:Boolean, j:JSONObject) : this(
         hostAddress,
+        httpsOnly = httpsOnly,
         serverName = j.optString("serverName", "unknown"),
         version = j.optInt("version", 0),
         root = j.optString("root", "/ytplayer/"),
@@ -62,11 +65,12 @@ data class Capability(
         supportedTypes  = j.optString("types", "")
     )
 
-    override val baseUrl : String get() = "http://${hostAddress}${root}"
+    override val baseUrl : String get() = "${if (httpsOnly) "https" else "http"}://${hostAddress}${root}"
 
     companion object {
         val empty = Capability(
             hostAddress = "",
+            httpsOnly = false,
             serverName = "unknown",
             version = 0,
             root = "/",
@@ -82,16 +86,16 @@ data class Capability(
             needAuth = false,
             supportedTypes = "va"
         )
-        suspend fun get(hostAddress: String):Capability? {
-//            if (!AppViewModel.instance.settings.isValid) return empty
+        suspend fun get(hostAddress: String, httpsOnly: Boolean = false):Capability? {
             return withContext(Dispatchers.IO) {
-                val url = "http://${hostAddress}/capability"
+                val scheme = if (httpsOnly) "https" else "http"
+                val url = "${scheme}://${hostAddress}/capability"
                 val req = Request.Builder()
                     .url(url)
                     .get()
                     .build()
                 try {
-                    Capability(hostAddress, NetClient.executeAndGetJsonAsync(req))
+                    Capability(hostAddress, httpsOnly, NetClient.executeAndGetJsonAsync(req))
                 } catch (e: Throwable) {
                     NetClient.logger.stackTrace(e)
                     null
@@ -104,9 +108,9 @@ data class Capability(
 data class ServerCapability(private val capability: Capability, val categoryList: CategoryList, val markList:MarkList, val ratingList:RatingList) : ICapability by capability {
     companion object {
         val empty:ServerCapability = ServerCapability(Capability.empty, CategoryList.emptyList, MarkList.emptyList, RatingList.emptyList)
-        suspend fun get(hostAddress:String?): ServerCapability? {
+        suspend fun get(hostAddress:String?, httpsOnly: Boolean = false): ServerCapability? {
             if(hostAddress==null) return null
-            val capability = Capability.get(hostAddress) ?: return null
+            val capability = Capability.get(hostAddress, httpsOnly) ?: return null
             return ServerCapability(
                 capability,
                 CategoryList.getCategoryList(capability),

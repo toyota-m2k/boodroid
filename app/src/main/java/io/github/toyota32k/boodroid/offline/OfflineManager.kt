@@ -87,7 +87,7 @@ class OfflineManager(context: Context) {
     private suspend fun registerVideo(videoItem: VideoItem, preferAudio: Boolean, progress: IDownloadProgress?):Boolean {
         logger.debug(videoItem.name)
         val url = videoItem.keyUrl() ?: return false
-2        if(isRegistered(url)) return false
+        if(isRegistered(url)) return false
 
         val req = Request.Builder()
             .url(videoItem.keyUrlPreferAudio()?:url)

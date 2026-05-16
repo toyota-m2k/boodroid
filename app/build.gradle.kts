@@ -85,12 +85,14 @@ dependencies {
 
     implementation(libs.media3.ui)
     implementation(libs.androidx.media3.common)
+    implementation(libs.media3.datasource.okhttp)
 
     implementation(libs.android.utilities)
     implementation(libs.android.binding)
     implementation(libs.android.dialog)
     implementation(libs.android.viewex)
     implementation(libs.android.media.player)
+    implementation(libs.zxing.android.embedded)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)

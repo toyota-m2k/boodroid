@@ -7,6 +7,8 @@ import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import io.github.toyota32k.binder.command.LiteCommand
 import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.list.ObservableList
@@ -15,6 +17,9 @@ import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.WallpaperActivity
 import io.github.toyota32k.boodroid.auth.Authentication
 import io.github.toyota32k.boodroid.common.IUtPropertyHost
+import io.github.toyota32k.boodroid.data.ActiveHostTracker
+import io.github.toyota32k.boodroid.data.FingerprintSourceImpl
+import io.github.toyota32k.boodroid.data.IFingerprintSource
 import io.github.toyota32k.boodroid.data.NetClient
 import io.github.toyota32k.boodroid.data.QueryBuilder
 import io.github.toyota32k.boodroid.data.ServerCapability
@@ -107,12 +112,16 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
 //            if(AppCompatDelegate.getDefaultNightMode()!=mode) {
 //                AppCompatDelegate.setDefaultNightMode(mode)
 //            }
+            // active host (mDNS 経由で発見されたエントリ) の IP/port 変動を常時追跡する。
+            // viewModelScope はアプリ存続中ずっと生きるので、実質アプリ起動中のバックグラウンド常駐。
+            ActiveHostTracker.start(viewModelScope)
         }
         return this
     }
 
     override fun onCleared() {
         logger.debug()
+        ActiveHostTracker.stop()
         super.onCleared()
     }
 
@@ -254,8 +263,16 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         fun fetch():PlayerControllerModel {
             synchronized(this) {
                 if (!resetable.hasValue) {
+                    val ctx = BooApplication.instance.applicationContext
+                    // ExoPlayer の HTTP/HTTPS 取得を NetClient と同じ OkHttpClient 経由にする。
+                    // これで自己署名 BooTube への HTTPS リクエストが NetClient の TrustManager で
+                    // 検証され、`Trust anchor not found` を回避できる。
+                    val okhttpDataSource = OkHttpDataSource.Factory(NetClient.client)
+                    val mediaDataSourceFactory = DefaultDataSource.Factory(ctx, okhttpDataSource)
                     resetable.value =
-                        PlayerControllerModel.Builder(BooApplication.instance.applicationContext, viewModelScope)
+                        PlayerControllerModel.Builder(ctx, viewModelScope)
+                            .dataSourceFactory(mediaDataSourceFactory)
+                            .customOkHttpClient(NetClient.client)
                             .supportChapter()
                             .supportPlaylist(mediaFeed, true, true)
                             .showNextPreviousButton()
@@ -342,6 +359,20 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
             }
             refreshCommand.invoke(false)
         }
+
+    private val _defaultFingerprintSource = FingerprintSourceImpl { settings.hostList }
+    private var _temporaryFingerprintSource: IFingerprintSource? = null
+
+    val fingerprintSource: IFingerprintSource
+        get() = _temporaryFingerprintSource ?: _defaultFingerprintSource
+
+    fun setTempFingerprintSource(src: IFingerprintSource) {
+        _temporaryFingerprintSource = src
+    }
+    fun resetTempFingerprintSource() {
+        _temporaryFingerprintSource = null
+    }
+
 
     /**
      * タイトルを表示するモード

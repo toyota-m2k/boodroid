@@ -2,13 +2,54 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="400dp"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    >
+    android:orientation="vertical">
+
+    <Button
+        android:id="@+id/discover_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/discover_servers" />
+
+    <TextView
+        android:id="@+id/discover_result_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="@string/discovered_servers_label"
+        android:textStyle="bold" />
+
+    <FrameLayout
+        android:id="@+id/discover_result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="60dp">
+
+        <TextView
+            android:id="@+id/empty_discovery_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:padding="8dp"
+            android:text="@string/no_servers_discovered" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/discovered_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxHeight="160dp"
+            android:scrollbars="vertical" />
+    </FrameLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginVertical="8dp"
+        android:background="?attr/colorOutline" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/host_address_label"
-        />
+        android:text="@string/host_address_label" />
     <EditText
         android:id="@+id/host_address"
         android:layout_width="match_parent"
@@ -16,13 +57,11 @@
         android:hint="@string/host_hint"
         android:autofillHints="@string/host_hint"
         android:inputType="textUri"
-        android:imeOptions="actionDone"
-        />
+        android:imeOptions="actionDone" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/host_name_label"
-        />
+        android:text="@string/host_name_label" />
     <EditText
         android:id="@+id/host_name"
         android:layout_width="match_parent"
@@ -30,6 +69,5 @@
         android:hint="@string/name_hint"
         android:autofillHints="@string/name_hint"
         android:inputType="text"
-        android:imeOptions="actionNext"
-        />
+        android:imeOptions="actionNext" />
 </LinearLayout>

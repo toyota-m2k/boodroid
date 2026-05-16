@@ -29,6 +29,8 @@ import io.github.toyota32k.binder.textBinding
 import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.boodroid.common.compatGetParcelableExtra
 import io.github.toyota32k.boodroid.common.compatRegisterReceiver
+import io.github.toyota32k.boodroid.data.PairingUri
+import io.github.toyota32k.boodroid.data.Settings
 import io.github.toyota32k.boodroid.databinding.ActivityMainBinding
 import io.github.toyota32k.boodroid.databinding.PanelVideoListBinding
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
@@ -37,6 +39,7 @@ import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.UtDialogHelper
 import io.github.toyota32k.dialog.broker.IUtActivityBrokerStoreProvider
 import io.github.toyota32k.dialog.broker.UtActivityBrokerStore
+import io.github.toyota32k.dialog.broker.UtPermissionBroker
 import io.github.toyota32k.dialog.broker.pickers.UtCreateFilePicker
 import io.github.toyota32k.dialog.mortal.UtMortalActivity
 import io.github.toyota32k.dialog.task.UtImmortalTask
@@ -59,7 +62,7 @@ import kotlinx.coroutines.flow.onStart
 
 class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     override val logger = UtLog("Main", BooApplication.logger)
-    override val activityBrokers = UtActivityBrokerStore(this, UtCreateFilePicker())
+    override val activityBrokers = UtActivityBrokerStore(this, UtCreateFilePicker(), UtPermissionBroker())
 
     private val binder = Binder()
     private val viewModel :MainViewModel by lazy { MainViewModel.instanceFor(this) }
@@ -327,7 +330,20 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     }
 
     private fun handleUriInIntent(intent:Intent?) : Boolean {
-        if(intent?.action == Intent.ACTION_SEND) {
+        if (intent == null) return false
+
+        // bootube:// スキーム (PairingQrDialog の QR からの起動)
+//        if (intent.action == Intent.ACTION_VIEW) {
+//            intent.data?.let { uri ->
+//                val pairing = PairingUri.parse(uri)
+//                if (pairing != null) {
+//                    acceptPairing(pairing)
+//                    return true
+//                }
+//            }
+//        }
+
+        if(intent.action == Intent.ACTION_SEND) {
             if(intent.type == "text/plain") {
                 intent.getStringExtra(Intent.EXTRA_TEXT)?.let {
                     logger.debug(it)
@@ -340,6 +356,40 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         }
         return false
     }
+
+    /**
+     * QR ペアリングで受け取った情報を確認ダイアログ経由でホストリストに追加する。
+     * 同一 address のエントリがあれば差し替え (fingerprint 更新等の運用ケースを救う)。
+     */
+//    private fun acceptPairing(pairing: PairingUri.Pairing) {
+//        UtImmortalTask.launchTask("acceptPairing") {
+//            val fpShort = pairing.fingerprint?.take(23)?.let { "$it..." } ?: "(none)"
+//            val msg = buildString {
+//                appendLine("Add this BooTube server?")
+//                appendLine()
+//                appendLine("Name: ${pairing.name}")
+//                appendLine("Address: ${pairing.host}:${pairing.port}")
+//                appendLine("Scheme: ${if (pairing.httpsOnly) "HTTPS" else "HTTP"}")
+//                append("Fingerprint: $fpShort")
+//            }
+//            if (showYesNoMessageBox(getString(R.string.app_name), msg)) {
+//                addPairedHost(pairing)
+//            }
+//        }
+//    }
+
+//    private fun addPairedHost(pairing: PairingUri.Pairing) {
+//        val entity = pairing.toEntity()
+//        val cur = AppViewModel.instance.settings
+//        val newList = cur.hostList.toMutableList()
+//        val idx = newList.indexOfFirst { it.address == entity.address }
+//        if (idx >= 0) newList[idx] = entity else newList.add(entity)
+//        val activeIdx = newList.indexOfFirst { it.address == entity.address }
+//        val newSettings = Settings(cur, hostList = newList, activeHostIndex = activeIdx)
+//        newSettings.save(this)
+//        // Settings.save 内部で AppViewModel.instance.settings = this の setter が走り、
+//        // refreshCommand が走ってリスト再取得される。
+//    }
 
     /**
      * 回転によるレイアウト変更を自力でやる。
