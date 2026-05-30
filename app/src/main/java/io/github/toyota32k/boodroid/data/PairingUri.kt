@@ -20,8 +20,8 @@ object PairingUri {
         val httpsOnly: Boolean,
     ) {
         fun toEntity(): HostAddressEntity = HostAddressEntity(
-            name = name,
-            address = "${host}:${port}",
+            name = "$serviceName@$name",
+            address = "$host:$port",
             serviceName = serviceName,
             fingerprint = fingerprint,
             isHttps = httpsOnly,
