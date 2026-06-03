@@ -36,7 +36,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="10dp"
             android:orientation="horizontal"
-            >
+            tools:ignore="UseCompoundDrawables">
             <TextView
                 android:id="@+id/name_text"
                 android:layout_width="wrap_content"
@@ -53,7 +53,7 @@
                 android:layout_height="14dp"
                 android:layout_marginStart="4dp"
                 android:src="@drawable/ic_lock"
-                app:tint="?attr/colorPrimaryVariant"
+                app:tint="?attr/colorSecondary"
                 android:layout_gravity="center_vertical"
                 />
         </LinearLayout>
