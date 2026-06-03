@@ -70,4 +70,10 @@
         android:autofillHints="@string/name_hint"
         android:inputType="text"
         android:imeOptions="actionNext" />
+    <CheckBox
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/use_https"
+        android:id="@+id/ssl_checkbox"
+        />
 </LinearLayout>

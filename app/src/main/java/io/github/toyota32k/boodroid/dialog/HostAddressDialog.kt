@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.binder.VisibilityBinding
+import io.github.toyota32k.binder.checkBinding
 import io.github.toyota32k.binder.combinatorialVisibilityBinding
 import io.github.toyota32k.binder.command.LiteCommand
 import io.github.toyota32k.binder.command.LiteUnitCommand
@@ -33,6 +34,7 @@ class HostAddressDialog : UtDialogEx() {
     class HostAddressDialogViewModel : UtDialogViewModel() {
         val name = MutableStateFlow("")
         val address = MutableStateFlow("")
+        val isHttps = MutableStateFlow(false)
 
         data class DiscoveredHostInfo(
             val serviceName: String,
@@ -92,7 +94,7 @@ class HostAddressDialog : UtDialogEx() {
                 address = address.value,
                 serviceName = selectedHost?.serviceName,
                 fingerprint = selectedHost?.fingerprint,
-                isHttps = selectedHost?.isHttps == true,
+                isHttps = selectedHost?.isHttps ?: isHttps.value,
                 hostname = selectedHost?.hostname,
                 )
         }
@@ -100,6 +102,7 @@ class HostAddressDialog : UtDialogEx() {
             if (src==null) return
             name.value = src.name
             address.value = src.address
+            isHttps.value = src.isHttps
             selectedHost = DiscoveredHostInfo.fromHostAddressEntity(src)
         }
 
@@ -107,6 +110,7 @@ class HostAddressDialog : UtDialogEx() {
         fun selectDiscovered(server: BooTubeDiscovery.DiscoveredServer) {
             name.value = server.serviceName
             address.value = "${server.host}:${server.port}"
+            isHttps.value = server.isHttps
             selectedHost = DiscoveredHostInfo(server.serviceName, server.fingerprint, server.isHttps, server.hostname)
         }
 
@@ -174,6 +178,7 @@ class HostAddressDialog : UtDialogEx() {
                 .owner(owner)
                 .editTextBinding(hostName, viewModel.name)
                 .editTextBinding(hostAddress, viewModel.address)
+                .checkBinding(sslCheckbox, viewModel.isHttps)
                 .dialogRightButtonEnable(viewModel.address.map { it.isNotBlank() })
                 .bindCommand(viewModel.commandDiscover, discoverButton)
                 .combinatorialVisibilityBinding(viewModel.discovering) {

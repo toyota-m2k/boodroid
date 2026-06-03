@@ -86,5 +86,6 @@
     <string name="prefer_audio">Prefer Audio</string>
     <string name="flip_camera">Flip Camera</string>
     <string name="discover_servers">Discover</string>
+    <string name="use_https">Use HTTPS</string>
 
 </resources>
