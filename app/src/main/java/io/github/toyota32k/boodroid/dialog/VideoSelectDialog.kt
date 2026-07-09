@@ -91,13 +91,12 @@ class VideoSelectDialog : UtDialogEx() {
                     OfflineManager.instance.updateFilter(videoList)
                     if (!AppViewModel.instance.offlineFilter && !enableFilter.value && isSelected) {
                         // 選択したがフィルターを有効化していない？
-                        UtImmortalTask.awaitTaskResult("confirmEnableFilter") {
+                        UtImmortalTask.awaitTaskCatching("confirmEnableFilter") {
                             val context = BooApplication.instance.applicationContext
                             fun s(@StringRes id: Int): String = context.getString(id)
                             if (showYesNoMessageBox(s(R.string.app_name), "Enable Filter")) {
                                 enableFilter.value = true
                             }
-                            true
                         }
                     }
                     AppViewModel.instance.updateOfflineMode(true, enableFilter.value, preferAudio = AppViewModel.instance.preferAudioOnOfflineMode, updateList = true)

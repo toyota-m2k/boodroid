@@ -214,7 +214,7 @@ class OfflineDialog : UtDialogEx() {
 //            AppViewModel.instance.settings = Settings(AppViewModel.instance.settings, offlineMode = offlineMode.value)
             val oldMode = AppViewModel.instance.offlineMode
             val newMode = if(!oldMode && !offlineMode.value && newList.isNotEmpty()) {
-                UtImmortalTask.awaitTaskResult("enterOfflineMode") {
+                UtImmortalTask.awaitTaskResultCatching("enterOfflineMode", false) {
                     showYesNoMessageBox(getStringOrNull(R.string.app_name), getStringOrNull(R.string.query_enter_offline_mode))
                 }
             } else offlineMode.value

@@ -145,7 +145,7 @@ class HostAddressDialog : UtDialogEx() {
 
     companion object {
         suspend fun getHostAddress(initialHost: HostAddressEntity?): HostAddressEntity? {
-            return UtImmortalTask.awaitTaskResult(HostAddressDialog::class.java.name) {
+            return UtImmortalTask.awaitTaskResultCatching(HostAddressDialog::class.java.name, null) {
                 val vm = createViewModel<HostAddressDialogViewModel> {
                     applyHostAddressEntity(initialHost)
                 }

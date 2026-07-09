@@ -37,7 +37,7 @@ class QRCodeDialog : UtDialogEx() {
         }
 
         suspend fun show(title:String?, prompt:String?, preCheck:(String)->Boolean):String? {
-            return UtImmortalTask.awaitTaskResult("PairingTask") {
+            return UtImmortalTask.awaitTaskResultCatching("PairingTask", null) {
                 val vm = createAndroidViewModel<QRCodeViewModel> {
                     if(title!=null) it.title.value = title
                     if(prompt!=null) it.promptMessage = prompt

@@ -109,7 +109,7 @@ class Authentication {
     suspend fun authentication(force:Boolean=false):Boolean {
         if(!AppViewModel.instance.needAuth) return true
         if(!force && checkAuthToken()) return true
-        return UtImmortalTask.awaitTaskResult("auth") {
+        return UtImmortalTask.awaitTaskResultCatching("auth", false) {
             createViewModel<PasswordDialog.PasswordViewModel> { authentication = this@Authentication }
             showDialog(taskName) { PasswordDialog() }.status.ok
         }
