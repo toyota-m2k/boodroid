@@ -68,10 +68,10 @@ class RatingDialog : UtDialogEx() {
                     }
                 }
                 .visibilityBinding(uploadProgressRing, viewModel.offlineDataHandling)
-                .multiVisibilityBinding(arrayOf(syncSelectionLabel, syncSelectionButtons), viewModel.supportSyncItemSelection.asConstantLiveData(), hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
-                .multiVisibilityBinding(arrayOf(ratingSelector, ratingLabel), viewModel.supportRating.asConstantLiveData(), hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
-                .multiVisibilityBinding(arrayOf(markSelector, markLabel), viewModel.supportMark.asConstantLiveData(), hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
-                .multiVisibilityBinding(arrayOf(categoryButton, categoryLabel), viewModel.supportCategory.asConstantLiveData(), hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+                .visibilityBinding(syncButtonsContainer, viewModel.supportSyncItemSelection.asConstantLiveData(), hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+                .visibilityBinding(ratingContainer, viewModel.supportRating.asConstantLiveData(), hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+                .visibilityBinding(markContainer, viewModel.supportMark.asConstantLiveData(), hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+                .visibilityBinding(categoryContainer, viewModel.supportCategory.asConstantLiveData(), hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
 //                .multiEnableBinding(arrayOf(syncUpButton, syncDownButton, ratingSelector, markSelector,categoryButton), viewModel.busy, boolConvert = BoolConvert.Inverse)
                 .bindCommand(LiteUnitCommand(this@RatingDialog::selectCategory), categoryButton)
                 .bindCommand(LiteUnitCommand(this@RatingDialog::syncUp), syncUpButton)

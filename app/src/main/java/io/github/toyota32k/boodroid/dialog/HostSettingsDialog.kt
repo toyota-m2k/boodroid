@@ -106,6 +106,7 @@ class HostSettingsDialog : UtDialogEx() {
                                     "${host.hostname} (${host.address})"
                                 else
                                     host.address
+                            itemControls.useSslBadge.visibility = if (host.isHttps) View.VISIBLE else View.GONE
                             itemBinder.reset()
                             itemBinder
                                 .owner(owner)

@@ -358,7 +358,7 @@ class HostSettingsViewModel : UtDialogViewModel() {
             BooApplication.instance.getString(id)
 
         suspend fun confirm(@StringRes id:Int):Boolean {
-            return UtImmortalTask.awaitTaskResult("confirm") {
+            return UtImmortalTask.awaitTaskResultCatching("confirm", false) {
                 showOkCancelMessageBox(getString(R.string.app_name), getString(id))
             }
         }
