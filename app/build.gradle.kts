@@ -8,14 +8,14 @@ plugins {
 
 configure<ApplicationExtension> {
     namespace = "io.github.toyota32k.boodroid"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "io.github.toyota32k.boodroid"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
-        versionName = "2.6.2"
+        versionName = "2.7.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -49,13 +49,17 @@ configure<ApplicationExtension> {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     buildFeatures {
         buildConfig = true
         viewBinding = true
     }
+}
+
+kotlin {
+    jvmToolchain(21)
 }
 
 dependencies {
