@@ -2,10 +2,13 @@
 
 package io.github.toyota32k.boodroid.viewmodel
 
+import android.Manifest
 import android.content.Intent
 import android.graphics.Bitmap
+import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
@@ -30,6 +33,7 @@ import io.github.toyota32k.boodroid.dialog.HostSettingsDialog
 import io.github.toyota32k.boodroid.dialog.PreferencesDialog
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
+import io.github.toyota32k.dialog.task.withActivity
 import io.github.toyota32k.lib.player.model.IMediaFeed
 import io.github.toyota32k.lib.player.model.IMediaSource
 import io.github.toyota32k.lib.player.model.IMediaSourceWithChapter
@@ -114,7 +118,20 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
 //            }
             // active host (mDNS 経由で発見されたエントリ) の IP/port 変動を常時追跡する。
             // viewModelScope はアプリ存続中ずっと生きるので、実質アプリ起動中のバックグラウンド常駐。
-            ActiveHostTracker.start(viewModelScope)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
+                UtImmortalTask.launchTask {
+                    val permitted = withActivity<MainActivity, Boolean> { activity ->
+                        val r = activity.activityBrokers.permissionBroker.requestPermission(Manifest.permission.ACCESS_LOCAL_NETWORK)
+                        if(!r) {
+                            logger.debug("ACCESS_LOCAL_NETWORK permission denied.")
+                        }
+                        r
+                    }
+                    if(permitted) {
+                        ActiveHostTracker.start(viewModelScope)
+                    }
+                }
+            }
         }
         return this
     }
