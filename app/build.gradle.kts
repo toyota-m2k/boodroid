@@ -8,14 +8,17 @@ plugins {
 
 configure<ApplicationExtension> {
     namespace = "io.github.toyota32k.boodroid"
-    compileSdk = 36
+    compileSdk {
+        version = release(37)
+        compileSdkMinor = 1
+    }
 
     defaultConfig {
         applicationId = "io.github.toyota32k.boodroid"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
-        versionName = "2.6.0"
+        versionName = "2.8.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -49,13 +52,17 @@ configure<ApplicationExtension> {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     buildFeatures {
         buildConfig = true
         viewBinding = true
     }
+}
+
+kotlin {
+    jvmToolchain(21)
 }
 
 dependencies {
@@ -92,6 +99,7 @@ dependencies {
     implementation(libs.android.dialog)
     implementation(libs.android.viewex)
     implementation(libs.android.media.player)
+    implementation(libs.android.logger)
     implementation(libs.zxing.android.embedded)
 
     testImplementation(libs.junit)

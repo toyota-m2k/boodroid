@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeoutOrNull
 import java.net.InetAddress
 import java.util.concurrent.Executor
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * mDNS-SD で BooTube プロトコル互換サーバを発見・解決するラッパ。
@@ -47,9 +48,9 @@ class BooTubeDiscovery(ctx: Context) {
         val hostname: String?,      // TXT hostname= の値 ("TOYOTA-PC.local" 等)。表示用
     )
 
-    private val appCtx = ctx.applicationContext
-    private val nsd = appCtx.getSystemService(Context.NSD_SERVICE) as NsdManager
-    private val wifi = appCtx.getSystemService(Context.WIFI_SERVICE) as WifiManager
+//    private val appCtx = ctx.applicationContext
+    private val nsd = ctx.getSystemService(Context.NSD_SERVICE) as NsdManager
+    private val wifi = ctx.getSystemService(Context.WIFI_SERVICE) as WifiManager
     private var multicastLock: WifiManager.MulticastLock? = null
     private var discoveryListener: NsdManager.DiscoveryListener? = null
 
@@ -132,7 +133,7 @@ class BooTubeDiscovery(ctx: Context) {
     /** API 34+ パス: ServiceInfoCallback で IP/port/TXT を取得する。 */
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     private fun resolveWithCallback(info: NsdServiceInfo) {
-        val executor: Executor = ContextCompat.getMainExecutor(appCtx)
+        val executor: Executor = ContextCompat.getMainExecutor(BooApplication.instance)
         val callback = object : NsdManager.ServiceInfoCallback {
             override fun onServiceInfoCallbackRegistrationFailed(errorCode: Int) {
                 logger.warn("ServiceInfoCallback registration failed: $errorCode")
@@ -235,7 +236,7 @@ class BooTubeDiscovery(ctx: Context) {
             val discovery = BooTubeDiscovery(ctx)
             return try {
                 discovery.start()
-                withTimeoutOrNull(timeoutMs) {
+                withTimeoutOrNull(timeoutMs.milliseconds) {
                     discovery.services
                         .first { list -> list.any { it.serviceName == serviceInstanceName } }
                         .first { it.serviceName == serviceInstanceName }

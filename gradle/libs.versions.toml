@@ -1,13 +1,13 @@
 [versions]
 # plugins
-androidGradlePlugin = "9.2.1"
+androidGradlePlugin = "9.3.0"
 # ksp のバージョンは、kotlin_version と同じ世代のものを指定する必要がある。
 # https://github.com/google/ksp/releases で確認する。
 # ↑は ksp 1.x の時代のルールらしい。2.x以降は、kotlinのバージョンへには依存しなくなった模様。
 ksp = "2.3.4"
 
 # libraries
-coreKtx = "1.18.0"
+coreKtx = "1.19.0"
 appcompat = "1.7.1"
 constraintLayout = "2.2.1"
 material = "1.14.0"
@@ -23,11 +23,13 @@ media3Ui = "1.10.1"
 junit = "4.13.2"
 androidxTestExtJunit = "1.3.0"
 espressoCore = "3.7.0"
-androidUtilities = "4.14.0"
-androidBinding = "1.13.0"
-androidDialog = "7.0.0"
-androidViewEx = "1.1.21"
-androidMediaPlayer = "4.7.5"
+
+androidLogger = "2.2.3"
+androidUtilities = "4.16.3"
+androidBinding = "1.15.3"
+androidDialog = "7.2.1"
+androidViewEx = "1.2.1"
+androidMediaPlayer = "4.8.2"
 preferenceKtx = "1.2.1"
 recyclerview = "1.4.0"
 roomRuntime = "2.8.4"
@@ -59,6 +61,7 @@ android-binding = { group = "com.github.toyota-m2k", name = "android-binding", v
 android-dialog = { group = "com.github.toyota-m2k", name = "android-dialog", version.ref = "androidDialog" }
 android-viewex = { group = "com.github.toyota-m2k", name = "android-viewex", version.ref = "androidViewEx" }
 android-media-player = { group = "com.github.toyota-m2k", name="android-media-player", version.ref = "androidMediaPlayer" }
+android-logger = { module = "com.github.toyota-m2k:android-logger", version.ref = "androidLogger" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
