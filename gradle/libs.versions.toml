@@ -1,6 +1,6 @@
 [versions]
 # plugins
-androidGradlePlugin = "9.3.0"
+androidGradlePlugin = "9.3.1"
 # ksp のバージョンは、kotlin_version と同じ世代のものを指定する必要がある。
 # https://github.com/google/ksp/releases で確認する。
 # ↑は ksp 1.x の時代のルールらしい。2.x以降は、kotlinのバージョンへには依存しなくなった模様。
@@ -29,7 +29,7 @@ androidUtilities = "4.16.3"
 androidBinding = "1.15.3"
 androidDialog = "7.2.1"
 androidViewEx = "1.2.1"
-androidMediaPlayer = "4.8.2"
+androidMediaPlayer = "4.9.0"
 preferenceKtx = "1.2.1"
 recyclerview = "1.4.0"
 roomRuntime = "2.8.4"
