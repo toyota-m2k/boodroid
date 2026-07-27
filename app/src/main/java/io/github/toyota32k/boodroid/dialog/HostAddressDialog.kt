@@ -1,5 +1,7 @@
 package io.github.toyota32k.boodroid.dialog
 
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.viewModelScope
@@ -14,6 +16,7 @@ import io.github.toyota32k.binder.list.ObservableList
 import io.github.toyota32k.binder.recyclerViewBindingEx
 import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.boodroid.BooApplication
+import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.data.BooTubeDiscovery
 import io.github.toyota32k.boodroid.data.HostAddressEntity
@@ -24,6 +27,7 @@ import io.github.toyota32k.dialog.task.UtDialogViewModel
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.dialog.task.getViewModel
+import io.github.toyota32k.dialog.task.withActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -121,24 +125,36 @@ class HostAddressDialog : UtDialogEx() {
 
         val discovering = MutableStateFlow<Boolean>(false)
         val commandDiscover = LiteUnitCommand {
-            // （開始されていなければ）mDNSの検索を開始する
-            if (!discovering.value) {
-                // ユーザが address を手で書き換えたら mDNS メタを破棄する
-                // (発見元の serviceName と無関係な host を指定された可能性があるため)
-                address.onEach { newAddr ->
-                    val matched = discoveryModel.discoveredServers.any {
-                        "${it.host}:${it.port}" == newAddr
+            UtImmortalTask.launchTask {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
+                    val permitted = withActivity<MainActivity, Boolean> { activity ->
+                        activity.activityBrokers.permissionBroker.requestPermission(Manifest.permission.ACCESS_FINE_LOCATION)
                     }
-                    if (!matched) resetDiscoveryMeta()
-                }.launchIn(viewModelScope)
+                    if (!permitted) {
+                        logger.warn("ACCESS_FINE_LOCATION permission denied. mDNS discovery cannot be performed.")
+                        return@launchTask
 
-                discovering.value = true
-                discoveryModel.start(viewModelScope)
+                    }
+                }
+                // （開始されていなければ）mDNSの検索を開始する
+                if (!discovering.value) {
+                    // ユーザが address を手で書き換えたら mDNS メタを破棄する
+                    // (発見元の serviceName と無関係な host を指定された可能性があるため)
+                    address.onEach { newAddr ->
+                        val matched = discoveryModel.discoveredServers.any {
+                            "${it.host}:${it.port}" == newAddr
+                        }
+                        if (!matched) resetDiscoveryMeta()
+                    }.launchIn(viewModelScope)
+
+                    discovering.value = true
+                    discoveryModel.start(viewModelScope)
+                }
             }
         }
 
         override fun onCleared() {
-            super.onCleared()
+//            super.onCleared()
             discoveryModel.stop()
         }
     }
@@ -163,7 +179,7 @@ class HostAddressDialog : UtDialogEx() {
         draggable = true
         guardColor = GuardColor.DIM
         widthOption = WidthOption.LIMIT(400)
-        heightOption = HeightOption.COMPACT
+        heightOption = HeightOption.AUTO_SCROLL
         gravityOption = GravityOption.CENTER
         leftButtonType = ButtonType.CANCEL
         rightButtonType = ButtonType.OK

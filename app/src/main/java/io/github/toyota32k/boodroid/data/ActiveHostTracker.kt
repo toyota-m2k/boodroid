@@ -37,15 +37,15 @@ object ActiveHostTracker {
         synchronized(this) {
             if (discovery != null) return
             val ctx = BooApplication.instance.applicationContext
-            val d = BooTubeDiscovery(ctx)
-            discovery = d
-            d.start()
-            collectorJob = scope.launch {
-                d.services.collect { servers ->
-                    handleServerUpdates(servers)
+            discovery = BooTubeDiscovery(ctx).apply {
+                start()
+                collectorJob = scope.launch {
+                    services.collect { servers ->
+                        handleServerUpdates(servers)
+                    }
                 }
+                logger.debug("ActiveHostTracker started")
             }
-            logger.debug("ActiveHostTracker started")
         }
     }
 
