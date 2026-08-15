@@ -296,7 +296,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                             .supportFullscreen()
                             .supportPiP()
                             .supportSnapshot(::saveBitmap)
-                            .enableSeekMedium(5000,15000)
+                            .enableSeekMedium(-1,-1) // key-frame seek
                             .enableVolumeController(true)
                             .enablePhotoViewer(settings.slideInterval.seconds, photoSizeOption = PhotoSizeOption.LimitByScreen)
                             .enableRotateRight()

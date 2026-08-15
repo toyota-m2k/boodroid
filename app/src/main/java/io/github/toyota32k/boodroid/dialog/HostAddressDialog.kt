@@ -27,6 +27,7 @@ import io.github.toyota32k.dialog.task.UtDialogViewModel
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.dialog.task.getViewModel
+import io.github.toyota32k.dialog.task.showConfirmMessageBox
 import io.github.toyota32k.dialog.task.withActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -128,10 +129,11 @@ class HostAddressDialog : UtDialogEx() {
             UtImmortalTask.launchTask {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
                     val permitted = withActivity<MainActivity, Boolean> { activity ->
-                        activity.activityBrokers.permissionBroker.requestPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                        activity.activityBrokers.permissionBroker.requestPermission(Manifest.permission.ACCESS_LOCAL_NETWORK)
                     }
                     if (!permitted) {
-                        logger.warn("ACCESS_FINE_LOCATION permission denied. mDNS discovery cannot be performed.")
+                        logger.warn("ACCESS_LOCAL_NETWORK permission denied. mDNS discovery cannot be performed.")
+                        showConfirmMessageBox("mDNS", "ACCESS_LOCAL_NETWORK permission denied. mDNS discovery cannot be performed.")
                         return@launchTask
 
                     }
