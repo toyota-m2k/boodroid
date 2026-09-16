@@ -12,6 +12,7 @@ import io.github.toyota32k.dialog.UtStandardString
 import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.logger.UtLogConfig
 import io.github.toyota32k.utils.UtLazyResetableValue
+import io.github.toyota32k.utils.UtLib
 
 class BooApplication : Application(), ViewModelStoreOwner {
     private val mViewModelStore = UtLazyResetableValue { ViewModelStore() }
@@ -31,7 +32,7 @@ class BooApplication : Application(), ViewModelStoreOwner {
 
     override fun onCreate() {
         super.onCreate()
-        UtStandardString.setContext(applicationContext,null)
+        UtLib.initialize(applicationContext)
         UtDialogConfig.apply {
             solidBackgroundOnPhone = false
             showDialogImmediately = UtDialogConfig.ShowDialogMode.Commit
