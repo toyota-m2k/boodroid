@@ -1,6 +1,5 @@
 package io.github.toyota32k.boodroid
 
-import android.Manifest
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
@@ -30,14 +29,13 @@ import io.github.toyota32k.binder.textBinding
 import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.boodroid.common.compatGetParcelableExtra
 import io.github.toyota32k.boodroid.common.compatRegisterReceiver
-import io.github.toyota32k.boodroid.data.PairingUri
-import io.github.toyota32k.boodroid.data.Settings
 import io.github.toyota32k.boodroid.databinding.ActivityMainBinding
 import io.github.toyota32k.boodroid.databinding.PanelVideoListBinding
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.boodroid.viewmodel.MainViewModel
 import io.github.toyota32k.dialog.UtDialogConfig
 import io.github.toyota32k.dialog.UtDialogHelper
+import io.github.toyota32k.dialog.UtRadioSelectionBox
 import io.github.toyota32k.dialog.broker.IUtActivityBrokerStoreProvider
 import io.github.toyota32k.dialog.broker.UtActivityBrokerStore
 import io.github.toyota32k.dialog.broker.UtPermissionBroker
@@ -60,7 +58,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.launch
 
 class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     override val logger = UtLog("Main", BooApplication.logger)
@@ -181,6 +178,9 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
                 onTap {
                     playerModel.togglePlay()
                 }
+                onLongTap {
+                    selectSecureMode()
+                }
                 onDoubleTap {
                     gestureManager.agent.resetScrollAndScale()
                 }
@@ -205,6 +205,32 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     private val mediaSession by lazy { MediaSession(this, "Boo") }
     private val compatBackKeyDispatcher = CompatBackKeyDispatcher()
 
+
+    fun selectSecureMode() {
+        val current = (window.attributes.flags and WindowManager.LayoutParams.FLAG_SECURE) != 0
+        UtImmortalTask.launchTask("setSecureMode") {
+            val next = showDialog(taskName) { UtRadioSelectionBox.create("Secure Mode", arrayOf("Allow Capture", "Disallow Capture"), if(current) 1 else 0) }.selectedIndex == 1
+            if(current!=next) {
+                if(next) {
+                    window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                } else {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                }
+            }
+            true
+        }
+    }
+
+    private fun setSecureMode(sm:Boolean) {
+        if (sm) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
+    }
+
+    private var watchingSecureMode:Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         //setTheme(AppViewModel.instance.settings.themeId)
         appViewModel.settings.applyTheme(this)
@@ -214,7 +240,19 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         landscape = resources.configuration.isLandscape
         initViews()
 
+        if (!watchingSecureMode) {
+            logger.debug("WSM: begin")
+            watchingSecureMode = true
 
+            appViewModel.capability.onEach { cap ->
+                setSecureMode(cap.needAuth)
+            }.onCompletion {
+                logger.debug("WSM: end")
+                watchingSecureMode = false
+            }.launchIn(lifecycleScope)
+        } else {
+            logger.debug("WSM: already watching")
+        }
 //        lifecycleScope.launch {
 //            repeatOnLifecycle(Lifecycle.State.STARTED) {
 //                logger.debug("collection START")
