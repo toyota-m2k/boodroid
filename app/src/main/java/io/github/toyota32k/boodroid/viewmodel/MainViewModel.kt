@@ -10,6 +10,7 @@ import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.boodroid.data.NetClient
+import io.github.toyota32k.boodroid.data.PlayInfoOnHost
 import io.github.toyota32k.boodroid.data.ServerCapability
 import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.boodroid.data.VideoListSource
@@ -86,6 +87,9 @@ class MainViewModel : ViewModel() {
         if (current != null) {
             val pos = playerModel.playerSeekPosition.value
             LastPlayInfo.set(BooApplication.instance.applicationContext, current.id, pos, true)
+            appViewModel.settings.hostAddress?.also { address ->
+                PlayInfoOnHost.set(address, current.id, pos)
+            }
         }
     }
 
@@ -111,6 +115,7 @@ class MainViewModel : ViewModel() {
 
     var serverAvailable: Boolean = false
         private set
+
     private fun refreshVideoListFromServer() {
         AppViewModel.logger.debug()
         viewModelScope.launch {
@@ -137,9 +142,10 @@ class MainViewModel : ViewModel() {
             }
             if(src!=null) {
                 lastUpdate = src.modifiedDate
-                AppViewModel.logger.debug("list.count=${src.list.size}")
-                val pos = getPlayPositionInfo(src.list)
-                src.setCurrentSource(pos.index, pos.position)
+                AppViewModel.instance.popPlayingPosition(src)
+//                AppViewModel.logger.debug("list.count=${src.list.size}")
+//                val pos = getPlayPositionInfo(src.list)
+//                src.setCurrentSource(pos.index, pos.position)
 //                if(updateTimerTask==null) {
 //                    updateTimerTask = Timer().run {
 //                        schedule(60000,60000) {
@@ -181,12 +187,15 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun refreshVideoList(settingIfNotServerAvailable:Boolean) {
-        savePlayPositionInfo()
+    fun refreshVideoList(manualRefresh:Boolean) {
+        if (manualRefresh) {
+            // 手動更新の場合は、再生位置を保存しておく
+            savePlayPositionInfo()
+        }
         if(AppViewModel.instance.offlineMode) {
             refreshVideoListFromLocal()
         } else {
-            if(!serverAvailable && settingIfNotServerAvailable) {
+            if(!serverAvailable && manualRefresh) {
                 AppViewModel.instance.hostSettingsCommand.invoke()
             } else {
                 refreshVideoListFromServer()

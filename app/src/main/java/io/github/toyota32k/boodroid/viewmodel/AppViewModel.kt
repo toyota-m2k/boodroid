@@ -24,6 +24,7 @@ import io.github.toyota32k.boodroid.data.ActiveHostTracker
 import io.github.toyota32k.boodroid.data.FingerprintSourceImpl
 import io.github.toyota32k.boodroid.data.IFingerprintSource
 import io.github.toyota32k.boodroid.data.NetClient
+import io.github.toyota32k.boodroid.data.PlayInfoOnHost
 import io.github.toyota32k.boodroid.data.QueryBuilder
 import io.github.toyota32k.boodroid.data.ServerCapability
 import io.github.toyota32k.boodroid.data.Settings
@@ -336,11 +337,42 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
 
     // region Settings / Offline Mode
 
+    fun pushPlayingInfo(pause:Boolean) {
+        val address = if (settings.offlineMode) "#" else settings.hostAddress
+        if (address!=null) {
+            controlPanelModelSource.withModel {
+                val current = it.playerModel.currentSource.value
+                if (current != null) {
+                    val isPlaying = it.playerModel.isPlaying.value
+                    if (isPlaying && pause) {
+                        it.playerModel.pause()
+                    }
+                    val pos = it.playerModel.playerSeekPosition.value
+                    PlayInfoOnHost.set(address, current.id, pos)
+                }
+            }
+        }
+    }
+
+    fun popPlayingPosition(source:VideoListSource) {
+        val address = settings.hostAddress
+        if (address!=null) {
+            val info = PlayInfoOnHost.get(address)
+            if (info != null) {
+                val index = source.list.indexOfFirst { it.id == info.id }
+                if (index >= 0) {
+                    source.setCurrentSource(index, info.position)
+                }
+            }
+        }
+    }
+
     /**
      * 設定ダイアログを開く
      */
     val hostSettingsCommand = LiteUnitCommand {
         UtImmortalTask.launchTask("settings") {
+            pushPlayingInfo(pause=true)
             createViewModel<HostSettingsViewModel> { prepare() }
             showDialog(taskName) { HostSettingsDialog() }
         }
@@ -352,9 +384,9 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
 
     /**
      * サーバーの設定などが変更され、動画リストの更新が必要になったことを知らせるイベント
-     * arg:
-     * false: 無条件にリストの再取得を行う
-     * true: サーバーエラーが起きていたら設定画面を開く。エラーが起きていなければリストの再取得を行う
+     * args: manualRefresh:Boolean
+     * - false: Settings変更後の更新：無条件にリストの再取得を行う
+     * - true: リフレッシュボタン押下時の更新： サーバーエラーが起きていたら設定画面を開く。エラーが起きていなければリストの再取得を行う
      *      *
      */
     val refreshCommand = LiteCommand<Boolean>()

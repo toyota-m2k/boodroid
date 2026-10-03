@@ -11,6 +11,7 @@ import io.github.toyota32k.boodroid.common.PackageUtil
 import io.github.toyota32k.boodroid.data.BooTubeDiscovery
 import io.github.toyota32k.boodroid.data.FingerprintSourceImpl
 import io.github.toyota32k.boodroid.data.HostAddressEntity
+import io.github.toyota32k.boodroid.data.PlayInfoOnHost
 import io.github.toyota32k.boodroid.data.ServerCapability
 import io.github.toyota32k.boodroid.data.Settings
 import io.github.toyota32k.boodroid.data.SettingsOnServer
@@ -179,6 +180,7 @@ class HostSettingsViewModel : UtDialogViewModel() {
                     if(index == activeHostIndex) {
                         activeHost.value = hostList.firstOrNull()
                     }
+                    PlayInfoOnHost.remove(entity.address)
                 }
             }
         }
