@@ -97,6 +97,7 @@ dependencies {
     implementation(libs.android.utilities)
     implementation(libs.android.binding)
     implementation(libs.android.dialog)
+    implementation(libs.android.themes)
     implementation(libs.android.viewex)
     implementation(libs.android.media.player)
     implementation(libs.android.logger)

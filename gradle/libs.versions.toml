@@ -28,6 +28,7 @@ androidLogger = "2.3.3"
 androidUtilities = "4.18.0"
 androidBinding = "1.16.2"
 androidDialog = "7.3.1"
+androidThemes = "0.0.4"
 androidViewEx = "1.2.4"
 androidMediaPlayer = "4.12.0"
 preferenceKtx = "1.2.1"
@@ -59,6 +60,7 @@ media3-datasource-okhttp = { group = "androidx.media3", name = "media3-datasourc
 android-utilities = { group = "com.github.toyota-m2k", name = "android-utilities", version.ref = "androidUtilities" }
 android-binding = { group = "com.github.toyota-m2k", name = "android-binding", version.ref = "androidBinding" }
 android-dialog = { group = "com.github.toyota-m2k", name = "android-dialog", version.ref = "androidDialog" }
+android-themes = { module = "com.github.toyota-m2k:android-themes", version.ref = "androidThemes" }
 android-viewex = { group = "com.github.toyota-m2k", name = "android-viewex", version.ref = "androidViewEx" }
 android-media-player = { group = "com.github.toyota-m2k", name="android-media-player", version.ref = "androidMediaPlayer" }
 android-logger = { module = "com.github.toyota-m2k:android-logger", version.ref = "androidLogger" }
