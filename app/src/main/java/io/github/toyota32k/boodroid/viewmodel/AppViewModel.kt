@@ -8,7 +8,6 @@ import android.graphics.Bitmap
 import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
@@ -337,7 +336,11 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
 
     // region Settings / Offline Mode
 
-    fun pushPlayingInfo(pause:Boolean) {
+    /**
+     * BooTube上で再生中の動画の情報を保存する。
+     * @param   pause 保存前に再生中の動画を一時停止するかどうか
+     */
+    fun storePlayingInfo(pause:Boolean) {
         val address = if (settings.offlineMode) "#" else settings.hostAddress
         if (address!=null) {
             controlPanelModelSource.withModel {
@@ -348,13 +351,13 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                         it.playerModel.pause()
                     }
                     val pos = it.playerModel.playerSeekPosition.value
-                    PlayInfoOnHost.set(address, current.id, pos)
+                    PlayInfoOnHost.set(address, current.id, pos, isPlaying)
                 }
             }
         }
     }
 
-    fun popPlayingPosition(source:VideoListSource) {
+    fun resumePlayingPosition(source:VideoListSource) {
         val address = settings.hostAddress
         if (address!=null) {
             val info = PlayInfoOnHost.get(address)
@@ -372,7 +375,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
      */
     val hostSettingsCommand = LiteUnitCommand {
         UtImmortalTask.launchTask("settings") {
-            pushPlayingInfo(pause=true)
+            storePlayingInfo(pause=true)
             createViewModel<HostSettingsViewModel> { prepare() }
             showDialog(taskName) { HostSettingsDialog() }
         }

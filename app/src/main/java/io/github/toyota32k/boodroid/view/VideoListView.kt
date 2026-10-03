@@ -14,7 +14,6 @@ import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.binder.command.bindCommand
 import io.github.toyota32k.binder.genericBoolBinding
 import io.github.toyota32k.binder.recyclerViewBindingEx
-import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.boodroid.databinding.ListItemVideoBinding
 import io.github.toyota32k.boodroid.dialog.RatingDialog
@@ -83,7 +82,7 @@ class VideoListView @JvmOverloads constructor(
                 if (pos >= 0) {
                     scrollToPosition(pos)
                 }
-                LastPlayInfo.set(owner as Context, it.id, null, null)
+//                LastPlayInfo.set(owner as Context, it.id, null, null)
             }
         }.launchIn(owner.lifecycleScope)
 

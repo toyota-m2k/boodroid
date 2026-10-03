@@ -8,9 +8,7 @@ import io.github.toyota32k.binder.command.LiteUnitCommand
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.MainActivity
 import io.github.toyota32k.boodroid.R
-import io.github.toyota32k.boodroid.data.LastPlayInfo
 import io.github.toyota32k.boodroid.data.NetClient
-import io.github.toyota32k.boodroid.data.PlayInfoOnHost
 import io.github.toyota32k.boodroid.data.ServerCapability
 import io.github.toyota32k.boodroid.data.VideoItem
 import io.github.toyota32k.boodroid.data.VideoListSource
@@ -19,7 +17,6 @@ import io.github.toyota32k.boodroid.dialog.VideoSelectDialog
 import io.github.toyota32k.boodroid.offline.OfflineManager
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.showConfirmMessageBox
-import io.github.toyota32k.lib.player.model.IMediaSource
 import io.github.toyota32k.lib.player.model.PlayerControllerModel
 import io.github.toyota32k.logger.UtLog
 import kotlinx.coroutines.CoroutineScope
@@ -82,36 +79,36 @@ class MainViewModel : ViewModel() {
 
     private data class PlayPositionInfo(val index:Int, val position:Long)
 
-    fun savePlayPositionInfo() {
-        val current = playerModel.currentSource.value
-        if (current != null) {
-            val pos = playerModel.playerSeekPosition.value
-            LastPlayInfo.set(BooApplication.instance.applicationContext, current.id, pos, true)
-            appViewModel.settings.hostAddress?.also { address ->
-                PlayInfoOnHost.set(address, current.id, pos)
-            }
-        }
-    }
-
-    private fun getPlayPositionInfo(list:List<IMediaSource>):PlayPositionInfo {
-        var index = -1
-        var position = 0L
-        // 再生中なら、同じ場所から再開
-        val current = playerModel.currentSource.value
-        if(current!=null) {
-            index = list.indexOfFirst { it.id == current.id }
-            position = playerModel.playerSeekPosition.value
-        }
-        // 再生中でなければ、前回の再生位置から復元
-        if(index<0) {
-            val lpi = LastPlayInfo.get(BooApplication.instance)
-            if (lpi != null) {
-                index = list.indexOfFirst { lpi.id == it.id }
-                position = if (index >= 0) lpi.position else 0L
-            }
-        }
-        return PlayPositionInfo(index, position)
-    }
+//    fun savePlayPositionInfo() {
+//        val current = playerModel.currentSource.value
+//        if (current != null) {
+//            val pos = playerModel.playerSeekPosition.value
+//            LastPlayInfo.set(BooApplication.instance.applicationContext, current.id, pos, true)
+//            appViewModel.settings.hostAddress?.also { address ->
+//                PlayInfoOnHost.set(address, current.id, pos)
+//            }
+//        }
+//    }
+//
+//    private fun getPlayPositionInfo(list:List<IMediaSource>):PlayPositionInfo {
+//        var index = -1
+//        var position = 0L
+//        // 再生中なら、同じ場所から再開
+//        val current = playerModel.currentSource.value
+//        if(current!=null) {
+//            index = list.indexOfFirst { it.id == current.id }
+//            position = playerModel.playerSeekPosition.value
+//        }
+//        // 再生中でなければ、前回の再生位置から復元
+//        if(index<0) {
+//            val lpi = LastPlayInfo.get(BooApplication.instance)
+//            if (lpi != null) {
+//                index = list.indexOfFirst { lpi.id == it.id }
+//                position = if (index >= 0) lpi.position else 0L
+//            }
+//        }
+//        return PlayPositionInfo(index, position)
+//    }
 
     var serverAvailable: Boolean = false
         private set
@@ -142,7 +139,7 @@ class MainViewModel : ViewModel() {
             }
             if(src!=null) {
                 lastUpdate = src.modifiedDate
-                AppViewModel.instance.popPlayingPosition(src)
+                AppViewModel.instance.resumePlayingPosition(src)
 //                AppViewModel.logger.debug("list.count=${src.list.size}")
 //                val pos = getPlayPositionInfo(src.list)
 //                src.setCurrentSource(pos.index, pos.position)
@@ -177,20 +174,19 @@ class MainViewModel : ViewModel() {
             UtImmortalTask.launchTask("emptyOfflineMode") {
                 val context = BooApplication.instance
                 showConfirmMessageBox(context.getString(R.string.offline_mode), context.getString(R.string.offline_empty_list))
-                true
             }
         }
 
-        val pos = getPlayPositionInfo(list)
         appViewModel.videoListSource = VideoListSource(list, lastUpdate).apply {
-            setCurrentSource(pos.index, pos.position)
+            AppViewModel.instance.resumePlayingPosition(this)
+//            setCurrentSource(pos.index, pos.position)
         }
     }
 
     fun refreshVideoList(manualRefresh:Boolean) {
         if (manualRefresh) {
             // 手動更新の場合は、再生位置を保存しておく
-            savePlayPositionInfo()
+            appViewModel.storePlayingInfo(false)
         }
         if(AppViewModel.instance.offlineMode) {
             refreshVideoListFromLocal()
