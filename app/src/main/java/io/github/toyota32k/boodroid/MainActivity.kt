@@ -469,7 +469,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         super.onPause()
         logger.debug()
         keepScreenOn(false)
-        appViewModel.storePlayingInfo(false)
+        appViewModel.storeCurrentPlayingInfo(false)
     }
 
     override fun onStop() {

@@ -340,7 +340,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
      * BooTube上で再生中の動画の情報を保存する。
      * @param   pause 保存前に再生中の動画を一時停止するかどうか
      */
-    fun storePlayingInfo(pause:Boolean) {
+    fun storeCurrentPlayingInfo(pause:Boolean) {
         val address = if (settings.offlineMode) "#" else settings.hostAddress
         if (address!=null) {
             controlPanelModelSource.withModel {
@@ -357,8 +357,8 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         }
     }
 
-    fun resumePlayingPosition(source:VideoListSource) {
-        val address = settings.hostAddress
+    fun restoreLastPlayingPosition(source:VideoListSource) {
+        val address = if (settings.offlineMode) "#" else settings.hostAddress
         if (address!=null) {
             val info = PlayInfoOnHost.get(address)
             if (info != null) {
@@ -375,7 +375,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
      */
     val hostSettingsCommand = LiteUnitCommand {
         UtImmortalTask.launchTask("settings") {
-            storePlayingInfo(pause=true)
+            storeCurrentPlayingInfo(pause=true)
             createViewModel<HostSettingsViewModel> { prepare() }
             showDialog(taskName) { HostSettingsDialog() }
         }
@@ -450,6 +450,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
     fun updateOfflineMode(mode:Boolean, filter:Boolean, updateList:Boolean, preferAudio:Boolean) {
         if(settings.offlineMode != mode || settings.offlineFilter != filter || settings.preferAudioOnOfflineMode != preferAudio) {
             // モードが変更になった場合、Settings.save() --> AppViewModel#settings のセッターで refresh コマンドが呼ばれる
+            AppViewModel.instance.storeCurrentPlayingInfo(false)
             Settings(settings, offlineMode = mode, offlineFilter = filter, preferAudioOnOfflineMode = preferAudio).save(BooApplication.instance.applicationContext)
         } else if(mode && updateList) {
             // オフラインモードのまま変わらない場合、リストが更新された時は、明示的にrefreshする

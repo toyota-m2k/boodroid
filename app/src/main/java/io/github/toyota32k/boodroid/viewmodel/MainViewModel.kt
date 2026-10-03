@@ -139,7 +139,7 @@ class MainViewModel : ViewModel() {
             }
             if(src!=null) {
                 lastUpdate = src.modifiedDate
-                AppViewModel.instance.resumePlayingPosition(src)
+                AppViewModel.instance.restoreLastPlayingPosition(src)
 //                AppViewModel.logger.debug("list.count=${src.list.size}")
 //                val pos = getPlayPositionInfo(src.list)
 //                src.setCurrentSource(pos.index, pos.position)
@@ -178,7 +178,7 @@ class MainViewModel : ViewModel() {
         }
 
         appViewModel.videoListSource = VideoListSource(list, lastUpdate).apply {
-            AppViewModel.instance.resumePlayingPosition(this)
+            AppViewModel.instance.restoreLastPlayingPosition(this)
 //            setCurrentSource(pos.index, pos.position)
         }
     }
@@ -186,7 +186,7 @@ class MainViewModel : ViewModel() {
     fun refreshVideoList(manualRefresh:Boolean) {
         if (manualRefresh) {
             // 手動更新の場合は、再生位置を保存しておく
-            appViewModel.storePlayingInfo(false)
+            appViewModel.storeCurrentPlayingInfo(false)
         }
         if(AppViewModel.instance.offlineMode) {
             refreshVideoListFromLocal()
