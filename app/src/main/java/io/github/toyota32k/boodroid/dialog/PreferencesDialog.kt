@@ -4,13 +4,10 @@ import android.os.Bundle
 import android.view.View
 import io.github.toyota32k.binder.checkBinding
 import io.github.toyota32k.binder.editIntBinding
-import io.github.toyota32k.binder.editTextBinding
 import io.github.toyota32k.binder.exposedDropdownMenuBinding
 import io.github.toyota32k.boodroid.MainActivity
-import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.common.PackageUtil
 import io.github.toyota32k.boodroid.data.Settings
-import io.github.toyota32k.boodroid.data.ThemeSelector
 import io.github.toyota32k.boodroid.databinding.DialogPreferencesBinding
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.dialog.UtDialogEx
@@ -19,12 +16,17 @@ import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.application
 import io.github.toyota32k.dialog.task.createViewModel
 import io.github.toyota32k.dialog.task.getViewModel
+import io.github.toyota32k.lib.themes.BuiltInThemeList
+import io.github.toyota32k.lib.themes.ContrastLevel
+import io.github.toyota32k.lib.themes.NightMode
+import io.github.toyota32k.lib.themes.ThemeDelegate
+import io.github.toyota32k.lib.themes.ThemeDelegate.ApplyMode
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class PreferencesDialog : UtDialogEx() {
     class PreferencesViewModel : UtDialogViewModel() {
         val dayNightMode = MutableStateFlow(AppViewModel.instance.settings.nightMode)
-        val themeInfo = MutableStateFlow(AppViewModel.instance.settings.themeInfo)
+        val themeData = MutableStateFlow(AppViewModel.instance.settings.themeData)
         val contrastLevel = MutableStateFlow(AppViewModel.instance.settings.contrastLevel)
         val showTitleOnScreen = MutableStateFlow(AppViewModel.instance.settings.showTitleOnScreen)
         val loopPlayback = MutableStateFlow(AppViewModel.instance.settings.loopPlayback)
@@ -33,7 +35,7 @@ class PreferencesDialog : UtDialogEx() {
         fun save() {
             Settings(AppViewModel.instance.settings,
                 nightMode = dayNightMode.value,
-                themeInfo = themeInfo.value,
+                themeData = themeData.value,
                 contrastLevel = contrastLevel.value,
                 showTitleOnScreen = showTitleOnScreen.value,
                 slideInterval = slideInterval.value)
@@ -57,9 +59,9 @@ class PreferencesDialog : UtDialogEx() {
     override fun createBodyView(savedInstanceState: Bundle?, inflater: IViewInflater): View {
         controls = DialogPreferencesBinding.inflate(inflater.layoutInflater)
         binder
-            .exposedDropdownMenuBinding(controls.dayNightDropdown, viewModel.dayNightMode, ThemeSelector.NightMode.entries)
-            .exposedDropdownMenuBinding(controls.colorContrastDropdown, viewModel.contrastLevel, ThemeSelector.ContrastLevel.entries)
-            .exposedDropdownMenuBinding(controls.themeDropdown, viewModel.themeInfo, Settings.ThemeList.themes) { toLabel { it.label } }
+            .exposedDropdownMenuBinding(controls.dayNightDropdown, viewModel.dayNightMode, NightMode.entries)
+            .exposedDropdownMenuBinding(controls.colorContrastDropdown, viewModel.contrastLevel, ContrastLevel.entries)
+            .exposedDropdownMenuBinding(controls.themeDropdown, viewModel.themeData, BuiltInThemeList.themes) { toLabel { it.label } }
             .checkBinding(controls.showTitleCheckbox, viewModel.showTitleOnScreen)
             .editIntBinding(controls.slideIntervalInput, viewModel.slideInterval)
         return controls.root
@@ -78,12 +80,7 @@ class PreferencesDialog : UtDialogEx() {
                     withOwner {
                         val activity = it.asActivity() as? MainActivity ?: return@withOwner
                         val settings = AppViewModel.instance.settings
-                        if (ThemeSelector.defaultInstance.isThemeChanged(settings.themeInfo,settings.contrastLevel)) {
-                            activity.restartActivityToUpdateTheme()
-                            activity.finish()
-                        } else {
-                            ThemeSelector.defaultInstance.applyNightMode(settings.nightMode)
-                        }
+                        ThemeDelegate.defaultDelegate.applyTheme(activity, settings.themeData, settings.contrastLevel, settings.nightMode, ApplyMode.RECREATE)
                     }
                 }
             }
