@@ -58,6 +58,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 
 class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     override val logger = UtLog("Main", BooApplication.logger)
@@ -135,6 +136,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             .multiVisibilityBinding(arrayOf(panel.onlineButton,panel.selectButton), appViewModel.offlineModeFlow)
             .visibilityBinding(controls.titleText, appViewModel.showTitleOnScreen)
             .textBinding(controls.titleText, playerModel.currentSource.map { it?.name ?: ""})
+            .visibilityBinding(controls.privacyGuard, viewModel.privacyGuard)
 
         controls.videoViewer.bindViewModel(controlPanelModel, binder)
 
@@ -195,12 +197,12 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             }
     }
 
-    private var updatingTheme:Boolean = false
-    fun restartActivityToUpdateTheme() {
-        updatingTheme = true
-        finish()
-        startActivity(Intent(this, MainActivity::class.java))
-    }
+//    private var updatingTheme:Boolean = false
+//    fun restartActivityToUpdateTheme() {
+//        updatingTheme = true
+//        finish()
+//        startActivity(Intent(this, MainActivity::class.java))
+//    }
 
     private val mediaSession by lazy { MediaSession(this, "Boo") }
     private val compatBackKeyDispatcher = CompatBackKeyDispatcher()
@@ -217,7 +219,6 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
                     window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
                 }
             }
-            true
         }
     }
 
@@ -361,7 +362,6 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     }
 
 
-    @Suppress("SpellCheckingInspection")
     private fun isAcceptableUrl(url:String?):Boolean {
         if(url==null) return false
         if(!url.startsWith("https://")) return false
@@ -449,20 +449,23 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        logger.debug()
-    }
-
+    private var mPlayingOnPause = false
     override fun onResume() {
         super.onResume()
         logger.debug()
         keepScreenOn(true)
-    }
-
-    override fun onRestart() {
-        super.onRestart()
-        logger.debug()
+        if (appViewModel.needAuth) {
+            // セキュアなサーバーの場合は必ず認証する
+            lifecycleScope.launch {
+                if (appViewModel.authentication.authentication(true)) {
+                    if (mPlayingOnPause) {
+                        // onPauseで再生を止めた場合再生を再開
+                        mPlayingOnPause = false
+                        viewModel.playerModel.play()
+                    }
+                }
+            }
+        }
     }
 
     override fun onPause() {
@@ -470,7 +473,27 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         logger.debug()
         keepScreenOn(false)
         appViewModel.storeCurrentPlayingInfo(false)
+        mPlayingOnPause = false
+        if (appViewModel.needAuth) {
+            appViewModel.authentication.reset()
+            mPlayingOnPause = viewModel.playerModel.isPlaying.value
+            if (mPlayingOnPause) {
+                // セキュアなサーバーの場合は再生を止める
+                viewModel.playerModel.pause()
+            }
+        }
     }
+
+    override fun onStart() {
+        super.onStart()
+        logger.debug()
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        logger.debug()
+    }
+
 
     override fun onStop() {
         super.onStop()
@@ -565,10 +588,10 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
 //                val pos = playerModel.playerSeekPosition.value
 //                LastPlayInfo.set(BooApplication.instance.applicationContext, current.id, pos, true)
 //            }
-            if(!updatingTheme) {
-                logger.debug("activity finishing")
-                stopPlayerService()
-            }
+//            if(!updatingTheme) {
+//                logger.debug("activity finishing")
+//                stopPlayerService()
+//            }
         }
 
         // ヘッドセットからのボタンイベント監視を終了
@@ -584,8 +607,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
             if(showYesNoMessageBox("BooDroid", "Finish BooDroid")) {
                 stopPlayerService()
                 finishAndRemoveTask()
-                true
-            } else false
+            }
         }
     }
 

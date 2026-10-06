@@ -51,6 +51,13 @@
                 android:visibility="gone"
                 tools:text="あいうえお"
                 />
+            <View
+                android:id="@+id/privacy_guard"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/colorSurface"
+                android:visibility="gone"
+                />
         </FrameLayout>
 
     </LinearLayout>

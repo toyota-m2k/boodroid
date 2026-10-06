@@ -22,6 +22,7 @@ import io.github.toyota32k.logger.UtLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -46,6 +47,9 @@ class MainViewModel : ViewModel() {
 //    val syncCommandAvailable = appViewModel.capability.map { it.hasView }       // ヘッドレスサーバーに対しては、このコマンドは無意味
     val offlineModeAvailable = appViewModel.capability.map { !it.needAuth }     // 認証を要求するサーバーではオフラインモードは使えない
 
+    val privacyGuard = combine(appViewModel.authentication.authenticated, appViewModel.capability) { auth, cap->
+        !auth && cap.needAuth
+    }
 
     private var prepared = false
     private val disposer = Binder()

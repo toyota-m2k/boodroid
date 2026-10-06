@@ -1,7 +1,11 @@
 package io.github.toyota32k.boodroid.dialog
 
+import android.content.Context
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.View
+import androidx.annotation.AttrRes
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
 import io.github.toyota32k.binder.BoolConvert
 import io.github.toyota32k.binder.VisibilityBinding
@@ -15,6 +19,7 @@ import io.github.toyota32k.binder.visibilityBinding
 import io.github.toyota32k.boodroid.R
 import io.github.toyota32k.boodroid.auth.Authentication
 import io.github.toyota32k.boodroid.databinding.DialogPasswordBinding
+import io.github.toyota32k.dialog.UtDialog
 import io.github.toyota32k.dialog.UtDialogEx
 import io.github.toyota32k.dialog.task.UtDialogViewModel
 import io.github.toyota32k.dialog.task.getViewModel
@@ -60,6 +65,21 @@ class PasswordDialog : UtDialogEx() {
 //        }
     }
 
+//    private fun Context.resolveThemeColor(@AttrRes attr: Int): Int {
+//        val typedValue = TypedValue()
+//        val found = theme.resolveAttribute(attr, typedValue, true)
+//        if (!found) {
+//            logger.error("no attribute: $attr")
+//            return 0
+//        }
+//
+//        return if (typedValue.resourceId != 0) {
+//            ContextCompat.getColor(this, typedValue.resourceId)
+//        } else {
+//            typedValue.data
+//        }
+//    }
+
     override fun preCreateBodyView() {
         leftButtonType = ButtonType.CANCEL
         rightButtonType = ButtonType.DONE
@@ -67,6 +87,7 @@ class PasswordDialog : UtDialogEx() {
         gravityOption = GravityOption.CENTER
         widthOption = WidthOption.LIMIT(400)
         heightOption = HeightOption.COMPACT
+        guardColor = GuardColor.THEME_DIM //CUSTOM(requireContext().resolveThemeColor(com.google.android.material.R.attr.colorSurface))
         enableFocusManagement()
             .setInitialFocus(R.id.password)
             .register(R.id.password)

@@ -77,7 +77,7 @@ interface IURLResolver {
 
 class AppViewModel: ViewModel(), IUtPropertyHost {
     companion object {
-        val logger = UtLog("AVP", BooApplication.logger)
+        val logger = UtLog("Boo", BooApplication.logger)
         val instance: AppViewModel
             get() = ViewModelProvider(BooApplication.instance, ViewModelProvider.NewInstanceFactory())[AppViewModel::class.java].prepare()
         val url: IURLResolver

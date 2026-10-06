@@ -8,6 +8,7 @@ import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
@@ -23,10 +24,13 @@ class Authentication {
         private set
     var challenge:String? = null
         private set
+    val authenticated = MutableStateFlow(false)
+
 
     fun reset() {
         authToken = null
         challenge = null
+        authenticated.value = false
     }
 
     private fun challengeFromResponse(res: Response):String {
@@ -74,6 +78,7 @@ class Authentication {
             if(res.code==200) {
                 // OK
                 authTokenFromResponse(res)
+                authenticated.value = true
                 true
             } else {
                 val c = challengeFromResponse(res)
