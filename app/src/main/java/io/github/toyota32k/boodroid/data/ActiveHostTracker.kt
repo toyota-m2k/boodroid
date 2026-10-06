@@ -83,7 +83,7 @@ object ActiveHostTracker {
         val idx = newList.indexOfFirst { it.address == updated.address }
         val newSettings = Settings(cur, hostList = newList, activeHostIndex = idx)
         try {
-            newSettings.save(BooApplication.instance.applicationContext)
+            newSettings.save(BooApplication.instance.applicationContext, needRefresh = true)
             logger.debug("Active host auto-refreshed: ${active.address} -> $newAddr (svc=$svc)")
         } catch (e: Throwable) {
             logger.stackTrace(e, "Failed to persist auto-refreshed active host")

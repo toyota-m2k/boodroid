@@ -39,7 +39,7 @@ class PreferencesDialog : UtDialogEx() {
                 contrastLevel = contrastLevel.value,
                 showTitleOnScreen = showTitleOnScreen.value,
                 slideInterval = slideInterval.value)
-            .save(application)
+            .save(application, needRefresh = false)
         }
     }
     private val viewModel by lazy { getViewModel<PreferencesViewModel>() }

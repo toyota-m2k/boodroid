@@ -48,10 +48,7 @@ object NetClient {
             // 接続段階のネットワークエラーで、active host が mDNS 由来ならば、現在 IP を再解決して
             // 1 度だけリトライする。これで「BooTube 起動中に PC の IP が変わった」シナリオを救う。
             if (!isReResolvableFailure(e)) throw e
-            val rebuilt = tryRebuildWithFreshAddress(req)
-            if (rebuilt == null) {
-                throw e
-            }
+            val rebuilt = tryRebuildWithFreshAddress(req) ?: throw e
             logger.warn("Connection failed (${e.javaClass.simpleName}); retrying with refreshed address ${rebuilt.url}")
             client.newCall(rebuilt).executeAsync()
         }
@@ -84,10 +81,13 @@ object NetClient {
             isHttps = resolved.isHttps || active.isHttps,
             hostname = resolved.hostname ?: active.hostname,
         )
+        if (active.address!=updated.address) {
+            PlayInfoOnHost.updateAddress(active.address, updated.address)
+        }
         val newList = cur.hostList.map { if (it.address == active.address) updated else it }
         val idx = newList.indexOfFirst { it.address == updated.address }
         val newSettings = Settings(cur, hostList = newList, activeHostIndex = idx)
-        newSettings.save(ctx)
+        newSettings.save(ctx, needRefresh = true)
 
         val newUrl = req.url.newBuilder()
             .host(resolved.host)

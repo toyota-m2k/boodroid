@@ -110,7 +110,7 @@ class Settings(
         return "${scheme}://${hostAddress}${restCommandBase}"
     }
 
-    fun save(context: Context) {
+    fun save(context: Context, needRefresh:Boolean) {
         val pref = PreferenceManager.getDefaultSharedPreferences(context) ?: throw IllegalStateException("no preference manager.")
         pref.edit {
             putInt(KEY_ACTIVE_HOST_INDEX, activeHostIndex)
@@ -127,7 +127,7 @@ class Settings(
             putString(KEY_CONTRAST_LEVEL, contrastLevel.name)
             putString(KEY_NIGHT_MODE, nightMode.name)
         }
-        AppViewModel.instance.settings = this
+        AppViewModel.instance.changeSettings(this, needRefresh)
     }
 
     fun applyTheme(activity: FragmentActivity) {
