@@ -456,13 +456,11 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         keepScreenOn(true)
         if (appViewModel.needAuth) {
             // セキュアなサーバーの場合は必ず認証する
-            lifecycleScope.launch {
-                if (appViewModel.authentication.authentication(true)) {
-                    if (mPlayingOnPause) {
-                        // onPauseで再生を止めた場合再生を再開
-                        mPlayingOnPause = false
-                        viewModel.playerModel.play()
-                    }
+            appViewModel.authentication.withAuth(force=true) {
+                if (mPlayingOnPause) {
+                    // onPauseで再生を止めた場合再生を再開
+                    mPlayingOnPause = false
+                    viewModel.playerModel.play()
                 }
             }
         }

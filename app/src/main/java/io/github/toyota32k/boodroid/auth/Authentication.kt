@@ -7,8 +7,12 @@ import io.github.toyota32k.boodroid.dialog.PasswordDialog
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.dialog.task.UtImmortalTask
 import io.github.toyota32k.dialog.task.createViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
@@ -117,6 +121,22 @@ class Authentication {
         return UtImmortalTask.awaitTaskResultCatching("auth", false) {
             createViewModel<PasswordDialog.PasswordViewModel> { authentication = this@Authentication }
             showDialog(taskName) { PasswordDialog() }.status.ok
+        }
+    }
+
+    private val mutex = Mutex()
+    private val scope by lazy { CoroutineScope(Dispatchers.Main) }
+    fun withAuth(force:Boolean=false, fn: ()->Unit) {
+        if(!AppViewModel.instance.needAuth) {
+            fn()
+            return
+        }
+        scope.launch {
+            mutex.withLock {
+                if (authentication(force)) {
+                    fn()
+                }
+            }
         }
     }
 }
