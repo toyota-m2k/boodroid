@@ -364,7 +364,7 @@ class WallpaperActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
         }
     }
 
-    override val logger = UtLog("WP")
+    override val logger = UtLog("WP", BooApplication.logger)
 
 //    fun getScreenSize(): Point {
 //        val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager

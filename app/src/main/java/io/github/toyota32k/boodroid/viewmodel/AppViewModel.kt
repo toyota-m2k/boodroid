@@ -77,7 +77,7 @@ interface IURLResolver {
 
 class AppViewModel: ViewModel(), IUtPropertyHost {
     companion object {
-        val logger = UtLog("AVP", BooApplication.logger)
+        val logger = UtLog("Boo", BooApplication.logger)
         val instance: AppViewModel
             get() = ViewModelProvider(BooApplication.instance, ViewModelProvider.NewInstanceFactory())[AppViewModel::class.java].prepare()
         val url: IURLResolver
@@ -95,6 +95,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         controlPanelModelSource.withModel {
             // 認証が必要な秘密のファイルは保存を禁止する
             it.permitSnapshot(!cap.needAuth)
+            it.permitPinP(!cap.needAuth)
         }
     }
 
@@ -340,9 +341,9 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
      * BooTube上で再生中の動画の情報を保存する。
      * @param   pause 保存前に再生中の動画を一時停止するかどうか
      */
-    fun storeCurrentPlayingInfo(pause:Boolean) {
+    fun storeCurrentPlayingInfo(pause:Boolean):Boolean {
         val address = if (settings.offlineMode) "#" else settings.hostAddress
-        if (address!=null) {
+        return if (address!=null) {
             controlPanelModelSource.withModel {
                 val current = it.playerModel.currentSource.value
                 if (current != null) {
@@ -352,9 +353,10 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                     }
                     val pos = it.playerModel.playerSeekPosition.value
                     PlayInfoOnHost.set(address, current.id, pos, isPlaying)
-                }
+                    isPlaying
+                } else false
             }
-        }
+        } else false
     }
 
     fun restoreLastPlayingPosition(source:VideoListSource) {
@@ -375,9 +377,16 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
      */
     val hostSettingsCommand = LiteUnitCommand {
         UtImmortalTask.launchTask("settings") {
-            storeCurrentPlayingInfo(pause=true)
+            val playing = storeCurrentPlayingInfo(pause=true)
             createViewModel<HostSettingsViewModel> { prepare() }
-            showDialog(taskName) { HostSettingsDialog() }
+            if (!showDialog(taskName) { HostSettingsDialog() }.status.ok) {
+                // ホスト選択がキャンセルされたときは、再生状態を復元する
+                if (playing) {
+                    controlPanelModelSource.withModel {
+                        it.playerModel.play()
+                    }
+                }
+            }
         }
     }
 
@@ -398,7 +407,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
      * 環境設定
      */
     var settings: Settings = Settings.load(BooApplication.instance)
-        set(v) {
+        private set(v) {
             val o = field
             field = v
             val urlChanged = VideoItemFilter.urlWithQueryString(o,0,null) != VideoItemFilter.urlWithQueryString(v, 0, null)
@@ -409,8 +418,14 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
             controlPanelModelSource.withModel { vm->
                 vm.playerModel.enablePhotoViewer(true, v.slideInterval.seconds, photoSizeOption = PhotoSizeOption.LimitByScreen)
             }
+        }
+
+    fun changeSettings(settings:Settings, needRefresh:Boolean) {
+        this.settings = settings
+        if (needRefresh) {
             refreshCommand.invoke(false)
         }
+    }
 
     private val _defaultFingerprintSource = FingerprintSourceImpl { settings.hostList }
     private var _temporaryFingerprintSource: IFingerprintSource? = null
@@ -451,7 +466,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         if(settings.offlineMode != mode || settings.offlineFilter != filter || settings.preferAudioOnOfflineMode != preferAudio) {
             // モードが変更になった場合、Settings.save() --> AppViewModel#settings のセッターで refresh コマンドが呼ばれる
             AppViewModel.instance.storeCurrentPlayingInfo(false)
-            Settings(settings, offlineMode = mode, offlineFilter = filter, preferAudioOnOfflineMode = preferAudio).save(BooApplication.instance.applicationContext)
+            Settings(settings, offlineMode = mode, offlineFilter = filter, preferAudioOnOfflineMode = preferAudio).save(BooApplication.instance.applicationContext, needRefresh = true)
         } else if(mode && updateList) {
             // オフラインモードのまま変わらない場合、リストが更新された時は、明示的にrefreshする
             refreshCommand.invoke(false)

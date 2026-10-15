@@ -6,15 +6,11 @@ import io.github.toyota32k.lib.player.model.IChapter
 import io.github.toyota32k.lib.player.model.IMediaSource
 import io.github.toyota32k.lib.player.model.IMediaSourceWithChapter
 import io.github.toyota32k.lib.player.model.chapter.Chapter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import okhttp3.Request
 import org.json.JSONObject
-import java.util.concurrent.atomic.AtomicBoolean
 
 class VideoListSource(val list:List<IMediaSourceWithChapter>, val modifiedDate:Long) {
     suspend fun checkUpdate(date:Long) : Boolean {
@@ -41,26 +37,27 @@ class VideoListSource(val list:List<IMediaSourceWithChapter>, val modifiedDate:L
     }
     val currentSource : Flow<IMediaSource?> = currentSourceIndex.map { if(it<0||it>=list.size) null else list[it] }
 
-    private val authing = AtomicBoolean(false)
-    private fun auth() {
-        if(authing.getAndSet(true)) return
-        CoroutineScope(Dispatchers.IO).launch {
-            AppViewModel.instance.authentication.authentication(false)
-            authing.set(false)
-        }
-    }
+//    private val authing = AtomicBoolean(false)
+//    private fun auth() {
+//        if(authing.getAndSet(true)) return
+//        CoroutineScope(Dispatchers.IO).launch {
+//            AppViewModel.instance.authentication.authentication(false)
+//            authing.set(false)
+//        }
+//    }
 
     fun setCurrentSource(index:Int, pos:Long=0L) {
         if(list.isEmpty()) {
             currentSourceIndex.value = -1
             return
         }
-        auth()
-        if (0<=index && index<list.size) {
-            list[index].startPosition.set(pos)
-            currentSourceIndex.value = index
-        } else {
-            currentSourceIndex.value = 0
+        AppViewModel.instance.authentication.withAuth {
+            if (0 <= index && index < list.size) {
+                list[index].startPosition.set(pos)
+                currentSourceIndex.value = index
+            } else {
+                currentSourceIndex.value = 0
+            }
         }
     }
     fun setCurrentSource(item:IMediaSourceWithChapter, pos:Long=0L) {
@@ -68,22 +65,22 @@ class VideoListSource(val list:List<IMediaSourceWithChapter>, val modifiedDate:L
     }
 
     fun next() {
-        if(currentSourceIndex.value<list.size-1) {
-            auth()
-            currentSourceIndex.value++
-        } else if (AppViewModel.instance.settings.loopPlayback && currentSourceIndex.value!=0) {
-            auth()
-            currentSourceIndex.value = 0
+        AppViewModel.instance.authentication.withAuth {
+            if (currentSourceIndex.value < list.size - 1) {
+                currentSourceIndex.value++
+            } else if (AppViewModel.instance.settings.loopPlayback && currentSourceIndex.value != 0) {
+                currentSourceIndex.value = 0
+            }
         }
     }
 
     fun previous() {
-        if(currentSourceIndex.value>0) {
-            auth()
-            currentSourceIndex.value--
-        } else if (AppViewModel.instance.settings.loopPlayback && currentSourceIndex.value!=list.size-1) {
-            auth()
-            currentSourceIndex.value = list.size-1
+        AppViewModel.instance.authentication.withAuth {
+            if (currentSourceIndex.value > 0) {
+                currentSourceIndex.value--
+            } else if (AppViewModel.instance.settings.loopPlayback && currentSourceIndex.value != list.size - 1) {
+                currentSourceIndex.value = list.size - 1
+            }
         }
     }
 
@@ -125,7 +122,5 @@ class VideoListSource(val list:List<IMediaSourceWithChapter>, val modifiedDate:L
                 return null
             }
         }
-
-
     }
 }

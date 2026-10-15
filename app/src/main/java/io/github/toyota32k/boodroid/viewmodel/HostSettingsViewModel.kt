@@ -332,7 +332,7 @@ class HostSettingsViewModel : UtDialogViewModel() {
 
     private fun save(): Boolean {
         val s = settings
-        s.save(context)
+        s.save(context, needRefresh = true)
         return true
     }
 

@@ -10,11 +10,12 @@ import android.graphics.drawable.shapes.PathShape
 import androidx.annotation.ColorInt
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
+import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.android.dp2px
 
 object PathUtil {
-    val logger = UtLog("PathUtil")
+    val logger = UtLog("PathUtil", BooApplication.logger)
 
     /**
      * Path文字列からDrawableを作る。

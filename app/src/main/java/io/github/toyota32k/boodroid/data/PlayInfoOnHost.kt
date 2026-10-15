@@ -21,6 +21,13 @@ data class PlayInfoOnHost(val address:String/*key*/, val id:String, val position
             val isPlaying = pref.getBoolean("${address}_playing", true)
             return PlayInfoOnHost(address, id, position, isPlaying)
         }
+        fun updateAddress(oldAddress:String, newAddress:String) {
+            if (oldAddress == newAddress) return
+            val prev = get(oldAddress) ?: return
+            val next = prev.copy(address = newAddress)
+            set(next.address, next.id, next.position, next.isPlaying)
+            remove(oldAddress)
+        }
 
         fun remove(address:String) {
             val pref = BooApplication.instance.applicationContext.getSharedPreferences("playInfoOnHost", 0)
