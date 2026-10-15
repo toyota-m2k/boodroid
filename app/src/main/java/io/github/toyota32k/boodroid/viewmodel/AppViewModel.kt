@@ -95,6 +95,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         controlPanelModelSource.withModel {
             // 認証が必要な秘密のファイルは保存を禁止する
             it.permitSnapshot(!cap.needAuth)
+            it.permitPinP(!cap.needAuth)
         }
     }
 

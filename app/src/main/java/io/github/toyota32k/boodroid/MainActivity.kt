@@ -521,6 +521,7 @@ class MainActivity : UtMortalActivity(), IUtActivityBrokerStoreProvider {
     private fun layoutForPinP() {
 //        appViewModel.keepAlive(true)
         logger.debug()
+        if (appViewModel.needAuth) return   // 認証ができないので PinPは禁止
         controlPanelModel.showControlPanel.value = false
         enterPinP()
    }
