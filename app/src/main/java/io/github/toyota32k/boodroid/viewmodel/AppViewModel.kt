@@ -39,6 +39,7 @@ import io.github.toyota32k.lib.player.model.IMediaSource
 import io.github.toyota32k.lib.player.model.IMediaSourceWithChapter
 import io.github.toyota32k.lib.player.model.PhotoSizeOption
 import io.github.toyota32k.lib.player.model.PlayerControllerModel
+import io.github.toyota32k.lib.player.model.StandardPhotoLoader
 import io.github.toyota32k.logger.UtLog
 import io.github.toyota32k.utils.IUtPropOwner
 import io.github.toyota32k.utils.UtResetableValue
@@ -301,6 +302,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                             .enableVolumeController(true)
                             .enablePhotoViewer(settings.slideInterval.seconds, photoSizeOption = PhotoSizeOption.LimitByScreen)
                             .enableRotateRight()
+                            .customPhotoLoader(StandardPhotoLoader(NetClient.HttpStreamProvider))   // OkHttpベースのPhotoLoader実装を利用
                             .build()
                     refCount = 0
                 }
