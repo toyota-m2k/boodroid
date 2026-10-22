@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import io.github.toyota32k.binder.command.LiteCommand
 import io.github.toyota32k.binder.command.LiteUnitCommand
@@ -38,6 +39,7 @@ import io.github.toyota32k.lib.player.model.IMediaFeed
 import io.github.toyota32k.lib.player.model.IMediaSource
 import io.github.toyota32k.lib.player.model.IMediaSourceWithChapter
 import io.github.toyota32k.lib.player.model.PhotoSizeOption
+import io.github.toyota32k.lib.player.model.PhotoViewerOption
 import io.github.toyota32k.lib.player.model.PlayerControllerModel
 import io.github.toyota32k.lib.player.model.StandardPhotoLoader
 import io.github.toyota32k.logger.UtLog
@@ -303,6 +305,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
                             .enablePhotoViewer(settings.slideInterval.seconds, photoSizeOption = PhotoSizeOption.LimitByScreen)
                             .enableRotateRight()
                             .customPhotoLoader(StandardPhotoLoader(NetClient.HttpStreamProvider))   // OkHttpベースのPhotoLoader実装を利用
+                            .itemErrorRecoveringHandler(::recoverItemError)
                             .build()
                     refCount = 0
                 }
@@ -418,7 +421,7 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
             }
             showTitleOnScreen.mutable.value = v.showTitleOnScreen
             controlPanelModelSource.withModel { vm->
-                vm.playerModel.enablePhotoViewer(true, v.slideInterval.seconds, photoSizeOption = PhotoSizeOption.LimitByScreen)
+                vm.playerModel.setPhotoViewerOption(PhotoViewerOption(isEnabled = true, slideShowDuration = v.slideInterval.seconds, sizeOption = PhotoSizeOption.LimitByScreen))
             }
         }
 
@@ -530,4 +533,16 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
     val urlResolver = URLResolver()
 
     // endregion
+
+    private suspend fun recoverItemError(e:Throwable, item: IMediaSource): IMediaSource? {
+        val cause = e.cause ?: return null
+        if (cause is HttpDataSource.InvalidResponseCodeException) {
+            if (cause.responseCode == 401) {
+                return item
+            }
+        }
+        return null
+    }
+
+
 }

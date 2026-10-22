@@ -51,13 +51,11 @@ class VideoListSource(val list:List<IMediaSourceWithChapter>, val modifiedDate:L
             currentSourceIndex.value = -1
             return
         }
-        AppViewModel.instance.authentication.withAuth {
-            if (0 <= index && index < list.size) {
-                list[index].startPosition.set(pos)
-                currentSourceIndex.value = index
-            } else {
-                currentSourceIndex.value = 0
-            }
+        if (0 <= index && index < list.size) {
+            list[index].startPosition.set(pos)
+            currentSourceIndex.value = index
+        } else {
+            currentSourceIndex.value = 0
         }
     }
     fun setCurrentSource(item:IMediaSourceWithChapter, pos:Long=0L) {
@@ -65,22 +63,18 @@ class VideoListSource(val list:List<IMediaSourceWithChapter>, val modifiedDate:L
     }
 
     fun next() {
-        AppViewModel.instance.authentication.withAuth {
-            if (currentSourceIndex.value < list.size - 1) {
-                currentSourceIndex.value++
-            } else if (AppViewModel.instance.settings.loopPlayback && currentSourceIndex.value != 0) {
-                currentSourceIndex.value = 0
-            }
+        if (currentSourceIndex.value < list.size - 1) {
+            currentSourceIndex.value++
+        } else if (AppViewModel.instance.settings.loopPlayback && currentSourceIndex.value != 0) {
+            currentSourceIndex.value = 0
         }
     }
 
     fun previous() {
-        AppViewModel.instance.authentication.withAuth {
-            if (currentSourceIndex.value > 0) {
-                currentSourceIndex.value--
-            } else if (AppViewModel.instance.settings.loopPlayback && currentSourceIndex.value != list.size - 1) {
-                currentSourceIndex.value = list.size - 1
-            }
+        if (currentSourceIndex.value > 0) {
+            currentSourceIndex.value--
+        } else if (AppViewModel.instance.settings.loopPlayback && currentSourceIndex.value != list.size - 1) {
+            currentSourceIndex.value = list.size - 1
         }
     }
 
@@ -104,7 +98,7 @@ class VideoListSource(val list:List<IMediaSourceWithChapter>, val modifiedDate:L
 
         suspend fun retrieve(date:Long=0L): VideoListSource? {
             if(!AppViewModel.instance.settings.isValid) return null
-            if(!AppViewModel.instance.authentication.authentication()) return null
+            if(!AppViewModel.instance.authentication.authenticate()) return null
             val url = AppViewModel.url.list(date)
             val req = Request.Builder()
                 .url(url)
