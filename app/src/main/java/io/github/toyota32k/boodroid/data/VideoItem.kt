@@ -4,6 +4,7 @@ import io.github.toyota32k.boodroid.viewmodel.AppViewModel
 import io.github.toyota32k.lib.player.model.IChapter
 import io.github.toyota32k.lib.player.model.IChapterList
 import io.github.toyota32k.lib.player.model.IMediaSource
+import io.github.toyota32k.lib.player.model.IMediaSourcePreparer
 import io.github.toyota32k.lib.player.model.IMediaSourceWithChapter
 import io.github.toyota32k.lib.player.model.IMutableChapterList
 import io.github.toyota32k.lib.player.model.Range
@@ -21,7 +22,7 @@ interface ISizedItem : IMediaSource {
 }
 
 class VideoItem private constructor (j: JSONObject, val chapterRetriever: (suspend (VideoItem) -> List<IChapter>)?, private val mutableChapterList: MutableChapterList)
-    : IMediaSourceWithChapter, ISizedItem {
+    : IMediaSourceWithChapter, ISizedItem, IMediaSourcePreparer {
     constructor(j: JSONObject, chapters: List<IChapter>) : this(j, null, MutableChapterList(chapters))
     constructor(j: JSONObject, chapterRetriever: suspend (VideoItem) -> List<IChapter>) : this(j, chapterRetriever, MutableChapterList())
 
@@ -49,6 +50,18 @@ class VideoItem private constructor (j: JSONObject, val chapterRetriever: (suspe
             chapterList = this
         }
     }
+
+    // region IMediaSourcePreparer
+    override suspend fun onSourceLoading(): Boolean {
+        if (!AppViewModel.instance.needAuth) return true
+
+        return AppViewModel.instance.authentication.authenticate(false)
+    }
+
+    override suspend fun onSourceLoaded() {
+        // nothing to do.
+    }
+    // endregion
 
     init {
         id = j.getString("id")

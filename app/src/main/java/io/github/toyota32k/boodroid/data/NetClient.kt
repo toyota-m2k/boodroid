@@ -2,11 +2,15 @@ package io.github.toyota32k.boodroid.data
 
 import io.github.toyota32k.boodroid.BooApplication
 import io.github.toyota32k.boodroid.viewmodel.AppViewModel
+import io.github.toyota32k.lib.player.model.IHttpStreamProvider
 import io.github.toyota32k.logger.UtLog
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.*
 import okhttp3.coroutines.executeAsync
 import org.json.JSONObject
 import java.io.IOException
+import java.io.InputStream
 import java.net.ConnectException
 import java.net.NoRouteToHostException
 import java.net.SocketTimeoutException
@@ -109,5 +113,41 @@ object NetClient {
             if (res.code != 200) throw IllegalStateException("Server Response Error (${res.code})")
             res.body.use { it.string() }
         }
+    }
+
+    /**
+     * OkHttpベースの IHttpStreamProvider（...defined in AMP）実装クラス
+     */
+    object HttpStreamProvider : IHttpStreamProvider {
+        var call:Call? = null
+        override suspend fun <T> withStream(
+            uri: String,
+            fn: suspend (InputStream) -> T?
+        ): T? = withContext(Dispatchers.IO) {
+            try {
+                val req = Request.Builder()
+                    .url(uri)
+                    .get()
+                    .build()
+                call = NetClient.client.newCall(req)
+                call?.executeAsync().use { res ->
+                    if (res?.isSuccessful != true) throw IllegalStateException("Server Response Error (${res?.code})")
+                    res.body.use { body->
+                        fn(body.byteStream())
+                    }
+                }
+            } catch(e: Throwable) {
+                logger.error(e)
+                null
+            } finally {
+                cancel()
+            }
+        }
+
+        override fun cancel() {
+            call?.cancel()
+            call = null
+        }
+
     }
 }

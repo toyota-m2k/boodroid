@@ -115,7 +115,7 @@ class Authentication {
 
     }
 
-    suspend fun authentication(force:Boolean=false):Boolean {
+    suspend fun authenticate(force:Boolean=false):Boolean {
         if(!AppViewModel.instance.needAuth) return true
         if(!force && checkAuthToken()) return true
         return UtImmortalTask.awaitTaskResultCatching("auth", false) {
@@ -133,7 +133,7 @@ class Authentication {
         }
         scope.launch {
             mutex.withLock {
-                if (authentication(force)) {
+                if (authenticate(force)) {
                     fn()
                 }
             }
