@@ -50,9 +50,9 @@ class RatingViewModel : UtDialogViewModel(), OfflineManager.IDownloadProgress {
         name.value = item.name
         hasError.value = false
         this.supportSyncItemSelection = AppViewModel.instance.supportSyncItemSelection
-        this.supportRating = AppViewModel.instance.supportRating
-        this.supportMark = AppViewModel.instance.supportMark
-        this.supportCategory = AppViewModel.instance.supportCategory
+        this.supportRating = AppViewModel.instance.capability.value.supportRating.writable
+        this.supportMark = AppViewModel.instance.capability.value.supportMark.writable
+        this.supportCategory = AppViewModel.instance.capability.value.supportCategory.writable
 
         scope.launch {
             try {

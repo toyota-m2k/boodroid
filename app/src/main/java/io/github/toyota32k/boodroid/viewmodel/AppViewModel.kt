@@ -104,12 +104,12 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
 
     val supportSyncItemSelection: Boolean
         get() = capability.value.hasView && !offlineMode
-    val supportRating: Boolean
-        get() = capability.value.hasRating
-    val supportCategory: Boolean
-        get() = capability.value.hasCategory
-    val supportMark: Boolean
-        get() = capability.value.hasMark
+//    val supportRating: Boolean
+//        get() = capability.value.hasRating
+//    val supportCategory: Boolean
+//        get() = capability.value.hasCategory
+//    val supportMark: Boolean
+//        get() = capability.value.hasMark
 
     private var prepared:Boolean = false
     private fun prepare():AppViewModel {
@@ -524,10 +524,10 @@ class AppViewModel: ViewModel(), IUtPropertyHost {
         override val current: String?
             get() = if(capability.value.hasView) "${baseUrl}current" else null
         override val reputation: String?
-            get() = if(capability.value.reputation>0) "${baseUrl}reputation" else null
+            get() = if(capability.value.canGetReputation) "${baseUrl}reputation" else null
 
         override fun reputation(id: String):String? {
-            return if(capability.value.reputation==2) "${baseUrl}reputation?id=$id" else null
+            return if(capability.value.canPutReputation) "${baseUrl}reputation?id=$id" else null
         }
     }
     val urlResolver = URLResolver()

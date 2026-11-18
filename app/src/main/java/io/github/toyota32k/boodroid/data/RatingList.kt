@@ -80,8 +80,8 @@ class RatingList(private val list: List<RatingInfo>, val default:Int) : List<Rat
             R.drawable.ic_good,
             R.drawable.ic_excellent,
         )
-        suspend fun getRatingList(capability: Capability):RatingList {
-            if (!capability.hasRating) {
+        suspend fun getRatingList(capability: ICapability):RatingList {
+            if (capability.supportRating== ReputationSupport.No) {
                 return emptyList
             }
 

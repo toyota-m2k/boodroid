@@ -86,9 +86,9 @@ class HostSettingsDialog : UtDialogEx() {
 //                .radioGroupBinding(colorVariationSelector, viewModel.colorVariation, ColorVariation.idResolver)
                 .textBinding(categoryButton, viewModel.category)
                 .visibilityBinding(emptyListMessage, viewModel.hostCount.map { it==0 }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
-                .multiVisibilityBinding(arrayOf(ratingSelector,ratingLabel), combine(viewModel.sourceType,viewModel.capability) { st,cap-> st == SourceType.DB && cap?.hasRating == true }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
-                .multiVisibilityBinding(arrayOf(markSelector,markLabel), combine(viewModel.sourceType, viewModel.capability) { st,cap->st == SourceType.DB && cap?.hasMark == true }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
-                .multiVisibilityBinding(arrayOf(categoryButton,categoryLabel), combine(viewModel.sourceType, viewModel.capability) {st,cap-> st == SourceType.DB && cap?.hasCategory == true}, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+                .multiVisibilityBinding(arrayOf(ratingSelector,ratingLabel), combine(viewModel.sourceType,viewModel.capability) { st,cap-> st == SourceType.DB && cap?.supportRating?.readable==true }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+                .multiVisibilityBinding(arrayOf(markSelector,markLabel), combine(viewModel.sourceType, viewModel.capability) { st,cap->st == SourceType.DB && cap?.supportMark?.readable==true }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
+                .multiVisibilityBinding(arrayOf(categoryButton,categoryLabel), combine(viewModel.sourceType, viewModel.capability) {st,cap-> st == SourceType.DB && cap?.supportCategory?.readable ==true }, hiddenMode = VisibilityBinding.HiddenMode.HideByGone)
                 .visibilityBinding(qrCode, ConstantLiveData(QRCodeDialog.hasCamera(context)))
                 .bindCommand(viewModel.commandAddToList, addToListButton)
                 .bindCommand(LiteUnitCommand(::pairingWithQRCode), qrCode)
@@ -151,7 +151,7 @@ class HostSettingsDialog : UtDialogEx() {
     private var listPopup: ListPopupWindow? = null
     private fun selectCategory() {
         val cap = viewModel.capability.value ?: return
-        if(!cap.hasCategory || cap.categoryList.size<=1) return
+        if(!cap.supportCategory.readable || cap.categoryList.size<=1) return
         val adapter = ArrayAdapter(context, R.layout.list_item_category, cap.categoryList.map {it.label})
         listPopup = ListPopupWindow(context)
             .apply {

@@ -5,40 +5,64 @@ import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.json.JSONObject
 
+enum class ReputationSupport(val intValue:Int) {
+    No(0),
+    ReadOnly(1),
+    ReadWrite(2),
+    ;
+    val readable: Boolean get() = intValue>0
+    val writable: Boolean get() = intValue>1
+
+    companion object {
+        fun fromValue(v:Int): ReputationSupport {
+            return entries.firstOrNull { it.intValue==v } ?: No
+        }
+    }
+}
+
 interface ICapability {
     val hostAddress:String
+    val httpsOnly: Boolean
     val baseUrl : String
 
     val serverName:String
     val version:Int                // protocol version
     val root:String
-    val hasCategory:Boolean
-    val hasRating:Boolean
-    val hasMark:Boolean
+    val supportCategory:ReputationSupport
+    val supportRating:ReputationSupport
+    val supportMark:ReputationSupport
     val hasChapter:Boolean
-    val reputation:Int          // 0:なし, 1:RO, 2:RW
+//    val reputation:Int          // 0:なし, 1:RO, 2:RW
     val diff:Boolean
     val sync:Boolean
     val acceptRequest:Boolean
     val hasView:Boolean
     val needAuth:Boolean
     val supportedTypes: String     // v/a/p
-    val canGetReputation:Boolean get() = reputation>0
-    val canPutReputation:Boolean get() = reputation>1
     val canExtractAudio:Boolean get() = supportedTypes.contains("x")
+
+    val canGetReputation:Boolean get() {
+        return arrayOf(supportCategory, supportRating, supportMark).any {it.intValue>0 }
+    }
+
+    val canPutReputation:Boolean get() {
+        return arrayOf(supportCategory, supportRating, supportMark).any {it.intValue>1 }
+    }
+
 }
+
 data class Capability(
     override val hostAddress: String,
     /** true なら baseUrl で https スキームを使う */
-    val httpsOnly: Boolean,
+    override val httpsOnly: Boolean,
     override val serverName:String,
     override val version:Int,                // protocol version
     override val root:String,
-    override val hasCategory:Boolean,
-    override val hasRating:Boolean,
-    override val hasMark:Boolean,
+    override val supportCategory: ReputationSupport,
+    override val supportRating: ReputationSupport,
+    override val supportMark: ReputationSupport,
     override val hasChapter:Boolean,
-    override val reputation:Int,
+//    override val reputation:Int,
     override val diff:Boolean,
     override val sync:Boolean,
     override val acceptRequest:Boolean,
@@ -46,39 +70,62 @@ data class Capability(
     override val needAuth:Boolean,
     override val supportedTypes: String
 ) : ICapability {
-    constructor(hostAddress:String, httpsOnly:Boolean, j:JSONObject) : this(
-        hostAddress,
-        httpsOnly = httpsOnly,
-        serverName = j.optString("serverName", "unknown"),
-        version = j.optInt("version", 0),
-        root = j.optString("root", "/ytplayer/"),
-        hasCategory = j.optBoolean("category", false),
-        hasRating = j.optBoolean("rating", false),
-        hasMark = j.optBoolean("mark", false),
-        hasChapter = j.optBoolean("chapter", false),
-        reputation = j.optInt("reputation", 0),
-        diff = j.optBoolean("diff", false),
-        sync = j.optBoolean("sync", false),
-        acceptRequest = j.optBoolean("acceptRequest", false),
-        hasView = j.optBoolean("hasView", false),
-        needAuth = j.optBoolean("authentication", false),
-        supportedTypes  = j.optString("types", "")
-    )
 
     override val baseUrl : String get() = "${if (httpsOnly) "https" else "http"}://${hostAddress}${root}"
 
     companion object {
+        fun fromJson(hostAddress:String, httpsOnly:Boolean, j:JSONObject): ICapability {
+            val version = j.optInt("version", 0)
+            return if (version == 3) {
+                Capability(
+                    hostAddress,
+                    httpsOnly = httpsOnly,
+                    serverName = j.optString("serverName", "unknown"),
+                    version = j.optInt("version", 0),
+                    root = j.optString("root", "/ytplayer/"),
+                    supportCategory = ReputationSupport.fromValue(j.optInt("category", 0)),
+                    supportRating = ReputationSupport.fromValue(j.optInt("rating", 0)),
+                    supportMark = ReputationSupport.fromValue(j.optInt("mark", 0)),
+                    hasChapter = j.optBoolean("chapter", false),
+                    diff = j.optBoolean("diff", false),
+                    sync = j.optBoolean("sync", false),
+                    acceptRequest = j.optBoolean("acceptRequest", false),
+                    hasView = j.optBoolean("hasView", false),
+                    needAuth = j.optBoolean("authentication", false),
+                    supportedTypes  = j.optString("types", "")
+                )
+            } else {
+                val reputation = j.optInt("reputation", 0)
+                Capability(
+                    hostAddress,
+                    httpsOnly = httpsOnly,
+                    serverName = j.optString("serverName", "unknown"),
+                    version = j.optInt("version", 0),
+                    root = j.optString("root", "/ytplayer/"),
+                    supportCategory = ReputationSupport.fromValue(reputation),
+                    supportRating = ReputationSupport.fromValue(reputation),
+                    supportMark = ReputationSupport.fromValue(reputation),
+                    hasChapter = j.optBoolean("chapter", false),
+                    diff = j.optBoolean("diff", false),
+                    sync = j.optBoolean("sync", false),
+                    acceptRequest = j.optBoolean("acceptRequest", false),
+                    hasView = j.optBoolean("hasView", false),
+                    needAuth = j.optBoolean("authentication", false),
+                    supportedTypes = j.optString("types", "")
+                )
+            }
+        }
+
         val empty = Capability(
             hostAddress = "",
             httpsOnly = false,
             serverName = "unknown",
             version = 0,
             root = "/",
-            hasCategory = false,
-            hasRating = false,
-            hasMark = false,
+            supportCategory = ReputationSupport.No,
+            supportRating = ReputationSupport.No,
+            supportMark = ReputationSupport.No,
             hasChapter = false,
-            reputation = 0,
             diff = false,
             sync = false,
             acceptRequest = false,
@@ -86,16 +133,16 @@ data class Capability(
             needAuth = false,
             supportedTypes = "va"
         )
-        suspend fun get(hostAddress: String, httpsOnly: Boolean = false):Capability? {
+        suspend fun get(hostAddress: String, httpsOnly: Boolean = false):ICapability? {
             return withContext(Dispatchers.IO) {
                 val scheme = if (httpsOnly) "https" else "http"
-                val url = "${scheme}://${hostAddress}/capability"
+                val url = "${scheme}://${hostAddress}/capability?v=3"
                 val req = Request.Builder()
                     .url(url)
                     .get()
                     .build()
                 try {
-                    Capability(hostAddress, httpsOnly, NetClient.executeAndGetJsonAsync(req))
+                    Capability.fromJson(hostAddress, httpsOnly, NetClient.executeAndGetJsonAsync(req))
                 } catch (e: Throwable) {
                     NetClient.logger.stackTrace(e)
                     null
@@ -105,7 +152,7 @@ data class Capability(
     }
 }
 
-data class ServerCapability(private val capability: Capability, val categoryList: CategoryList, val markList:MarkList, val ratingList:RatingList) : ICapability by capability {
+data class ServerCapability(private val capability: ICapability, val categoryList: CategoryList, val markList:MarkList, val ratingList:RatingList) : ICapability by capability {
     companion object {
         val empty:ServerCapability = ServerCapability(Capability.empty, CategoryList.emptyList, MarkList.emptyList, RatingList.emptyList)
         suspend fun get(hostAddress:String?, httpsOnly: Boolean = false): ServerCapability? {

@@ -35,8 +35,8 @@ class CategoryList(private val list:List<CategoryInfo>, val unchecked:String) : 
 
     companion object {
         val emptyList = CategoryList(listOf(CategoryInfo.all), "")
-        suspend fun getCategoryList(capability: Capability): CategoryList {
-            if (!capability.hasCategory) {
+        suspend fun getCategoryList(capability: ICapability): CategoryList {
+            if (capability.supportCategory== ReputationSupport.No) {
                 return emptyList
             }
 

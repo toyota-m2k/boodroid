@@ -58,8 +58,8 @@ class MarkList(private val list:List<MarkInfo>) : List<MarkInfo> by list {
             R.drawable.ic_heart,
         )
 
-        suspend fun getMarkList(capability: Capability): MarkList {
-            if (!capability.hasMark) {
+        suspend fun getMarkList(capability: ICapability): MarkList {
+            if (capability.supportMark== ReputationSupport.No) {
                 return emptyList
             }
 
